@@ -32,8 +32,10 @@ go get github.com/azorg/xlog
   x.Notice("Tinted logger x.Notice()")
   x.Warn("Tinted logger x.Warn()")
   x.Error("Tinted logger x.Error()", Err(err))
+	
+  sl := x.Slog() // *slog.Logger may used too
+  sl.Info("Tinted logger is *slog.Logger sl.Info()", "str", "some string")
 ```
 
 Look `xlog_test.go` for more examples.
-
 
