@@ -1,0 +1,24 @@
+2023.11.25:
+ * check TimeUS in ReplaceAttr() for Text/JSON handler
+ * pull to github
+
+2023.11.24:
+ * add "flag.go"
+
+2023.11.22-23:
+ * add "buffer.go" from "github.com/lmittmann/tint" sources 
+ * add "tint.go" based on "github.com/lmittmann/tint" sources (experimental)
+ * update "level.go" (xlog.Level implements slog.Lever intrerface now)
+ * add "color.go"
+ * add Current() and Slog() functions to "xlog.go"
+
+2023.11.17:
+ * deleted some functions like SLog(), SInfo() SDebugf() etc
+ * deleted "sugar.go"
+ * update "level.go"
+
+2023.11.12:
+ * add "silent" log level
+
+2023.11.11:
+ * first version based on old sources (log.go)
