@@ -12,6 +12,7 @@ type Opt struct {
 	TLog    bool   // use tinted (colorized) logger (tint)
 	LogSrc  bool   // force log source file name and line number
 	LogTime bool   // force add time to log
+	LogTFmt string // log time format
 }
 
 // Setup command line logger options
@@ -31,6 +32,7 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.TLog, "tlog", false, "Use tinted (colorized) logger (tint)")
 	flag.BoolVar(&opt.LogSrc, "lsrc", false, "Force log source file name and line number")
 	flag.BoolVar(&opt.LogTime, "ltime", false, "Force add time to log")
+	flag.StringVar(&opt.LogTFmt, "ltimefmt", "", "Override log time format (e.g. 15:04:05.999)")
 	return opt
 }
 
@@ -53,6 +55,9 @@ func AddOpt(opt *Opt, conf *Conf) {
 	}
 	if opt.LogTime {
 		conf.Time = true
+	}
+	if opt.LogTFmt != "" {
+		conf.TimeTint = opt.LogTFmt
 	}
 }
 
