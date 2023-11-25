@@ -57,6 +57,7 @@ func AddOpt(opt *Opt, conf *Conf) {
 		conf.Time = true
 	}
 	if opt.LogTFmt != "" {
+		conf.Time = true
 		conf.TimeTint = opt.LogTFmt
 	}
 }
