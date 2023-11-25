@@ -1,11 +1,11 @@
-`xlog` - yet another "log/slog"  backend/frontend wrappers and tinded 🌈 `slog.Handler`
+`xlog` - yet another "log/slog"  backend/frontend wrappers and tinted 🌈 `slog.Handler`
 =======================================================================================
 
 Package `xlog` implements some wrappers to work with structured logger
 [`slog`](https://pkg.go.dev/log/slog) and classic simple logger
 [`log`](https://pkg.go.dev/log) too.
 
-Code of TintHandler based on [`tint`](https://github.com/lmittmann/tint).
+Code of xlog.TintHandler based on [`tint`](https://github.com/lmittmann/tint).
 
 ```
 go get github.com/azorg/xlog
