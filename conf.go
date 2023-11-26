@@ -11,10 +11,10 @@ type Conf struct {
 	JSON     bool   `json:"json"`      // use JSON log (slog.JSONHandler)
 	Tint     bool   `json:"tint"`      // use tinted (colorized) log (xlog.TintHandler)
 	Time     bool   `json:"time"`      // add timestamp
-	TimeUS   bool   `json:"time-us"`   // us time stamp (only if Slog=false or Tint=true and TintTime="")
+	TimeUS   bool   `json:"time-us"`   // use timestamp in microseconds
 	TimeTint string `json:"time-tint"` // tinted log time format (like time.Kitchen, time.DateTime)
 	Src      bool   `json:"src"   `    // log file name and line number
-	SrcLong  bool   `json:"src-long"`  // log long file path
+	SrcLong  bool   `json:"src-long"`  // log long file path (derectory + file)
 	NoLevel  bool   `json:"no-level"`  // don't print log level tag to log (~level="INFO")
 	NoColor  bool   `json:"no-color"`  // disable tinted colors (only if Tint=true)
 	Prefix   string `json:"preifix"`   // add prefix to standart log (log=false)
