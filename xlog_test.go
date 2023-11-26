@@ -186,7 +186,7 @@ func TestTintHandler(t *testing.T) {
 	fmt.Println()
 }
 
-func TestSlotToXlog(t *testing.T) {
+func TestSlogToXlog(t *testing.T) {
 	fmt.Println(">>> Test Xlog <-> *slog.Logger")
 
 	s := NewSlog(Conf{Tint: true, Level: "trace"}) // *slog.Logger
