@@ -7,8 +7,10 @@ Package `xlog` implements some wrappers to work with structured logger
 
 Code of xlog.TintHandler based on [`tint`](https://github.com/lmittmann/tint).
 
+![Tinted xlog](https://github.com/azorg/xlog/blob/main/img/xlog-tinted.png "xlog-tinded.png")
+
 ```
-go get github.com/azorg/xlog
+go get github.com/azorg/xlog@main
 ```
 
 ## Usage

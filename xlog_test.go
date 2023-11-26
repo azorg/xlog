@@ -186,4 +186,35 @@ func TestTintHandler(t *testing.T) {
 	fmt.Println()
 }
 
+func TestSlotToXlog(t *testing.T) {
+	fmt.Println(">>> Test Xlog <-> *slog.Logger")
+
+	s := NewSlog(Conf{Tint: true, Level: "trace"}) // *slog.Logger
+	x := X(s)                                      // *slog.Logger -> xlog.Xlog
+	l := x.Slog()                                  // xlog.Xlog -> *slog.Logger
+
+	x.Slog().Info("x.Slog().Info()")
+	X(x.Slog()).Trace("xlog.X(x.Slog()).Trace")
+	l.Warn("l.Warn()")
+
+	fmt.Println()
+}
+
+func TestSetDefault(t *testing.T) {
+	fmt.Println(">>> Test xlog.SetDefault() and xlog.SetDefaultLogs()")
+
+	x := New(Conf{Tint: true, Level: "trace", Time: true, TimeUS: true})
+	x.SetDefault()
+	Notice("xlog.Notice() after x.SetDefault()")
+
+	slog.Info("slog.Info() by default")
+	log.Print("log.Print() by default")
+
+	x.SetDefaultLogs()
+	slog.Info("slog.Info() after x.SetDefaultLogs()")
+	log.Print("log.Print() after x.SetDefaultLogs()")
+
+	fmt.Println()
+}
+
 // EOF: "xlog_test.go"

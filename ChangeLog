@@ -1,3 +1,7 @@
+2023.11.26:
+ * update "xlog_test.go"
+ * update "README.md"
+
 2023.11.25:
  * check TimeUS in ReplaceAttr() for Text/JSON handler
  * pull to github
