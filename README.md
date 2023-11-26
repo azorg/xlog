@@ -10,7 +10,7 @@ Code of xlog.TintHandler based on [`tint`](https://github.com/lmittmann/tint).
 ![Tinted xlog](https://github.com/azorg/xlog/blob/main/img/xlog-tinted.png "xlog-tinded.png")
 
 ```
-go get github.com/azorg/xlog@main
+go get github.com/azorg/xlog@latest
 ```
 
 ## Usage
