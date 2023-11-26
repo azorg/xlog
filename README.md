@@ -14,13 +14,13 @@ go get github.com/azorg/xlog
 ## Usage
 
 ```go
-  conf := NewConf()                 // create default config (look xlog.Conf for details)
-  conf.Level = "trace"              // set logger level
-  conf.Tint = true                  // select tinted logger
-  conf.Src = true                   // add source file:line to log
-  conf.TimeTint = "15:04:05.999999" // add custom timestamp
-  x := New(conf)                    // create xlog with TintHandler
-  x.SetDefault()                    // set default xlog
+  conf := NewConf()          // create default config (look xlog.Conf for details)
+  conf.Level = "trace"       // set logger level
+  conf.Tint = true           // select tinted logger
+  conf.Src = true            // add source file:line to log
+  conf.TimeTint = "15:04:05" // add custom timestamp
+  x := New(conf)             // create xlog with TintHandler
+  x.SetDefault()             // set default xlog
 	
   err := errors.New("some error")
   count := 12345
