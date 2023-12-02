@@ -68,6 +68,16 @@ func Log(level Level, msg string, args ...any) {
 	logs(currentXlog.Logger, level, msg, args)
 }
 
+// Flood logs at LevelFlood
+func (x Xlog) Flood(msg string, args ...any) {
+	logs(x.Logger, LevelFlood, msg, args...)
+}
+
+// Flood logs at LevelFlood with default Xlog
+func Flood(msg string, args ...any) {
+	logs(currentXlog.Logger, LevelFlood, msg, args...)
+}
+
 // Trace logs at LevelTrace
 func (x Xlog) Trace(msg string, args ...any) {
 	logs(x.Logger, LevelTrace, msg, args...)
@@ -160,6 +170,16 @@ func (x Xlog) Logf(level Level, format string, args ...any) {
 // Logf logs at given level as standart logger with default Xlog
 func Logf(level Level, format string, args ...any) {
 	logf(currentXlog.Logger, level, format, args...)
+}
+
+// Floodf logs at LevelFlood as standart logger
+func (x Xlog) Floodf(format string, args ...any) {
+	logf(x.Logger, LevelFlood, format, args...)
+}
+
+// Floodf logs at LevelFlood as standart logger with default Xlog
+func Floodf(format string, args ...any) {
+	logf(currentXlog.Logger, LevelFlood, format, args...)
 }
 
 // Tracef logs at LevelTrace as standart logger

@@ -16,7 +16,7 @@ func TestUsage(t *testing.T) {
 	fmt.Println(">>> Test Usage")
 
 	conf := NewConf()          // create default config (look xlog.Conf for details)
-	conf.Level = "trace"       // set logger level
+	conf.Level = "flood"       // set logger level
 	conf.Tint = true           // select tinted logger
 	conf.Src = true            // add source file:line to log
 	conf.TimeTint = "15:04:05" // add custom timestamp
@@ -26,6 +26,7 @@ func TestUsage(t *testing.T) {
 	err := errors.New("some error")
 	count := 12345
 
+	Flood("Tinted logger xlog.Flood()", "count", 16384)
 	Trace("Tinted logger xlog.Trace()", "level", conf.Level)
 	Debug("Tinted logger xlog.Debug()")
 	Info("Tinted logger xlog.Info()", "count", count)
@@ -182,6 +183,9 @@ func TestTintHandler(t *testing.T) {
 
 	x = New(Conf{Tint: true, Level: "trace"})
 	x.Trace(`[x := xlog.New(xlog.Conf{Tint: true, Level: "trace"}); x.Trace(...)]`, Err(err))
+
+	x = New(Conf{Tint: true, Level: "flood"})
+	x.Flood(`[x := xlog.New(xlog.Conf{Tint: true, Level: "flood"}); x.Flood(...)]`, Err(err))
 
 	fmt.Println()
 }

@@ -26,7 +26,7 @@ type Opt struct {
 //	-ltime        - Force add time to log
 func NewOpt() *Opt {
 	opt := &Opt{}
-	flag.StringVar(&opt.LogLvl, "log", "", "Override log level (trace/debug/info/warm/error/fatal)")
+	flag.StringVar(&opt.LogLvl, "log", "", "Override log level (flood/trace/debug/info/warm/error/fatal)")
 	flag.BoolVar(&opt.SLog, "slog", false, "Use structured text logger (slog)")
 	flag.BoolVar(&opt.JLog, "jlog", false, "Use structured JSON logger (slog)")
 	flag.BoolVar(&opt.TLog, "tlog", false, "Use tinted (colorized) logger (tint)")

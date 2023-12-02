@@ -17,7 +17,7 @@ go get github.com/azorg/xlog
 
 ```go
   conf := NewConf()          // create default config (look xlog.Conf for details)
-  conf.Level = "trace"       // set logger level
+  conf.Level = "flood"       // set logger level
   conf.Tint = true           // select tinted logger
   conf.Src = true            // add source file:line to log
   conf.TimeTint = "15:04:05" // add custom timestamp
@@ -27,6 +27,7 @@ go get github.com/azorg/xlog
   err := errors.New("some error")
   count := 12345
 
+  xlog.Flood("Tinted logger xlog.Flood()", "count", 16384)
   xlog.Trace("Tinted logger xlog.Trace()", "level", conf.Level)
   xlog.Debug("Tinted logger xlog.Debug()")
   xlog.Info("Tinted logger xlog.Info()", "count", count)

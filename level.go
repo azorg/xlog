@@ -16,6 +16,7 @@ type Level slog.Level
 
 // Log levels delivered from slog.Level
 const (
+	LevelFlood  = Level(slog.Level(-12)) // FLOOD  (-12)
 	LevelTrace  = Level(slog.Level(-8))  // TRACE  (-8)
 	LevelDebug  = Level(slog.LevelDebug) // DEBUG  (-4)
 	LevelInfo   = Level(slog.LevelInfo)  // INFO   (0)
@@ -33,7 +34,8 @@ const DEFAULT_LEVEL = LevelInfo
 type Lvl string
 
 const (
-	LvlTrace  Lvl = "trace"
+	LvlFlood  Lvl = "flood"
+	LvlTrace      = "trace"
 	LvlDebug      = "debug"
 	LvlInfo       = "info"
 	LvlNotice     = "notice"
@@ -46,6 +48,7 @@ const (
 
 // Log level tags
 const (
+	LabelFlood  = "FLOOD"
 	LabelTrace  = "TRACE"
 	LabelDebug  = "DEBUG"
 	LabelInfo   = "INFO"
@@ -59,6 +62,7 @@ const (
 
 // Lvl -> Level
 var parseLvl = map[Lvl]Level{
+	LvlFlood:  LevelFlood,
 	LvlTrace:  LevelTrace,
 	LvlDebug:  LevelDebug,
 	LvlInfo:   LevelInfo,
@@ -72,6 +76,7 @@ var parseLvl = map[Lvl]Level{
 
 // Level -> Lvl
 var parseLevel = map[Level]Lvl{
+	LevelFlood:  LvlFlood,
 	LevelTrace:  LvlTrace,
 	LevelDebug:  LvlDebug,
 	LevelInfo:   LvlInfo,
@@ -96,6 +101,8 @@ func (l Level) String() string {
 	}
 
 	switch {
+	case l < LevelTrace:
+		return str(LabelFlood, l-LevelFlood)
 	case l < LevelDebug:
 		return str(LabelTrace, l-LevelTrace)
 	case l < LevelInfo:

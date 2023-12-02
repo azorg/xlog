@@ -1,5 +1,6 @@
 2023.12.02:
  * fix colors for Astra Linux fly-term
+ * add FLOOD level
 
 2023.11.26:
  * update "xlog_test.go"

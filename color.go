@@ -31,6 +31,7 @@ const (
 
 // Level keys ANSI colors
 const (
+	AnsiFlood  = AnsiGreen
 	AnsiTrace  = AnsiBrightBlue
 	AnsiDebug  = AnsiBrightCyan
 	AnsiInfo   = AnsiBrightGreen
@@ -60,6 +61,8 @@ func (l Level) ColorString() string {
 	}
 
 	switch {
+	case l < LevelTrace:
+		return str(AnsiFlood, LabelFlood, l-LevelFlood)
 	case l < LevelDebug:
 		return str(AnsiTrace, LabelTrace, l-LevelTrace)
 	case l < LevelInfo:
