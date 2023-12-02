@@ -1,3 +1,6 @@
+2023.12.02:
+ * fix colors for Astra Linux fly-term
+
 2023.11.26:
  * update "xlog_test.go"
  * update "README.md"

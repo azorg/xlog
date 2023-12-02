@@ -43,11 +43,11 @@ const (
 
 // Log part colors
 const (
-	AnsiTime   = AnsiFaint
-	AnsiSource = AnsiFaint
-	AnsiKey    = AnsiFaint
-	AnsiErrKey = AnsiBrightRedFaint
-	AnsiErrVal = AnsiBrightRedNoFaint
+	AnsiTime   = AnsiYellow
+	AnsiSource = AnsiMagenta
+	AnsiKey    = AnsiCyan
+	AnsiErrKey = AnsiRed
+	AnsiErrVal = AnsiBrightRed
 )
 
 // ColorString() returns a color label for the level
