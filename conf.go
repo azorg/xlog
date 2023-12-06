@@ -14,7 +14,7 @@ type Conf struct {
 	TimeUS   bool   `json:"time-us"`   // use timestamp in microseconds
 	TimeTint string `json:"time-tint"` // tinted log time format (like time.Kitchen, time.DateTime)
 	Src      bool   `json:"src"   `    // log file name and line number
-	SrcLong  bool   `json:"src-long"`  // log long file path (derectory + file)
+	SrcLong  bool   `json:"src-long"`  // log long file path (directory + file name)
 	NoLevel  bool   `json:"no-level"`  // don't print log level tag to log (~level="INFO")
 	NoColor  bool   `json:"no-color"`  // disable tinted colors (only if Tint=true)
 	Prefix   string `json:"preifix"`   // add prefix to standart log (log=false)

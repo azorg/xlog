@@ -11,6 +11,7 @@ type Opt struct {
 	JLog    bool   // use structured JSON loger (slog)
 	TLog    bool   // use tinted (colorized) logger (tint)
 	LogSrc  bool   // force log source file name and line number
+	LogPkg  bool   // force log source directory/file name and line number
 	LogTime bool   // force add time to log
 	LogTFmt string // log time format
 }
@@ -31,6 +32,7 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.JLog, "jlog", false, "Use structured JSON logger (slog)")
 	flag.BoolVar(&opt.TLog, "tlog", false, "Use tinted (colorized) logger (tint)")
 	flag.BoolVar(&opt.LogSrc, "lsrc", false, "Force log source file name and line number")
+	flag.BoolVar(&opt.LogPkg, "lpkg", false, "Force log source directory/file name and line number")
 	flag.BoolVar(&opt.LogTime, "ltime", false, "Force add time to log")
 	flag.StringVar(&opt.LogTFmt, "ltimefmt", "", "Override log time format (e.g. 15:04:05.999)")
 	return opt
@@ -52,6 +54,10 @@ func AddOpt(opt *Opt, conf *Conf) {
 	}
 	if opt.LogSrc {
 		conf.Src = true
+	}
+	if opt.LogPkg {
+		conf.Src = true
+		conf.SrcLong = true
 	}
 	if opt.LogTime {
 		conf.Time = true

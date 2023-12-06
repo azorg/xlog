@@ -14,7 +14,7 @@ const (
 	TIME_US   = false    // us time stamp (only if SLOG=false)
 	TIME_TINT = ""       // tinted log time format (~time.Kitchen, time.DateTime)
 	SRC       = false    // log file name and line number
-	SRC_LONG  = false    // log long file path
+	SRC_LONG  = false    // log long file path (directory + file name)
 	NO_LEVEL  = false    // don't print log level tag to log (~level="INFO")
 	NO_COLOR  = false    // don't use tinted colors (only if Tint=true)
 	PREFIX    = ""       // add prefix to standart log (SLOG=false)
