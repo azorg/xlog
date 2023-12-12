@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog" // go>=1.21
 	"os"
+	"strings"
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
@@ -61,7 +62,9 @@ func (x Xlog) SetDefaultLogs() {
 
 // Use xlog as io.Writer: log to level Info
 func (x Xlog) Write(p []byte) (n int, err error) {
-	logs(x.Logger, LevelInfo, string(p))
+	msg := strings.TrimRight(string(p), "\r\n")
+	//logs(x.Logger, LevelInfo, msg)
+	x.Logger.Info(msg)
 	return len(p), nil
 }
 
