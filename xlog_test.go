@@ -207,7 +207,12 @@ func TestSlogToXlog(t *testing.T) {
 func TestSetDefault(t *testing.T) {
 	fmt.Println(">>> Test xlog.SetDefault() and xlog.SetDefaultLogs()")
 
-	x := New(Conf{Tint: true, Level: "trace", Time: true, TimeUS: true})
+	x := New(Conf{Tint: true, Level: "trace",
+		Time: true, TimeUS: true, TimeTint: "15:04:05",
+		Src: true, SrcLong: true})
+
+	x.Info("x.Info()")
+
 	x.SetDefault()
 	Notice("xlog.Notice() after x.SetDefault()")
 
@@ -217,6 +222,9 @@ func TestSetDefault(t *testing.T) {
 	x.SetDefaultLogs()
 	slog.Info("slog.Info() after x.SetDefaultLogs()")
 	log.Print("log.Print() after x.SetDefaultLogs()")
+
+	lg := x.NewLog("prefix: ")
+	lg.Print("lg.Print()")
 
 	fmt.Println()
 }

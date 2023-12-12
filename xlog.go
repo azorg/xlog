@@ -3,6 +3,7 @@
 package xlog
 
 import (
+	"log"
 	"log/slog" // go>=1.21
 	"os"
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
@@ -56,6 +57,17 @@ func (x Xlog) SetDefaultLogs() {
 	defer defaultLock.Unlock()
 	slog.SetDefault(x.Slog())
 	currentXlog = x
+}
+
+// Use xlog as io.Writer: log to level Info
+func (x Xlog) Write(p []byte) (n int, err error) {
+	logs(x.Logger, LevelInfo, string(p))
+	return len(p), nil
+}
+
+// Return standart logger with prefix
+func (x Xlog) NewLog(prefix string) *log.Logger {
+	return log.New(x, prefix, 0)
 }
 
 // Log logs at given level

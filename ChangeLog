@@ -1,3 +1,7 @@
+2023.12.12:
+ * add Write() method to Xlog (~io.Writer)
+ * add NewLog() method to Xlog
+
 2023.12.06:
  * add `-lpkg` option (Src + SrcLong)
 
