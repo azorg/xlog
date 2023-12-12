@@ -63,8 +63,8 @@ func (x Xlog) SetDefaultLogs() {
 // Use xlog as io.Writer: log to level Info
 func (x Xlog) Write(p []byte) (n int, err error) {
 	msg := strings.TrimRight(string(p), "\r\n")
-	//logs(x.Logger, LevelInfo, msg)
-	x.Logger.Info(msg)
+	logs(x.Logger, LevelInfo, msg)
+	//x.Logger.Info(msg)
 	return len(p), nil
 }
 
