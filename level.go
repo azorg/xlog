@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log/slog" // go>=1.21
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
@@ -31,19 +33,17 @@ const (
 const DEFAULT_LEVEL = LevelInfo
 
 // Log level as string for setup
-type Lvl string
-
 const (
-	LvlFlood  Lvl = "flood"
-	LvlTrace      = "trace"
-	LvlDebug      = "debug"
-	LvlInfo       = "info"
-	LvlNotice     = "notice"
-	LvlWarn       = "warn"
-	LvlError      = "error"
-	LvlFatal      = "fatal"
-	LvlPanic      = "panic"
-	LvlSilent     = "silent"
+	LvlFlood  = "flood"
+	LvlTrace  = "trace"
+	LvlDebug  = "debug"
+	LvlInfo   = "info"
+	LvlNotice = "notice"
+	LvlWarn   = "warn"
+	LvlError  = "error"
+	LvlFatal  = "fatal"
+	LvlPanic  = "panic"
+	LvlSilent = "silent"
 )
 
 // Log level tags
@@ -61,7 +61,7 @@ const (
 )
 
 // Lvl -> Level
-var parseLvl = map[Lvl]Level{
+var parseLvl = map[string]Level{
 	LvlFlood:  LevelFlood,
 	LvlTrace:  LevelTrace,
 	LvlDebug:  LevelDebug,
@@ -75,7 +75,7 @@ var parseLvl = map[Lvl]Level{
 }
 
 // Level -> Lvl
-var parseLevel = map[Level]Lvl{
+var parseLevel = map[Level]string{
 	LevelFlood:  LvlFlood,
 	LevelTrace:  LvlTrace,
 	LevelDebug:  LvlDebug,
@@ -124,20 +124,25 @@ func (l Level) String() string {
 	}
 }
 
-// Parse Lvl (Lvl -> Level)
-func ParseLvl(lvl Lvl) Level {
+// Parse Lvl (string to num: Lvl -> Level)
+func ParseLvl(lvl string) Level {
+	lvl = strings.ToLower(lvl)
 	level, ok := parseLvl[lvl]
-	if !ok {
-		return DEFAULT_LEVEL
+	if !ok { // try convert from numeric
+		i, err := strconv.Atoi(lvl)
+		if err != nil {
+			return DEFAULT_LEVEL
+		}
+		level = Level(i)
 	}
 	return level
 }
 
-// Parse Level (Level -> Lvl)
-func ParseLevel(level Level) Lvl {
+// Parse Level (num to string: Level -> Lvl)
+func ParseLevel(level Level) string {
 	lvl, ok := parseLevel[level]
 	if !ok {
-		return Lvl(fmt.Sprintf("%d", int(level)))
+		return fmt.Sprintf("%d", int(level))
 	}
 	return lvl
 }
@@ -149,8 +154,8 @@ func GetLevel() Level {
 	return currentLevel
 }
 
-// Return current log level as string (xlog.Lvl)
-func GetLvl() Lvl {
+// Return current log level as string
+func GetLvl() string {
 	level := GetLevel()
 	return ParseLevel(level)
 }

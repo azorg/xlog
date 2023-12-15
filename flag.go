@@ -41,7 +41,7 @@ func NewOpt() *Opt {
 // Add parsed command line options to logger config
 func AddOpt(opt *Opt, conf *Conf) {
 	if opt.LogLvl != "" {
-		conf.Level = Lvl(opt.LogLvl)
+		conf.Level = opt.LogLvl
 	}
 	if opt.SLog {
 		conf.Slog = true

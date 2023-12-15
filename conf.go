@@ -6,7 +6,7 @@ package xlog
 type Conf struct {
 	File     string `json:"file"`      // log file path OR stdout/stderr
 	FileMode string `json:"file-mode"` // log file mode (if File is not stdout/stderr)
-	Level    Lvl    `json:"level"`     // log level (trace/debug/info/warn/error/fatal/silent)
+	Level    string `json:"level"`     // log level (trace/debug/info/warn/error/fatal/silent)
 	Slog     bool   `json:"slog"`      // use slog insted standart log (slog.TextHandler)
 	JSON     bool   `json:"json"`      // use JSON log (slog.JSONHandler)
 	Tint     bool   `json:"tint"`      // use tinted (colorized) log (xlog.TintHandler)
