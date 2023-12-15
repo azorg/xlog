@@ -1,8 +1,10 @@
-2023.12.13:
- * parse `-log` optiona (and Lvl is string now) as numeric too:
+2023.12.15:
+ * parse `-log` optiona (Lvl is string now) as numeric too:
  -12:flood, -8:trace, -4:debug: 0:info,
- 2:notice, 4:warn, 8:error, 12:fatal,
- 16:panic, 20:silent)
+ 2:notice, 4:warn, 8:error, 12:critical,
+ 16:fatal,  18:panic, 20:silent)
+ * add yet another "critical" level
+ * add "interface.go" as doc
 
 2023.12.12:
  * add Write() method to Xlog (~io.Writer)

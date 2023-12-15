@@ -24,6 +24,7 @@ func TestUsage(t *testing.T) {
 	x.SetDefault()             // set default xlog
 
 	err := errors.New("some error")
+	crit := errors.New("critical error")
 	count := 12345
 
 	Flood("Tinted logger xlog.Flood()", "count", 16384)
@@ -34,6 +35,7 @@ func TestUsage(t *testing.T) {
 	x.Notice("Tinted logger x.Notice()")
 	x.Warn("Tinted logger x.Warn()")
 	x.Error("Tinted logger x.Error()", Err(err))
+	x.Crit("Tinted logger x.Crit()", Err(crit))
 
 	sl := x.Slog() // *slog.Logger may used too
 	sl.Info("Tinted logger is *slog.Logger sl.Info()", "str", "some string")
@@ -215,6 +217,7 @@ func TestSetDefault(t *testing.T) {
 
 	x.SetDefault()
 	Notice("xlog.Notice() after x.SetDefault()")
+	Critf("xlog.Critf() after x.SetDefault()")
 
 	slog.Info("slog.Info() by default")
 	log.Print("log.Print() by default")
@@ -227,6 +230,18 @@ func TestSetDefault(t *testing.T) {
 	lg.Print("lg.Print()")
 
 	fmt.Println()
+}
+
+func off_TestFatalPanic(t *testing.T) {
+	conf := NewConf()          // create default config (look xlog.Conf for details)
+	conf.Level = "flood"       // set logger level
+	conf.Tint = true           // select tinted logger
+	conf.Src = true            // add source file:line to log
+	conf.TimeTint = "15:04:05" // add custom timestamp
+	x := New(conf)             // create xlog with TintHandler
+
+	x.Fatal("x.Fatal()", "err", errors.New("fatal error"))
+	//x.Panic("x.Panic()")
 }
 
 // EOF: "xlog_test.go"

@@ -153,6 +153,16 @@ func Error(msg string, args ...any) {
 	logs(currentXlog.Logger, LevelError, msg, args...)
 }
 
+// Crit logs at LevelCritical
+func (x Xlog) Crit(msg string, args ...any) {
+	logs(x.Logger, LevelCritical, msg, args...)
+}
+
+// Crit logs at LevelCritical with default Xlog
+func Crit(msg string, args ...any) {
+	logs(currentXlog.Logger, LevelCritical, msg, args...)
+}
+
 // Fatal logs at LevelFatal and os.Exit(1)
 func (x Xlog) Fatal(msg string, args ...any) {
 	logs(x.Logger, LevelFatal, msg, args...)
@@ -255,6 +265,16 @@ func (x Xlog) Errorf(format string, args ...any) {
 // Errorf logs at LevelError as standart logger with default Xlog
 func Errorf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelError, format, args...)
+}
+
+// Critf logs at LevelCritical as standart logger
+func (x Xlog) Critf(format string, args ...any) {
+	logf(x.Logger, LevelCritical, format, args...)
+}
+
+// Critf logs at LevelCritical as standart logger with default Xlog
+func Critf(format string, args ...any) {
+	logf(currentXlog.Logger, LevelCritical, format, args...)
 }
 
 // Fatalf logs at LevelFatal as standart logger and os.Exit(1)

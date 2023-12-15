@@ -18,74 +18,79 @@ type Level slog.Level
 
 // Log levels delivered from slog.Level
 const (
-	LevelFlood  = Level(slog.Level(-12)) // FLOOD  (-12)
-	LevelTrace  = Level(slog.Level(-8))  // TRACE  (-8)
-	LevelDebug  = Level(slog.LevelDebug) // DEBUG  (-4)
-	LevelInfo   = Level(slog.LevelInfo)  // INFO   (0)
-	LevelNotice = Level(slog.Level(2))   // NOTICE (2)
-	LevelWarn   = Level(slog.LevelWarn)  // WARN   (4)
-	LevelError  = Level(slog.LevelError) // ERROR  (8)
-	LevelFatal  = Level(slog.Level(12))  // FATAL  (12)
-	LevelPanic  = Level(slog.Level(16))  // PANIC  (16)
-	LevelSilent = Level(slog.Level(20))  // SILENT (20)
+	LevelFlood    = Level(slog.Level(-12)) // FLOOD    (-12)
+	LevelTrace    = Level(slog.Level(-8))  // TRACE    (-8)
+	LevelDebug    = Level(slog.LevelDebug) // DEBUG    (-4)
+	LevelInfo     = Level(slog.LevelInfo)  // INFO     (0)
+	LevelNotice   = Level(slog.Level(2))   // NOTICE   (2)
+	LevelWarn     = Level(slog.LevelWarn)  // WARN     (4)
+	LevelError    = Level(slog.LevelError) // ERROR    (8)
+	LevelCritical = Level(slog.Level(12))  // CRITICAL (12)
+	LevelFatal    = Level(slog.Level(16))  // FATAL    (16)
+	LevelPanic    = Level(slog.Level(18))  // PANIC    (18)
+	LevelSilent   = Level(slog.Level(20))  // SILENT   (20)
 )
 
 const DEFAULT_LEVEL = LevelInfo
 
 // Log level as string for setup
 const (
-	LvlFlood  = "flood"
-	LvlTrace  = "trace"
-	LvlDebug  = "debug"
-	LvlInfo   = "info"
-	LvlNotice = "notice"
-	LvlWarn   = "warn"
-	LvlError  = "error"
-	LvlFatal  = "fatal"
-	LvlPanic  = "panic"
-	LvlSilent = "silent"
+	LvlFlood    = "flood"
+	LvlTrace    = "trace"
+	LvlDebug    = "debug"
+	LvlInfo     = "info"
+	LvlNotice   = "notice"
+	LvlWarn     = "warn"
+	LvlError    = "error"
+	LvlCritical = "critical"
+	LvlFatal    = "fatal"
+	LvlPanic    = "panic"
+	LvlSilent   = "silent"
 )
 
 // Log level tags
 const (
-	LabelFlood  = "FLOOD"
-	LabelTrace  = "TRACE"
-	LabelDebug  = "DEBUG"
-	LabelInfo   = "INFO"
-	LabelNotice = "NOTICE"
-	LabelWarn   = "WARN"
-	LabelError  = "ERROR"
-	LabelFatal  = "FATAL"
-	LabelPanic  = "PANIC"
-	LabelSilent = "SILENT"
+	LabelFlood    = "FLOOD"
+	LabelTrace    = "TRACE"
+	LabelDebug    = "DEBUG"
+	LabelInfo     = "INFO"
+	LabelNotice   = "NOTICE"
+	LabelWarn     = "WARN"
+	LabelError    = "ERROR"
+	LabelCritical = "CRITICAL"
+	LabelFatal    = "FATAL"
+	LabelPanic    = "PANIC"
+	LabelSilent   = "SILENT"
 )
 
 // Lvl -> Level
 var parseLvl = map[string]Level{
-	LvlFlood:  LevelFlood,
-	LvlTrace:  LevelTrace,
-	LvlDebug:  LevelDebug,
-	LvlInfo:   LevelInfo,
-	LvlNotice: LevelNotice,
-	LvlWarn:   LevelWarn,
-	LvlError:  LevelError,
-	LvlFatal:  LevelFatal,
-	LvlPanic:  LevelPanic,
-	LvlSilent: LevelSilent,
+	LvlFlood:    LevelFlood,
+	LvlTrace:    LevelTrace,
+	LvlDebug:    LevelDebug,
+	LvlInfo:     LevelInfo,
+	LvlNotice:   LevelNotice,
+	LvlWarn:     LevelWarn,
+	LvlError:    LevelError,
+	LvlCritical: LevelCritical,
+	LvlFatal:    LevelFatal,
+	LvlPanic:    LevelPanic,
+	LvlSilent:   LevelSilent,
 }
 
 // Level -> Lvl
 var parseLevel = map[Level]string{
-	LevelFlood:  LvlFlood,
-	LevelTrace:  LvlTrace,
-	LevelDebug:  LvlDebug,
-	LevelInfo:   LvlInfo,
-	LevelNotice: LvlNotice,
-	LevelWarn:   LvlWarn,
-	LevelError:  LvlError,
-	LevelFatal:  LvlFatal,
-	LevelPanic:  LvlPanic,
-	LevelSilent: LvlSilent,
+	LevelFlood:    LvlFlood,
+	LevelTrace:    LvlTrace,
+	LevelDebug:    LvlDebug,
+	LevelInfo:     LvlInfo,
+	LevelNotice:   LvlNotice,
+	LevelWarn:     LvlWarn,
+	LevelError:    LvlError,
+	LevelCritical: LvlCritical,
+	LevelFatal:    LvlFatal,
+	LevelPanic:    LvlPanic,
+	LevelSilent:   LvlSilent,
 }
 
 // Level() returns the receiver (it implements slog.Leveler interface)
@@ -113,8 +118,10 @@ func (l Level) String() string {
 		return str(LabelNotice, l-LevelNotice)
 	case l < LevelError:
 		return str(LabelWarn, l-LevelWarn)
-	case l < LevelFatal:
+	case l < LevelCritical:
 		return str(LabelError, l-LevelError)
+	case l < LevelFatal:
+		return str(LabelCritical, l-LevelCritical)
 	case l < LevelPanic:
 		return str(LabelFatal, l-LevelFatal)
 	case l < LevelSilent:
