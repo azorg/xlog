@@ -16,12 +16,12 @@ go get github.com/azorg/xlog
 ## Usage
 
 ```go
-  conf := NewConf()          // create default config (look xlog.Conf for details)
+  conf := xlog.NewConf()     // create default config (look xlog.Conf for details)
   conf.Level = "flood"       // set logger level
   conf.Tint = true           // select tinted logger
   conf.Src = true            // add source file:line to log
   conf.TimeTint = "15:04:05" // add custom timestamp
-  x := New(conf)             // create xlog with TintHandler
+  x := xlog.New(conf)        // create xlog with TintHandler
   x.SetDefault()             // set default xlog
 	
   err := errors.New("some error")
