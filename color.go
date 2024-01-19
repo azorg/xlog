@@ -2,7 +2,11 @@
 
 package xlog
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog" // go>=1.21
+	//"golang.org/x/exp/slog" // depricated for go>=1.21
+)
 
 // ANSI modes
 const (
@@ -55,14 +59,15 @@ const (
 )
 
 // ColorString() returns a color label for the level
-func (l Level) ColorString() string {
-	str := func(ansi, base string, delta Level) string {
+func (lp *Level) ColorString() string {
+	str := func(ansi, base string, delta slog.Level) string {
 		if delta == 0 {
 			return ansi + base + AnsiReset
 		}
 		return fmt.Sprintf("%s%s%+d"+AnsiReset, ansi, base, delta)
 	}
 
+	l := slog.Level(*lp)
 	switch {
 	case l < LevelTrace:
 		return str(AnsiFlood, LabelFlood, l-LevelFlood)

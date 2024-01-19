@@ -11,13 +11,25 @@ import (
 // Xlog interface
 type Xlogger interface {
 	// Extract *slog.Logger from Xlog (Xlog -> *slog.Logger)
-	log() *slog.Logger
+	Slog() *slog.Logger
 
 	// Set Xlog logger as default xlog logger
 	SetDefault()
 
 	// Set Xlog logger as default xlog/log/slog loggers
 	SetDefaultLogs()
+
+	// Return log level as int (slog.Level)
+	GetLevel() slog.Level
+
+	// Set log level as int (slog.Level)
+	SetLevel(level slog.Level)
+
+	// Return log level as string
+	GetLvl() string
+
+	// Set log level as string
+	SetLvl(level string)
 
 	// Use xlog as io.Writer: log to level Info
 	Write(p []byte) (n int, err error)
@@ -26,7 +38,7 @@ type Xlogger interface {
 	NewLog(prefix string) *log.Logger
 
 	// Log logs at given level
-	Log(level Level, msg string, args ...any)
+	Log(level slog.Level, msg string, args ...any)
 
 	// Flood logs at LevelFlood
 	Flood(msg string, args ...any)
@@ -59,7 +71,7 @@ type Xlogger interface {
 	Panic(msg string)
 
 	// Logf logs at given level as standart logger
-	Logf(level Level, format string, args ...any)
+	Logf(level slog.Level, format string, args ...any)
 
 	// Floodf logs at LevelFlood as standart logger
 	Floodf(format string, args ...any)

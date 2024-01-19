@@ -12,33 +12,41 @@ import (
 
 const ERR_KEY = "err"
 
-// Xlog wrapper
-type Xlog struct{ *slog.Logger }
+// Xlog wrapper (logger + level)
+type Xlog struct {
+	Logger *slog.Logger
+	Level  Leveler
+}
 
 // Create Xlog based on default slog.Logger
-func Default() Xlog { return Xlog{slogDefault()} }
+func Default() *Xlog {
+	level := Level(DEFAULT_LEVEL)
+	return &Xlog{Logger: slogDefault(), Level: &level}
+}
 
 // Return current Xlog
-func Current() Xlog { return currentXlog }
+func Current() *Xlog { return currentXlog }
 
 // Return current *slog.Logger
-func Slog() *slog.Logger { return Current().Slog() }
+func Slog() *slog.Logger { return currentXlog.Logger }
 
 // Create Xlog based on *slog.Logger (*slog.Logger -> Xlog)
-func X(logger *slog.Logger) Xlog {
+func X(logger *slog.Logger) *Xlog {
 	if logger == nil {
 		return Default()
 	}
-	return Xlog{logger}
+	level := Level(DEFAULT_LEVEL)
+	return &Xlog{Logger: logger, Level: &level}
 }
 
 // Create new custom Xlog
-func New(conf Conf) Xlog {
-	return X(NewSlog(conf))
+func New(conf Conf) *Xlog {
+	logger, level := NewSlogEx(conf)
+	return &Xlog{Logger: logger, Level: level}
 }
 
 // Extract *slog.Logger from Xlog (Xlog -> *slog.Logger)
-func (x Xlog) Slog() *slog.Logger {
+func (x *Xlog) Slog() *slog.Logger {
 	if x.Logger == nil {
 		x.Logger = slog.Default()
 	}
@@ -46,45 +54,57 @@ func (x Xlog) Slog() *slog.Logger {
 }
 
 // Set Xlog logger as default xlog logger
-func (x Xlog) SetDefault() {
+func (x *Xlog) SetDefault() {
 	defaultLock.Lock()
 	defer defaultLock.Unlock()
 	currentXlog = x
 }
 
 // Set Xlog logger as default xlog/log/slog loggers
-func (x Xlog) SetDefaultLogs() {
+func (x *Xlog) SetDefaultLogs() {
 	defaultLock.Lock()
 	defer defaultLock.Unlock()
 	slog.SetDefault(x.Slog())
 	currentXlog = x
 }
 
+// Return log level as int (slog.Level)
+func (x *Xlog) GetLevel() slog.Level { return x.Level.Level() }
+
+// Set log level as int (slog.Level)
+func (x *Xlog) SetLevel(level slog.Level) { x.Level.Update(level) }
+
+// Return log level as string
+func (x *Xlog) GetLvl() string { return ParseLevel(x.GetLevel()) }
+
+// Set log level as string
+func (x *Xlog) SetLvl(level string) { x.SetLevel(ParseLvl(level)) }
+
 // Use xlog as io.Writer: log to level Info
-func (x Xlog) Write(p []byte) (n int, err error) {
+func (x *Xlog) Write(p []byte) (n int, err error) {
 	msg := strings.TrimRight(string(p), "\r\n")
 	logs(x.Logger, LevelInfo, msg)
-	//x.Logger.Info(msg)
+	//x.Info(msg)
 	return len(p), nil
 }
 
 // Return standart logger with prefix
-func (x Xlog) NewLog(prefix string) *log.Logger {
-	return log.New(x, prefix, 0)
+func (x *Xlog) NewLog(prefix string) *log.Logger {
+	return log.New(x, prefix, 0) // use x as io.Writer
 }
 
 // Log logs at given level
-func (x Xlog) Log(level Level, msg string, args ...any) {
+func (x *Xlog) Log(level slog.Level, msg string, args ...any) {
 	logs(x.Logger, level, msg, args)
 }
 
 // Log logs at given level with default Xlog
-func Log(level Level, msg string, args ...any) {
+func Log(level slog.Level, msg string, args ...any) {
 	logs(currentXlog.Logger, level, msg, args)
 }
 
 // Flood logs at LevelFlood
-func (x Xlog) Flood(msg string, args ...any) {
+func (x *Xlog) Flood(msg string, args ...any) {
 	logs(x.Logger, LevelFlood, msg, args...)
 }
 
@@ -94,7 +114,7 @@ func Flood(msg string, args ...any) {
 }
 
 // Trace logs at LevelTrace
-func (x Xlog) Trace(msg string, args ...any) {
+func (x *Xlog) Trace(msg string, args ...any) {
 	logs(x.Logger, LevelTrace, msg, args...)
 }
 
@@ -104,7 +124,7 @@ func Trace(msg string, args ...any) {
 }
 
 // Debug logs at LevelDebug
-func (x Xlog) Debug(msg string, args ...any) {
+func (x *Xlog) Debug(msg string, args ...any) {
 	logs(x.Logger, LevelDebug, msg, args...)
 }
 
@@ -114,7 +134,7 @@ func Debug(msg string, args ...any) {
 }
 
 // Info logs at LevelInfo
-func (x Xlog) Info(msg string, args ...any) {
+func (x *Xlog) Info(msg string, args ...any) {
 	logs(x.Logger, LevelInfo, msg, args...)
 }
 
@@ -124,7 +144,7 @@ func Info(msg string, args ...any) {
 }
 
 // Notice logs at LevelNotice
-func (x Xlog) Notice(msg string, args ...any) {
+func (x *Xlog) Notice(msg string, args ...any) {
 	logs(x.Logger, LevelNotice, msg, args...)
 }
 
@@ -134,7 +154,7 @@ func Notice(msg string, args ...any) {
 }
 
 // Warn logs at LevelWarn
-func (x Xlog) Warn(msg string, args ...any) {
+func (x *Xlog) Warn(msg string, args ...any) {
 	logs(x.Logger, LevelWarn, msg, args...)
 }
 
@@ -144,7 +164,7 @@ func Warn(msg string, args ...any) {
 }
 
 // Error logs at LevelError
-func (x Xlog) Error(msg string, args ...any) {
+func (x *Xlog) Error(msg string, args ...any) {
 	logs(x.Logger, LevelError, msg, args...)
 }
 
@@ -154,7 +174,7 @@ func Error(msg string, args ...any) {
 }
 
 // Crit logs at LevelCritical
-func (x Xlog) Crit(msg string, args ...any) {
+func (x *Xlog) Crit(msg string, args ...any) {
 	logs(x.Logger, LevelCritical, msg, args...)
 }
 
@@ -164,7 +184,7 @@ func Crit(msg string, args ...any) {
 }
 
 // Fatal logs at LevelFatal and os.Exit(1)
-func (x Xlog) Fatal(msg string, args ...any) {
+func (x *Xlog) Fatal(msg string, args ...any) {
 	logs(x.Logger, LevelFatal, msg, args...)
 	os.Exit(1)
 }
@@ -176,7 +196,7 @@ func Fatal(msg string, args ...any) {
 }
 
 // Panic logs at LevelPanic and panic
-func (x Xlog) Panic(msg string) {
+func (x *Xlog) Panic(msg string) {
 	logs(x.Logger, LevelPanic, msg)
 	panic(msg)
 }
@@ -188,17 +208,17 @@ func Panic(msg string) {
 }
 
 // Logf logs at given level as standart logger
-func (x Xlog) Logf(level Level, format string, args ...any) {
+func (x *Xlog) Logf(level slog.Level, format string, args ...any) {
 	logf(x.Logger, level, format, args...)
 }
 
 // Logf logs at given level as standart logger with default Xlog
-func Logf(level Level, format string, args ...any) {
+func Logf(level slog.Level, format string, args ...any) {
 	logf(currentXlog.Logger, level, format, args...)
 }
 
 // Floodf logs at LevelFlood as standart logger
-func (x Xlog) Floodf(format string, args ...any) {
+func (x *Xlog) Floodf(format string, args ...any) {
 	logf(x.Logger, LevelFlood, format, args...)
 }
 
@@ -208,7 +228,7 @@ func Floodf(format string, args ...any) {
 }
 
 // Tracef logs at LevelTrace as standart logger
-func (x Xlog) Tracef(format string, args ...any) {
+func (x *Xlog) Tracef(format string, args ...any) {
 	logf(x.Logger, LevelTrace, format, args...)
 }
 
@@ -218,7 +238,7 @@ func Tracef(format string, args ...any) {
 }
 
 // Debugf logs at LevelDebug as standart logger
-func (x Xlog) Debugf(format string, args ...any) {
+func (x *Xlog) Debugf(format string, args ...any) {
 	logf(x.Logger, LevelDebug, format, args...)
 }
 
@@ -228,7 +248,7 @@ func Debugf(format string, args ...any) {
 }
 
 // Infof logs at LevelInfo as standart logger
-func (x Xlog) Infof(format string, args ...any) {
+func (x *Xlog) Infof(format string, args ...any) {
 	logf(x.Logger, LevelInfo, format, args...)
 }
 
@@ -238,7 +258,7 @@ func Infof(format string, args ...any) {
 }
 
 // Noticef logs at LevelNotice as standart logger
-func (x Xlog) Noticef(format string, args ...any) {
+func (x *Xlog) Noticef(format string, args ...any) {
 	logf(x.Logger, LevelNotice, format, args...)
 }
 
@@ -248,7 +268,7 @@ func Noticef(format string, args ...any) {
 }
 
 // Warnf logs at LevelWarn as standart logger
-func (x Xlog) Warnf(format string, args ...any) {
+func (x *Xlog) Warnf(format string, args ...any) {
 	logf(x.Logger, LevelWarn, format, args...)
 }
 
@@ -258,7 +278,7 @@ func Warnf(format string, args ...any) {
 }
 
 // Errorf logs at LevelError as standart logger
-func (x Xlog) Errorf(format string, args ...any) {
+func (x *Xlog) Errorf(format string, args ...any) {
 	logf(x.Logger, LevelError, format, args...)
 }
 
@@ -268,7 +288,7 @@ func Errorf(format string, args ...any) {
 }
 
 // Critf logs at LevelCritical as standart logger
-func (x Xlog) Critf(format string, args ...any) {
+func (x *Xlog) Critf(format string, args ...any) {
 	logf(x.Logger, LevelCritical, format, args...)
 }
 
@@ -278,7 +298,7 @@ func Critf(format string, args ...any) {
 }
 
 // Fatalf logs at LevelFatal as standart logger and os.Exit(1)
-func (x Xlog) Fatalf(format string, args ...any) {
+func (x *Xlog) Fatalf(format string, args ...any) {
 	logf(x.Logger, LevelFatal, format, args...)
 	os.Exit(1)
 }

@@ -32,9 +32,10 @@ go get github.com/azorg/xlog
   xlog.Debug("Tinted logger xlog.Debug()")
   xlog.Info("Tinted logger xlog.Info()", "count", count)
 
-  x.Notice("Tinted logger x.Notice()")
-  x.Warn("Tinted logger x.Warn()")
+  x.Notice("Tinted logger x.Notice()", "levelStr", x.GetLevelStr())
+  x.Warn("Tinted logger x.Warn()", "level", int(x.GetLevel()))
   x.Error("Tinted logger x.Error()", Err(err))
+  x.Crit("Tinted logger x.Crit()", Err(crit))
 	
   sl := x.Slog() // *slog.Logger may used too
   sl.Info("Tinted logger is *slog.Logger sl.Info()", "str", "some string")

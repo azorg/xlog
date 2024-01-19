@@ -19,11 +19,10 @@ import (
 
 // Saved loggers, current log level
 var (
-	defaultLog   *log.Logger  = log.Default()  // initial standtart logger
-	defaultSlog  *slog.Logger = slog.Default() // initial structured logger
-	currentXlog  Xlog         = Default()      // current global logger
-	currentLevel Level        = DEFAULT_LEVEL  // current global log level
-	defaultLock  sync.Mutex
+	defaultLog  *log.Logger  = log.Default()  // initial standtart logger
+	defaultSlog *slog.Logger = slog.Default() // initial structured logger
+	currentXlog *Xlog        = Default()      // current global logger
+	defaultLock sync.Mutex
 )
 
 // Setup standart simple logger
@@ -59,14 +58,15 @@ func NewLog(conf Conf) *log.Logger {
 	return logger
 }
 
-// Create new configures structured logger (default/text/JSON/Tinted handler)
-func NewSlog(conf Conf) *slog.Logger {
+// Create new configured structured logger (default/text/JSON/Tinted handler)
+// (return Leveler to may change log level later too)
+func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 	if !conf.Slog && !conf.JSON && !conf.Tint {
 		// Don't use Text/JSON/Tint handler, tune standart logger
 		return newSlogStd(conf)
 	}
 
-	level := ParseLvl(conf.Level)
+	level := Level(ParseLvl(conf.Level))
 	out := openFile(conf.File, conf.FileMode)
 	var handler slog.Handler
 
@@ -75,7 +75,7 @@ func NewSlog(conf Conf) *slog.Logger {
 		opts := &TintOptions{
 			AddSource:   conf.Src,
 			SourceLong:  conf.SrcLong,
-			Level:       level,
+			Level:       &level,
 			NoLevel:     conf.NoLevel,
 			ReplaceAttr: nil,
 			TimeFormat:  conf.TimeTint,
@@ -96,7 +96,7 @@ func NewSlog(conf Conf) *slog.Logger {
 		// Use Text/JSON handler
 		opts := &slog.HandlerOptions{
 			AddSource: conf.Src,
-			Level:     level,
+			Level:     &level,
 		}
 
 		if ADD_LEVELS || !conf.Time || conf.Src || !conf.SrcLong || conf.NoLevel {
@@ -133,7 +133,8 @@ func NewSlog(conf Conf) *slog.Logger {
 					}
 					if ADD_LEVELS { // add TRACE/NOTICE/FATAL/PANIC
 						level := a.Value.Any().(slog.Level)
-						label := Level(level).String()
+						leveler := Level(level)
+						label := leveler.String()
 						return slog.String(slog.LevelKey, label)
 					}
 				} // switch
@@ -152,6 +153,12 @@ func NewSlog(conf Conf) *slog.Logger {
 	if conf.AddKey != "" && conf.AddValue != "" {
 		logger = logger.With(conf.AddKey, conf.AddValue)
 	}
+	return logger, &level
+}
+
+// Create new configured structured logger (default/text/JSON/Tinted handler)
+func NewSlog(conf Conf) *slog.Logger {
+	logger, _ := NewSlogEx(conf)
 	return logger
 }
 
@@ -162,13 +169,12 @@ func Setup(conf Conf) {
 	SetupLog(l, conf)
 
 	// Setup structured logger
-	s := NewSlog(conf)
-	slog.SetDefault(s)
+	logger, level := NewSlogEx(conf)
+	slog.SetDefault(logger)
 
 	// Save log level and update global xlog wrapper
 	defaultLock.Lock()
-	currentLevel = ParseLvl(conf.Level)
-	currentXlog = X(s)
+	currentXlog = &Xlog{Logger: logger, Level: level}
 	defaultLock.Unlock()
 
 	// Repeat setup standart logger (stop loop forever)
@@ -185,7 +191,7 @@ func Setup(conf Conf) {
 	// в угоду возможности управления уровнями отключаем вывод файлов и строк.
 	// Если "golang.org/x/exp/slog" доработают это FIX можно будет убрать.
 	if OLD_SLOG_FIX { // "runtime.Version() < go1.21.0"
-		if currentLevel != DEFAULT_LEVEL {
+		if currentXlog.Level.Level() != DEFAULT_LEVEL {
 			stdlog := logDefault()
 			flag := stdlog.Flags()
 			flag = flag &^ (log.Lshortfile | log.Llongfile) // sorry...
@@ -252,46 +258,48 @@ func openFile(file, mode string) *os.File {
 }
 
 // Create custom structured logger based on default standart logger
-func newSlogStd(conf Conf) (logger *slog.Logger) {
+func newSlogStd(conf Conf) (*slog.Logger, Leveler) {
 	// Setup standart logger
 	stdlog := logDefault()
 	SetupLog(stdlog, conf)
 
 	level := ParseLvl(conf.Level)
+	leveler := Level(level)
+	var logger *slog.Logger
 	if level == DEFAULT_LEVEL {
 		// Don't change default log level
 		logger = slogDefault()
 	} else {
 		// Hook to direct log level
 		handler := slogDefault().Handler() // slog.defaultHandler
-		handler = newStdHandler(level, handler)
+		handler = newStdHandler(handler, &leveler)
 		logger = slog.New(handler)
 	}
 
 	if conf.AddKey != "" && conf.AddValue != "" {
 		logger = logger.With(conf.AddKey, conf.AddValue)
 	}
-	return logger
+	return logger, &leveler
 }
 
 // Help wrapper to direct log level in standart logger mode
 type stdHandler struct {
-	level   Level
 	handler slog.Handler
+	level   slog.Leveler
 }
 
 // Create logStdHandler with the given level
-func newStdHandler(level Level, h slog.Handler) *stdHandler {
+func newStdHandler(handler slog.Handler, level slog.Leveler) *stdHandler {
 	// Optimization: avoid chains of logStdHandlers
-	if sh, ok := h.(*stdHandler); ok {
-		h = sh.handler
+	if sh, ok := handler.(*stdHandler); ok {
+		handler = sh.handler
 	}
-	return &stdHandler{level, h}
+	return &stdHandler{handler: handler, level: level}
 }
 
 // Enabled() implements Enabled() by reporting whether
 func (h *stdHandler) Enabled(_ context.Context, level slog.Level) bool {
-	return Level(level) >= h.level
+	return level >= h.level.Level()
 }
 
 // Handle() implements Handler.Handle()
@@ -304,7 +312,7 @@ func (h *stdHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	//if len(attrs) == 0 {
 	//  return h
 	//}
-	return newStdHandler(h.level, h.handler.WithAttrs(attrs))
+	return newStdHandler(h.handler.WithAttrs(attrs), h.level)
 }
 
 // WithGroup() implements Handler.WithGroup()
@@ -312,7 +320,7 @@ func (h *stdHandler) WithGroup(name string) slog.Handler {
 	//if name == "" {
 	//  return h
 	//}
-	return newStdHandler(h.level, h.handler.WithGroup(name))
+	return newStdHandler(h.handler.WithGroup(name), h.level)
 }
 
 // EOF: "setup.go"

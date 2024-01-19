@@ -28,12 +28,13 @@ func TestUsage(t *testing.T) {
 	count := 12345
 
 	Flood("Tinted logger xlog.Flood()", "count", 16384)
-	Trace("Tinted logger xlog.Trace()", "level", conf.Level)
+	Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
 	Debug("Tinted logger xlog.Debug()")
 	Info("Tinted logger xlog.Info()", "count", count)
 
-	x.Notice("Tinted logger x.Notice()")
-	x.Warn("Tinted logger x.Warn()")
+	x.SetLevel(0)
+	x.Notice("Tinted logger x.Notice()", "lvl", x.GetLvl())
+	x.Warn("Tinted logger x.Warn()", "level", int(x.GetLevel()))
 	x.Error("Tinted logger x.Error()", Err(err))
 	x.Crit("Tinted logger x.Crit()", Err(crit))
 
@@ -209,15 +210,18 @@ func TestSlogToXlog(t *testing.T) {
 func TestSetDefault(t *testing.T) {
 	fmt.Println(">>> Test xlog.SetDefault() and xlog.SetDefaultLogs()")
 
-	x := New(Conf{Tint: true, Level: "trace",
+	var x Xlogger // test interface
+	x = New(Conf{Tint: true, Level: "silent",
 		Time: true, TimeUS: true, TimeTint: "15:04:05",
 		Src: true, SrcLong: true})
+
+	x.SetLvl("flood") // "silent" -> "flood"
 
 	x.Info("x.Info()")
 
 	x.SetDefault()
-	Notice("xlog.Notice() after x.SetDefault()")
-	Critf("xlog.Critf() after x.SetDefault()")
+	Notice("xlog.Notice() after x.SetDefault()", "levelStr", x.GetLvl())
+	Critf("xlog.Critf() after x.SetDefault() level=%d", x.GetLevel())
 
 	slog.Info("slog.Info() by default")
 	log.Print("log.Print() by default")

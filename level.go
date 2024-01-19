@@ -16,19 +16,27 @@ import (
 // xlog level delivered from slog.Level, implements slog.Leveler interface
 type Level slog.Level
 
+// xlog leveler interface (slog.Leveler + Set() and String() methods)
+type Leveler interface {
+	Level() slog.Level   // get log level as slog.Level (implements a slog.Leveler interface)
+	Update(slog.Level)   // update log level
+	String() string      // get log level as label
+	ColorString() string // get log level as color label
+}
+
 // Log levels delivered from slog.Level
 const (
-	LevelFlood    = Level(slog.Level(-12)) // FLOOD    (-12)
-	LevelTrace    = Level(slog.Level(-8))  // TRACE    (-8)
-	LevelDebug    = Level(slog.LevelDebug) // DEBUG    (-4)
-	LevelInfo     = Level(slog.LevelInfo)  // INFO     (0)
-	LevelNotice   = Level(slog.Level(2))   // NOTICE   (2)
-	LevelWarn     = Level(slog.LevelWarn)  // WARN     (4)
-	LevelError    = Level(slog.LevelError) // ERROR    (8)
-	LevelCritical = Level(slog.Level(12))  // CRITICAL (12)
-	LevelFatal    = Level(slog.Level(16))  // FATAL    (16)
-	LevelPanic    = Level(slog.Level(18))  // PANIC    (18)
-	LevelSilent   = Level(slog.Level(20))  // SILENT   (20)
+	LevelFlood    = slog.Level(-12) // FLOOD    (-12)
+	LevelTrace    = slog.Level(-8)  // TRACE    (-8)
+	LevelDebug    = slog.LevelDebug // DEBUG    (-4)
+	LevelInfo     = slog.LevelInfo  // INFO     (0)
+	LevelNotice   = slog.Level(2)   // NOTICE   (2)
+	LevelWarn     = slog.LevelWarn  // WARN     (4)
+	LevelError    = slog.LevelError // ERROR    (8)
+	LevelCritical = slog.Level(12)  // CRITICAL (12)
+	LevelFatal    = slog.Level(16)  // FATAL    (16)
+	LevelPanic    = slog.Level(18)  // PANIC    (18)
+	LevelSilent   = slog.Level(20)  // SILENT   (20)
 )
 
 const DEFAULT_LEVEL = LevelInfo
@@ -64,7 +72,7 @@ const (
 )
 
 // Lvl -> Level
-var parseLvl = map[string]Level{
+var parseLvl = map[string]slog.Level{
 	LvlFlood:    LevelFlood,
 	LvlTrace:    LevelTrace,
 	LvlDebug:    LevelDebug,
@@ -79,7 +87,7 @@ var parseLvl = map[string]Level{
 }
 
 // Level -> Lvl
-var parseLevel = map[Level]string{
+var parseLevel = map[slog.Level]string{
 	LevelFlood:    LvlFlood,
 	LevelTrace:    LvlTrace,
 	LevelDebug:    LvlDebug,
@@ -93,18 +101,22 @@ var parseLevel = map[Level]string{
 	LevelSilent:   LvlSilent,
 }
 
-// Level() returns the receiver (it implements slog.Leveler interface)
-func (l Level) Level() slog.Level { return slog.Level(l) }
+// Level() returns log level (Level() - implements slog.Leveler interface)
+func (lp *Level) Level() slog.Level { return slog.Level(*lp) }
+
+// Update log level
+func (lp *Level) Update(level slog.Level) { *lp = Level(level) }
 
 // String() returns a label for the level
-func (l Level) String() string {
-	str := func(base string, delta Level) string {
+func (lp *Level) String() string {
+	str := func(base string, delta slog.Level) string {
 		if delta == 0 {
 			return base
 		}
 		return fmt.Sprintf("%s%+d", base, delta)
 	}
 
+	l := slog.Level(*lp)
 	switch {
 	case l < LevelTrace:
 		return str(LabelFlood, l-LevelFlood)
@@ -132,7 +144,7 @@ func (l Level) String() string {
 }
 
 // Parse Lvl (string to num: Lvl -> Level)
-func ParseLvl(lvl string) Level {
+func ParseLvl(lvl string) slog.Level {
 	lvl = strings.ToLower(lvl)
 	level, ok := parseLvl[lvl]
 	if !ok { // try convert from numeric
@@ -140,13 +152,13 @@ func ParseLvl(lvl string) Level {
 		if err != nil {
 			return DEFAULT_LEVEL
 		}
-		level = Level(i)
+		level = slog.Level(i)
 	}
 	return level
 }
 
 // Parse Level (num to string: Level -> Lvl)
-func ParseLevel(level Level) string {
+func ParseLevel(level slog.Level) string {
 	lvl, ok := parseLevel[level]
 	if !ok {
 		return fmt.Sprintf("%d", int(level))
@@ -155,47 +167,53 @@ func ParseLevel(level Level) string {
 }
 
 // Return current log level as int (slog.Level)
-func GetLevel() Level {
-	defaultLock.Lock()
-	defer defaultLock.Unlock()
-	return currentLevel
+func GetLevel() slog.Level {
+	return currentXlog.GetLevel()
+}
+
+// Set current log level as int (slog.Level)
+func SetLevel(level slog.Level) {
+	currentXlog.SetLevel(level)
 }
 
 // Return current log level as string
 func GetLvl() string {
-	level := GetLevel()
-	return ParseLevel(level)
+	return currentXlog.GetLvl()
+}
+
+// Set current log level as string
+func SetLvl(level string) {
+	currentXlog.SetLvl(level)
 }
 
 // Internal wrapper to work with additional log levels
-func logs(l *slog.Logger, level Level, msg string, args ...any) {
-	if l == nil {
-		l = slog.Default()
-	}
+func logs(l *slog.Logger, level slog.Level, msg string, args ...any) {
+	//if l == nil {
+	//	l = slog.Default()
+	//}
 	ctx := context.Background()
-	if !l.Enabled(ctx, slog.Level(level)) {
+	if !l.Enabled(ctx, level) {
 		return
 	}
 	var pcs [1]uintptr
 	runtime.Callers(3, pcs[:]) // skip wrappers
-	r := slog.NewRecord(time.Now(), slog.Level(level), msg, pcs[0])
+	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
 	r.Add(args...)
 	_ = l.Handler().Handle(ctx, r)
 }
 
 // Internal wrapper to work with additional log levels as standart logger
-func logf(l *slog.Logger, level Level, format string, args ...any) {
-	if l == nil {
-		l = slog.Default()
-	}
+func logf(l *slog.Logger, level slog.Level, format string, args ...any) {
+	//if l == nil {
+	//	l = slog.Default()
+	//}
 	ctx := context.Background()
-	if !l.Enabled(ctx, slog.Level(level)) {
+	if !l.Enabled(ctx, level) {
 		return
 	}
 	var pcs [1]uintptr
 	runtime.Callers(3, pcs[:]) // skip wrappers
-	r := slog.NewRecord(time.Now(), slog.Level(level),
-		fmt.Sprintf(format, args...), pcs[0])
+	r := slog.NewRecord(time.Now(), level, fmt.Sprintf(format, args...), pcs[0])
 	_ = l.Handler().Handle(ctx, r)
 }
 

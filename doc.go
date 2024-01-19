@@ -47,9 +47,17 @@
 
 	SetDefaultLogs() - Установить логер как log/slog/xlog по умолчанию
 
+	GetLevel() - получить текуший уровень журналирования (slog.Level)
+
+	SetLevel(l) - обновить текущий уровень журналирования (slog.Level)
+
+	GetLvl() - получить текущий уровень журналирования в виде строки
+
+	SetLvl() - обновить текущий уровень журналирования в виде строки
+
 Методы для использования Xlog с дополнительными уровнями:
 
-	Log(level Level, msg string, args ...any)
+	Log(level slog.Level, msg string, args ...any)
 	Trace(msg string, args ...any)
 	Debug(msg string, args ...any)
 	Info(msg string, args ...any)
@@ -59,7 +67,7 @@
 	Fatal(msg string, args ...any)
 	Panic(msg string)
 
-	Logf(evel Level, format string, args ...any)
+	Logf(level slog.Level, format string, args ...any)
 	Tracef(format string, args ...any)
 	Debugf(format string, args ...any)
 	Infof(format string, args ...any)

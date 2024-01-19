@@ -1,3 +1,7 @@
+2024.01.19:
+ * add SetLevel()/GetLevel()/GetLvl()/SetLvl() methods
+ and function to change log level in runtime
+
 2023.12.15:
  * parse `-log` optiona (Lvl is string now) as numeric too:
  -12:flood, -8:trace, -4:debug: 0:info,
