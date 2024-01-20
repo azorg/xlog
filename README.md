@@ -28,11 +28,11 @@ go get github.com/azorg/xlog
   count := 12345
 
   xlog.Flood("Tinted logger xlog.Flood()", "count", 16384)
-  xlog.Trace("Tinted logger xlog.Trace()", "level", conf.Level)
+  xlog.Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
   xlog.Debug("Tinted logger xlog.Debug()")
   xlog.Info("Tinted logger xlog.Info()", "count", count)
 
-  x.Notice("Tinted logger x.Notice()", "levelStr", x.GetLevelStr())
+  x.Notice("Tinted logger x.Notice()", "lvl", x.GetLvl())
   x.Warn("Tinted logger x.Warn()", "level", int(x.GetLevel()))
   x.Error("Tinted logger x.Error()", Err(err))
   x.Crit("Tinted logger x.Crit()", Err(crit))
