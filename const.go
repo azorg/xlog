@@ -4,9 +4,9 @@ package xlog
 
 // Default logger configure
 const (
-	FILE      = "stdout" // log file path OR stdout/stderr
+	FILE      = "stdout" // log file path OR stdout/stderr ("" -> stdout)
 	FILE_MODE = "0640"   // log file mode (if FILE is not stdout/stderr)
-	LEVEL     = LvlInfo  // log level (trace/debug/info/warn/error/fatal/silent)
+	LEVEL     = LvlInfo  // log level (flood/trace/debug/info/warn/error/critical/fatal/silent)
 	SLOG      = false    // use slog insted standart log (slog.TextHandler)
 	JSON      = false    // use JSON log (slog.JSONHandelr)
 	TINT      = false    // use tinted (colorized) log (xlog.TintHandler)

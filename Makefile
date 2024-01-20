@@ -6,12 +6,11 @@ GIT_MESSAGE = "auto commit"
 
 .PHONY: all help distclean commit tidy vendor fmt test
 
-all: fmt test
+all: test
 
 help:
 	@echo "make fmt       - format Go sources"
 	@echo "make test      - run test"
-	@echo "make all       - fmt + test"
 	@echo "make distclean - full clean (go.mod, go.sum)"
 
 distclean:
@@ -21,20 +20,21 @@ distclean:
 	@rm -rf vendor
 	@go clean -modcache
 	
-commit:
+commit: fmt
 	git add .
 	git commit -am $(GIT_MESSAGE)
 	git push
 
 go.mod:
 	@go mod init $(PRJ)
-
-go.sum: go.mod Makefile
-	@#go get golang.org/x/exp/slog # experimental slog (go <1.21)
-	@touch go.sum
+	@touch go.mod
 
 tidy: go.mod
 	@go mod tidy
+
+go.sum: go.mod Makefile #tidy
+	@#go get golang.org/x/exp/slog # experimental slog (go <1.21)
+	@touch go.sum
 
 vendor: go.sum
 	@go mod vendor
