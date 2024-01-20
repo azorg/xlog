@@ -10,6 +10,15 @@ import (
 
 // Xlog interface
 type Xlogger interface {
+	// Create Xlog that includes the given attributes in each output
+	With(args ...any) *Xlog
+
+	// Create Xlog that includes the given attributes in each output
+	WithAttrs(attrs []slog.Attr) *Xlog
+
+	// Create Xlog that starts a group
+	WithGroup(name string) *Xlog
+
 	// Extract *slog.Logger from Xlog (Xlog -> *slog.Logger)
 	Slog() *slog.Logger
 

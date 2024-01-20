@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"unicode"
@@ -256,6 +257,7 @@ func (h *TintHandler) clone() *TintHandler {
 		groups:      h.groups,
 		w:           h.w,
 		addSource:   h.addSource,
+		sourceLong:  h.sourceLong,
 		level:       h.level,
 		replaceAttr: h.replaceAttr,
 		timeFormat:  h.timeFormat,
@@ -264,12 +266,24 @@ func (h *TintHandler) clone() *TintHandler {
 }
 
 func (h *TintHandler) appendTime(buf *Buffer, t time.Time) {
-	if h.noColor {
-		*buf = t.AppendFormat(*buf, h.timeFormat)
-	} else {
-		buf.WriteString(AnsiTime)
-		*buf = t.AppendFormat(*buf, h.timeFormat)
-		buf.WriteString(AnsiReset)
+	if TINT_ALIGN_TIME { // slow (append zeros)
+		time := t.Format(h.timeFormat)
+		time += strings.Repeat("0", len(h.timeFormat)-len(time))
+		if h.noColor {
+			buf.WriteString(time)
+		} else {
+			buf.WriteString(AnsiTime)
+			buf.WriteString(time)
+			buf.WriteString(AnsiReset)
+		}
+	} else { // fast
+		if h.noColor {
+			*buf = t.AppendFormat(*buf, h.timeFormat)
+		} else {
+			buf.WriteString(AnsiTime)
+			*buf = t.AppendFormat(*buf, h.timeFormat)
+			buf.WriteString(AnsiReset)
+		}
 	}
 }
 
@@ -303,7 +317,7 @@ func (h *TintHandler) appendAttr(buf *Buffer, attr slog.Attr,
 	}
 
 	if attr.Equal(slog.Attr{}) {
-		return
+		return // skip empty
 	}
 
 	if attr.Value.Kind() == slog.KindGroup {

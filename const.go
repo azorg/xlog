@@ -31,6 +31,9 @@ const (
 
 	// Set false for go > 1.21 with log/slog
 	OLD_SLOG_FIX = false // runtime.Version() < go1.21.0
+
+	// Pretty alignment time format in tinted handler (add zeros to end)
+	TINT_ALIGN_TIME = true
 )
 
 // EOF: "const.go"

@@ -6,7 +6,7 @@ GIT_MESSAGE = "auto commit"
 
 .PHONY: all help distclean commit tidy vendor fmt test
 
-all: test
+all: fmt test
 
 help:
 	@echo "make fmt       - format Go sources"
@@ -34,6 +34,7 @@ tidy: go.mod
 
 go.sum: go.mod Makefile #tidy
 	@#go get golang.org/x/exp/slog # experimental slog (go <1.21)
+	@go get github.com/gofrs/uuid # UUID v1-v7
 	@touch go.sum
 
 vendor: go.sum

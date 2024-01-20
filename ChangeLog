@@ -1,5 +1,11 @@
 2024.01.20:
  * update docs
+ * try go-1.21.6
+ * add Xlog.With()
+ * add Xlog.WithAttrs()
+ * add Xlog.WithGroup()
+ * fix bug in TintHandler (copy sourceLong)
+ * add zeros to time in TintHandler
 
 2024.01.19:
  * add SetLevel()/GetLevel()/GetLvl()/SetLvl() methods

@@ -45,6 +45,30 @@ func New(conf Conf) *Xlog {
 	return &Xlog{Logger: logger, Level: level}
 }
 
+// Create Xlog that includes the given attributes in each output
+func (x *Xlog) With(args ...any) *Xlog {
+	return &Xlog{
+		Logger: x.Logger.With(args...),
+		Level:  x.Level,
+	}
+}
+
+// Create Xlog that includes the given attributes in each output
+func (x *Xlog) WithAttrs(attrs []slog.Attr) *Xlog {
+	return &Xlog{
+		Logger: slog.New(x.Logger.Handler().WithAttrs(attrs)),
+		Level:  x.Level,
+	}
+}
+
+// Create Xlog that starts a group
+func (x *Xlog) WithGroup(name string) *Xlog {
+	return &Xlog{
+		Logger: x.Logger.WithGroup(name),
+		Level:  x.Level,
+	}
+}
+
 // Extract *slog.Logger from Xlog (Xlog -> *slog.Logger)
 func (x *Xlog) Slog() *slog.Logger {
 	if x.Logger == nil {

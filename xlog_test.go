@@ -9,7 +9,9 @@ import (
 	"log/slog" // go>=1.21
 	"testing"
 	"time"
+
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	"github.com/gofrs/uuid" // UUID v1-v7
 )
 
 func TestUsage(t *testing.T) {
@@ -232,6 +234,54 @@ func TestSetDefault(t *testing.T) {
 
 	lg := x.NewLog("prefix: ")
 	lg.Print("lg.Print()")
+
+	fmt.Println()
+}
+
+// Fake struct of UUID value generator
+type genUUID struct{}
+
+// Create bew UUID v7
+func NewUUID() uuid.UUID {
+	return uuid.Must(uuid.NewV7()) // FIXME: panic in error
+}
+
+// Implemens slog.LogaValuer interface
+func (_ genUUID) LogValue() slog.Value {
+	return slog.AnyValue(NewUUID())
+}
+
+// Create UUID value generator interface
+func GenUUID() slog.LogValuer {
+	return genUUID{}
+}
+
+func TestWith(t *testing.T) {
+	fmt.Println(">>> Test xlog.With*() functions")
+
+	var x Xlogger
+	x = New(Conf{
+		//Slog: true,
+		//JSON: true,
+		Tint: true,
+		//NoColor: true,
+		Level: "debug",
+		Time:  true, TimeUS: true, TimeTint: "15:04:05.999",
+		Src: true, SrcLong: true,
+	})
+
+	x.Info("x.Info()", "value", 3.1415926)
+
+	attr := slog.Attr{Key: "transport", Value: slog.StringValue("fake")}
+	attrs := []slog.Attr{attr}
+	y := x.WithAttrs(attrs).With("module", "test")
+	y.Info("y.Info()", "cnt", 1)
+
+	genId := genUUID{}
+	z := y.With("uuid", genId).WithGroup("group")
+	z.Info("z.Info()", "x", 1, "y", 2)
+	z = y.With("uuid", genId).WithGroup("group")
+	z.Info("z.Info()", "x", 3, "y", 4)
 
 	fmt.Println()
 }
