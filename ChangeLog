@@ -1,3 +1,6 @@
+2024.01.22:
+ * add vet target to Makefile
+
 2024.01.20:
  * update docs
  * try go-1.21.6

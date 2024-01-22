@@ -43,6 +43,9 @@ vendor: go.sum
 fmt: go.mod go.sum
 	@go fmt
 
+vet:
+	@go vet
+
 test: go.mod go.sum
 	@go test
 
