@@ -37,7 +37,7 @@ func (b *Buffer) Write(bytes []byte) int {
 
 func (b *Buffer) WriteByte(char byte) error {
 	*b = append(*b, char)
-  return nil
+	return nil
 }
 
 func (b *Buffer) WriteString(str string) int {
