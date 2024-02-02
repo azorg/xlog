@@ -4,6 +4,12 @@ PRJ="github.com/azorg/xlog"
 
 GIT_MESSAGE = "auto commit"
 
+# go source files, ignore vendor directory
+SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+
+# go packages
+PKGS = $(PRJ)
+
 .PHONY: all help distclean commit tidy vendor fmt test
 
 all: fmt test
@@ -43,8 +49,12 @@ vendor: go.sum
 fmt: go.mod go.sum
 	@go fmt
 
+simplify:
+	@gofmt -l -w -s $(SRC)
+
 vet:
-	@go vet
+	@#go vet
+	@go vet $(PKGS)
 
 test: go.mod go.sum
 	@go test

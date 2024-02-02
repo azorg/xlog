@@ -22,8 +22,11 @@ func TestUsage(t *testing.T) {
 	conf.Tint = true           // select tinted logger
 	conf.Src = true            // add source file:line to log
 	conf.TimeTint = "15:04:05" // add custom timestamp
-	x := New(conf)             // create xlog with TintHandler
-	x.SetDefault()             // set default xlog
+
+	Env(&conf) // read setting from enviroment
+
+	x := New(conf) // create xlog with TintHandler
+	x.SetDefault() // set default xlog
 
 	err := errors.New("some error")
 	crit := errors.New("critical error")
@@ -286,13 +289,16 @@ func TestWith(t *testing.T) {
 	fmt.Println()
 }
 
-func off_TestFatalPanic(t *testing.T) {
+func TestFatalPanic(t *testing.T) {
 	conf := NewConf()          // create default config (look xlog.Conf for details)
 	conf.Level = "flood"       // set logger level
 	conf.Tint = true           // select tinted logger
 	conf.Src = true            // add source file:line to log
 	conf.TimeTint = "15:04:05" // add custom timestamp
-	x := New(conf)             // create xlog with TintHandler
+
+	Env(&conf) // read setting from enviroment
+
+	x := New(conf) // create xlog with TintHandler
 
 	x.Fatal("x.Fatal()", "err", errors.New("fatal error"))
 	//x.Panic("x.Panic()")

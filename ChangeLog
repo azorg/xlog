@@ -1,3 +1,6 @@
+2024.02.02:
+ * add "env.go", "xlog.env" for example
+
 2024.01.22:
  * add vet target to Makefile
 
