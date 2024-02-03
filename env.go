@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+// Default prefix
+const DEFAULT_PREFIX = "LOG_"
+
 // String to bool converter
 //
 //	true:  true, True, yes, YES, on, 1, 2
@@ -27,53 +30,57 @@ func StringToBool(s string) bool {
 }
 
 // Add settings from eviroment variables
-func Env(conf *Conf) {
-	if v := os.Getenv("XLOG_FILE"); v != "" {
+func Env(conf *Conf, prefixOpt ...string) {
+	prefix := DEFAULT_PREFIX
+	if len(prefixOpt) != 0 {
+		prefix = prefixOpt[0]
+	}
+	if v := os.Getenv(prefix + "FILE"); v != "" {
 		conf.File = v
 	}
-	if v := os.Getenv("XLOG_FILE_MODE"); v != "" {
+	if v := os.Getenv(prefix + "FILE_MODE"); v != "" {
 		conf.FileMode = v
 	}
-	if v := os.Getenv("XLOG_LEVEL"); v != "" {
+	if v := os.Getenv(prefix + "LEVEL"); v != "" {
 		conf.Level = v
 	}
-	if v := os.Getenv("XLOG_SLOG"); v != "" {
+	if v := os.Getenv(prefix + "SLOG"); v != "" {
 		conf.Slog = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_JSON"); v != "" {
+	if v := os.Getenv(prefix + "JSON"); v != "" {
 		conf.JSON = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_TINT"); v != "" {
+	if v := os.Getenv(prefix + "TINT"); v != "" {
 		conf.Tint = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_TIME"); v != "" {
+	if v := os.Getenv(prefix + "TIME"); v != "" {
 		conf.Time = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_TIME_US"); v != "" {
+	if v := os.Getenv(prefix + "TIME_US"); v != "" {
 		conf.TimeUS = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_TIME_TINT"); v != "" {
+	if v := os.Getenv(prefix + "TIME_TINT"); v != "" {
 		conf.TimeTint = v
 	}
-	if v := os.Getenv("XLOG_SRC"); v != "" {
+	if v := os.Getenv(prefix + "SRC"); v != "" {
 		conf.Src = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_SRC_LONG"); v != "" {
+	if v := os.Getenv(prefix + "SRC_LONG"); v != "" {
 		conf.SrcLong = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_NO_LEVEL"); v != "" {
+	if v := os.Getenv(prefix + "NO_LEVEL"); v != "" {
 		conf.NoLevel = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_NO_COLOR"); v != "" {
+	if v := os.Getenv(prefix + "NO_COLOR"); v != "" {
 		conf.NoColor = StringToBool(v)
 	}
-	if v := os.Getenv("XLOG_PREFIX"); v != "" {
+	if v := os.Getenv(prefix + "PREFIX"); v != "" {
 		conf.Prefix = v
 	}
-	if v := os.Getenv("XLOG_ADD_KEY"); v != "" {
+	if v := os.Getenv(prefix + "ADD_KEY"); v != "" {
 		conf.AddKey = v
 	}
-	if v := os.Getenv("XLOG_ADD_VALUE"); v != "" {
+	if v := os.Getenv(prefix + "ADD_VALUE"); v != "" {
 		conf.AddValue = v
 	}
 }

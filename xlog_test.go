@@ -23,7 +23,7 @@ func TestUsage(t *testing.T) {
 	conf.Src = true            // add source file:line to log
 	conf.TimeTint = "15:04:05" // add custom timestamp
 
-	Env(&conf) // read setting from enviroment
+	Env(&conf, "XLOG_") // read setting from enviroment
 
 	x := New(conf) // create xlog with TintHandler
 	x.SetDefault() // set default xlog
@@ -39,7 +39,7 @@ func TestUsage(t *testing.T) {
 
 	x.SetLevel(0)
 	x.Notice("Tinted logger x.Notice()", "lvl", x.GetLvl())
-	x.Warn("Tinted logger x.Warn()", "level", int(x.GetLevel()))
+	x.Warn("Tinted logger x.Warn()", "intLvl", int(x.GetLevel()))
 	x.Error("Tinted logger x.Error()", Err(err))
 	x.Crit("Tinted logger x.Crit()", Err(crit))
 
