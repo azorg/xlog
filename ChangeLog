@@ -1,3 +1,7 @@
+2024.02.04:
+ * fix "flag.go"
+ * fix (may be) Tint time zero align bug
+
 2024.02.02-03:
  * add "env.go", "xlog.env" for example
 

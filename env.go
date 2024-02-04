@@ -46,9 +46,16 @@ func Env(conf *Conf, prefixOpt ...string) {
 	}
 	if v := os.Getenv(prefix + "SLOG"); v != "" {
 		conf.Slog = StringToBool(v)
+		if conf.Slog {
+			conf.Tint = false
+			conf.JSON = false
+		}
 	}
 	if v := os.Getenv(prefix + "JSON"); v != "" {
 		conf.JSON = StringToBool(v)
+		if conf.JSON {
+			conf.Tint = false
+		}
 	}
 	if v := os.Getenv(prefix + "TINT"); v != "" {
 		conf.Tint = StringToBool(v)

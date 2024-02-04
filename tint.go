@@ -267,8 +267,14 @@ func (h *TintHandler) clone() *TintHandler {
 
 func (h *TintHandler) appendTime(buf *Buffer, t time.Time) {
 	if TINT_ALIGN_TIME { // slow (append zeros)
-		time := t.Format(h.timeFormat)
-		time += strings.Repeat("0", len(h.timeFormat)-len(time))
+		fmt := h.timeFormat
+		fmtLen := len(fmt)
+		time := t.Format(fmt)
+		if len(fmt) != 0 && fmt[fmtLen-1] == '9' { // FIXME: bad magic code
+			if addZeros := fmtLen - len(time); addZeros > 0 {
+				time += strings.Repeat("0", addZeros)
+			}
+		}
 		if h.noColor {
 			buf.WriteString(time)
 		} else {

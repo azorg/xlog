@@ -45,9 +45,12 @@ func AddOpt(opt *Opt, conf *Conf) {
 	}
 	if opt.SLog {
 		conf.Slog = true
+		conf.Tint = false
+		conf.JSON = false
 	}
 	if opt.JLog {
 		conf.JSON = true
+		conf.Tint = false
 	}
 	if opt.TLog {
 		conf.Tint = true
