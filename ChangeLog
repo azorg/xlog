@@ -1,3 +1,6 @@
+2024.02.05:
+ * add TimeFormat and etc ("time.go")
+
 2024.02.04:
  * fix "flag.go"
  * fix (may be) Tint time zero align bug

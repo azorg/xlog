@@ -20,42 +20,6 @@ import (
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
-// Time formats
-const (
-	// Time OFF
-	TIME_OFF = ""
-
-	// Default time format of standart logger
-	STD_TIME = "2006/01/02 15:04:05"
-
-	// Default time format of standart logger + microseconds
-	STD_TIME_US = "2006/01/02 15:04:05.999999"
-
-	// Default time format of standart logger + milliseconds
-	STD_TIME_MS = "2006/01/02 15:04:05.999"
-
-	// RFC3339 time format + nanoseconds (slog.TextHandler by default)
-	RFC3339Nano = time.RFC3339Nano // "2006-01-02T15:04:05.999999999Z07:00"
-
-	// RFC3339 time format + microseconds
-	RFC3339Micro = "2006-01-02T15:04:05.999999Z07:00"
-
-	// RFC3339 time format + milliseconds
-	RFC3339Milli = "2006-01-02T15:04:05.999Z07:00"
-
-	// Time only format + microseconds
-	TimeOnlyMicro = "15:04:05.999999"
-
-	// Time only format + milliseconds
-	TimeOnlyMilli = "15:04:05.999"
-
-	// Default (recomented) time format wuth milliseconds
-	DEFAULT_TIME_FORMAT = STD_TIME_MS
-
-	// Default (recomented) time format witn microseconds
-	DEFAULT_TIME_FORMAT_US = STD_TIME_US
-)
-
 type TintOptions struct {
 	// Enable source code location
 	AddSource bool
@@ -121,7 +85,7 @@ func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler {
 	}
 
 	if opts.TimeFormat != "" {
-		h.timeFormat = opts.TimeFormat
+		h.timeFormat, _ = TimeFormat(opts.TimeFormat)
 	}
 	return h
 }

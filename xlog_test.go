@@ -270,7 +270,7 @@ func TestWith(t *testing.T) {
 		Tint: true,
 		//NoColor: true,
 		Level: "debug",
-		Time:  true, TimeUS: true, TimeTint: "15:04:05.999",
+		Time:  true, TimeUS: true, TimeTint: "lab",
 		Src: true, SrcLong: true,
 	})
 
