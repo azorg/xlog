@@ -48,7 +48,7 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.Time, "ltime", false, "Force add timestamp to log")
 	flag.BoolVar(&opt.NoTime, "lnotime", false, "Force off timestamp")
 	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "Override log time format (e.g. 15:04:05.999 or TimeOnly)")
-	flag.BoolVar(&opt.NoLevel, "nolevel", false, `Disable log level tag (~level="INFO")`)
+	flag.BoolVar(&opt.NoLevel, "lnolevel", false, `Disable log level tag (~level="INFO")`)
 	flag.BoolVar(&opt.Color, "lcolor", false, "Force enable tinted colors")
 	flag.BoolVar(&opt.NoColor, "lnocolor", false, "Force disable tinted colors")
 	return opt
