@@ -2,6 +2,8 @@
  * add -lnotime option (flag)
  * add -lnosrc
  * add -lnopkg
+ * add -lcolor
+ * add -lnocolor
 
 2024.02.05:
  * add TimeFormat and etc ("time.go")
