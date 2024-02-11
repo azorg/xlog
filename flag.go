@@ -24,19 +24,15 @@ type Opt struct {
 // Setup command line logger options
 // Usage:
 //
-//	-log  <level> - Log level (trace/debug/info/notice/warm/error/fatal)
-//	-slog         - Use structured text logger (slog)
-//	-jlog         - Use structured JSON logger (slog)
-//	-tlog         - Use tinted (colorized) logger (tint)
-//	-lsrc         - Force log source file name and line number
-//	-lnosrc       - Force log source file name and line number
-//	-lpkg         - Force log source directory/file name and line number
-//	-lnopkg       - Force off source directory/file name and line number
-//	-ltime        - Force add timestamp to log
-//	-lnotime      - Force off timestamp
-//	-ltimefmt     - Timestamp format
-//	-lcolor       - Force enable tinted colors
-//	-lnocolor     - Force disable tinted colors
+//  -log <level>      - Log level (flood/trace/debug/info/notice/warm/error/critical)
+//  -slog             - Use structured text logger (slog)
+//  -jlog             - Use structured JSON logger (slog)
+//  -tlog             - Use tinted (colorized) logger (tint)
+//  -lsrc|-lnosrc     - Force on/off log source file name and line number
+//  -lpkg|-lnopkg     - Force on/off log source directory/file name and line number
+//  -ltime|-lnotime   - Force on/off timestamp
+//  -ltimefmt         - Override log time format (e.g. 15:04:05.999 or TimeOnly)
+//  -lcolor|-lnocolor - Force enable/disable tinted colors
 func NewOpt() *Opt {
 	opt := &Opt{}
 	flag.StringVar(&opt.Level, "log", "", "Override log level (flood/trace/debug/info/warm/error/fatal)")
@@ -49,7 +45,7 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.NoPkg, "lnopkg", false, "Force off source directory/file name and line number")
 	flag.BoolVar(&opt.Time, "ltime", false, "Force add timestamp to log")
 	flag.BoolVar(&opt.NoTime, "lnotime", false, "Force off timestamp")
-	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "Override log timestamp format (e.g. 15:04:05.999)")
+	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "Override log time format (e.g. 15:04:05.999 or TimeOnly)")
 	flag.BoolVar(&opt.Color, "lcolor", false, "Force enable tinted colors")
 	flag.BoolVar(&opt.NoColor, "lnocolor", false, "Force disable tinted colors")
 	return opt
