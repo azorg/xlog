@@ -24,15 +24,15 @@ type Opt struct {
 // Setup command line logger options
 // Usage:
 //
-//  -log <level>      - Log level (flood/trace/debug/info/notice/warm/error/critical)
-//  -slog             - Use structured text logger (slog)
-//  -jlog             - Use structured JSON logger (slog)
-//  -tlog             - Use tinted (colorized) logger (tint)
-//  -lsrc|-lnosrc     - Force on/off log source file name and line number
-//  -lpkg|-lnopkg     - Force on/off log source directory/file name and line number
-//  -ltime|-lnotime   - Force on/off timestamp
-//  -ltimefmt         - Override log time format (e.g. 15:04:05.999 or TimeOnly)
-//  -lcolor|-lnocolor - Force enable/disable tinted colors
+//	-log <level>      - Log level (flood/trace/debug/info/notice/warm/error/critical)
+//	-slog             - Use structured text logger (slog)
+//	-jlog             - Use structured JSON logger (slog)
+//	-tlog             - Use tinted (colorized) logger (tint)
+//	-lsrc|-lnosrc     - Force on/off log source file name and line number
+//	-lpkg|-lnopkg     - Force on/off log source directory/file name and line number
+//	-ltime|-lnotime   - Force on/off timestamp
+//	-ltimefmt         - Override log time format (e.g. 15:04:05.999 or TimeOnly)
+//	-lcolor|-lnocolor - Force enable/disable tinted colors
 func NewOpt() *Opt {
 	opt := &Opt{}
 	flag.StringVar(&opt.Level, "log", "", "Override log level (flood/trace/debug/info/warm/error/fatal)")
@@ -82,8 +82,8 @@ func AddOpt(opt *Opt, conf *Conf) {
 	if opt.Time {
 		conf.Time = true
 	} else if opt.NoTime {
-		conf.TimeTint = ""
 		conf.Time = false
+		conf.TimeTint = TIME_OFF
 	}
 	if opt.TimeFmt != "" {
 		conf.Time = true
