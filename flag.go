@@ -82,6 +82,7 @@ func AddOpt(opt *Opt, conf *Conf) {
 	if opt.Time {
 		conf.Time = true
 	} else if opt.NoTime {
+		conf.TimeTint = ""
 		conf.Time = false
 	}
 	if opt.TimeFmt != "" {
