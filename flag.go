@@ -17,6 +17,7 @@ type Opt struct {
 	Time    bool   // -ltime
 	NoTime  bool   // -lnotime
 	TimeFmt string // -ltimefmt <fmt>
+	NoLevel bool   // -lnolevel
 	Color   bool   // -lcolor
 	NoColor bool   // -lnocolor
 }
@@ -32,6 +33,7 @@ type Opt struct {
 //	-lpkg|-lnopkg     - Force on/off log source directory/file name and line number
 //	-ltime|-lnotime   - Force on/off timestamp
 //	-ltimefmt         - Override log time format (e.g. 15:04:05.999 or TimeOnly)
+//	-lnolevel         - Disable log level tag (~level="INFO")
 //	-lcolor|-lnocolor - Force enable/disable tinted colors
 func NewOpt() *Opt {
 	opt := &Opt{}
@@ -46,6 +48,7 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.Time, "ltime", false, "Force add timestamp to log")
 	flag.BoolVar(&opt.NoTime, "lnotime", false, "Force off timestamp")
 	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "Override log time format (e.g. 15:04:05.999 or TimeOnly)")
+	flag.BoolVar(&opt.NoLevel, "nolevel", false, `Disable log level tag (~level="INFO")`)
 	flag.BoolVar(&opt.Color, "lcolor", false, "Force enable tinted colors")
 	flag.BoolVar(&opt.NoColor, "lnocolor", false, "Force disable tinted colors")
 	return opt
@@ -88,6 +91,9 @@ func AddOpt(opt *Opt, conf *Conf) {
 	if opt.TimeFmt != "" {
 		conf.Time = true
 		conf.TimeTint = opt.TimeFmt
+	}
+	if opt.NoLevel {
+		conf.NoLevel = true
 	}
 	if opt.NoColor {
 		conf.NoColor = true
