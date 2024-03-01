@@ -1,10 +1,5 @@
-2024.02.11:
- * add -lnotime option (flag)
- * add -lnosrc
- * add -lnopkg
- * add -lcolor
- * add -lnocolor
- * add -lnolevel
+2024.03.01: v1.0.0
+ * сhange xlog.Xlog то xlog.Logger (more traditional name)
 
 2024.02.05:
  * add TimeFormat and etc ("time.go")

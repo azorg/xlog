@@ -200,11 +200,11 @@ func TestTintHandler(t *testing.T) {
 }
 
 func TestSlogToXlog(t *testing.T) {
-	fmt.Println(">>> Test Xlog <-> *slog.Logger")
+	fmt.Println(">>> Test *xlog.Logger <-> *slog.Logger")
 
 	s := NewSlog(Conf{Tint: true, Level: "trace"}) // *slog.Logger
-	x := X(s)                                      // *slog.Logger -> xlog.Xlog
-	l := x.Slog()                                  // xlog.Xlog -> *slog.Logger
+	x := X(s)                                      // *slog.Logger -> *xlog.Logger
+	l := x.Slog()                                  // *xlog.Logger -> *slog.Logger
 
 	x.Slog().Info("x.Slog().Info()")
 	X(x.Slog()).Trace("xlog.X(x.Slog()).Trace")

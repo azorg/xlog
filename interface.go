@@ -8,24 +8,24 @@ import (
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
-// Xlog interface
+// Logger interface
 type Xlogger interface {
-	// Create Xlog that includes the given attributes in each output
-	With(args ...any) *Xlog
+	// Create Logger that includes the given attributes in each output
+	With(args ...any) *Logger
 
-	// Create Xlog that includes the given attributes in each output
-	WithAttrs(attrs []slog.Attr) *Xlog
+	// Create logger that includes the given attributes in each output
+	WithAttrs(attrs []slog.Attr) *Logger
 
-	// Create Xlog that starts a group
-	WithGroup(name string) *Xlog
+	// Create logger that starts a group
+	WithGroup(name string) *Logger
 
-	// Extract *slog.Logger from Xlog (Xlog -> *slog.Logger)
+	// Extract *slog.Logger (*xlog.Logger -> *slog.Logger)
 	Slog() *slog.Logger
 
-	// Set Xlog logger as default xlog logger
+	// Set logger as default xlog logger
 	SetDefault()
 
-	// Set Xlog logger as default xlog/log/slog loggers
+	// Set logger as default xlog/log/slog loggers
 	SetDefaultLogs()
 
 	// Return log level as int (slog.Level)

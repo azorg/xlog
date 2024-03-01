@@ -21,7 +21,7 @@ import (
 var (
 	defaultLog  *log.Logger  = log.Default()  // initial standtart logger
 	defaultSlog *slog.Logger = slog.Default() // initial structured logger
-	currentXlog *Xlog        = Default()      // current global logger
+	currentXlog *Logger      = Default()      // current global logger
 	defaultLock sync.Mutex
 )
 
@@ -174,7 +174,7 @@ func Setup(conf Conf) {
 
 	// Save log level and update global xlog wrapper
 	defaultLock.Lock()
-	currentXlog = &Xlog{Logger: logger, Level: level}
+	currentXlog = &Logger{Logger: logger, Level: level}
 	defaultLock.Unlock()
 
 	// Repeat setup standart logger (stop loop forever)

@@ -78,7 +78,7 @@ var timeFormat = map[string]string{
 	"DateOnly":    time.DateOnly,    // "2006-01-02"
 	"TimeOnly":    time.TimeOnly,    // "15:04:05"
 
-	// Xlog ideas:
+	// xlog ideas:
 	"StdTime":       STD_TIME,                  // "2006/01/02 15:04:05"
 	"StdTimeMicro":  STD_TIME_US,               // "2006/01/02 15:04:05.999999"
 	"StdTimeMilli":  STD_TIME_MS,               // "2006/01/02 15:04:05.999"
