@@ -16,7 +16,8 @@ import (
 // xlog level delivered from slog.Level, implements slog.Leveler interface
 type Level slog.Level
 
-// xlog leveler interface (slog.Leveler + Set() and String() methods)
+// xlog leveler interface
+// (slog.Leveler + Update() + String()/ColorString() methods)
 type Leveler interface {
 	Level() slog.Level   // get log level as slog.Level (implements a slog.Leveler interface)
 	Update(slog.Level)   // update log level
