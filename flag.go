@@ -7,6 +7,7 @@ import "flag"
 // Command line logger option structure
 type Opt struct {
 	Level   string // -log <level>
+	File    string // -lfile <file>
 	SLog    bool   // -slog
 	JLog    bool   // -jlog
 	TLog    bool   // -tlog
@@ -26,6 +27,7 @@ type Opt struct {
 // Usage:
 //
 //	-log <level>       - log level (flood/trace/debug/info/notice/warm/error/critical)
+//	-lfile <file>      - log file path or stdout/stderr
 //	-slog              - use structured text logger (slog)
 //	-jlog              - use structured JSON logger (slog)
 //	-tlog              - use tinted (colorized) logger (tint)
@@ -38,6 +40,7 @@ type Opt struct {
 func NewOpt() *Opt {
 	opt := &Opt{}
 	flag.StringVar(&opt.Level, "log", "", "override log level (flood/trace/debug/info/warm/error/fatal)")
+	flag.StringVar(&opt.File, "lfile", "", "log file path or stdout/stderr")
 	flag.BoolVar(&opt.SLog, "slog", false, "use structured text logger (slog)")
 	flag.BoolVar(&opt.JLog, "jlog", false, "use structured JSON logger (slog)")
 	flag.BoolVar(&opt.TLog, "tlog", false, "use tinted (colorized) logger (tint)")
@@ -58,6 +61,9 @@ func NewOpt() *Opt {
 func AddOpt(opt *Opt, conf *Conf) {
 	if opt.Level != "" {
 		conf.Level = opt.Level
+	}
+	if opt.File != "" {
+		conf.File = opt.File
 	}
 	if opt.SLog {
 		conf.Slog = true
