@@ -1,3 +1,6 @@
+2024.05.17: v1.0.1
+ * add -lfile option
+
 2024.03.01: v1.0.0
  * сhange xlog.Xlog то xlog.Logger (more traditional name)
 
