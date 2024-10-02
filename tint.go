@@ -224,16 +224,16 @@ func (h *TintHandler) WithGroup(name string) slog.Handler {
 
 func (h *TintHandler) clone() *TintHandler {
 	return &TintHandler{
-		attrsPrefix: h.attrsPrefix,
-		groupPrefix: h.groupPrefix,
-		groups:      h.groups,
 		w:           h.w,
 		addSource:   h.addSource,
 		sourceLong:  h.sourceLong,
-		level:       h.level,
 		replaceAttr: h.replaceAttr,
 		timeFormat:  h.timeFormat,
 		noColor:     h.noColor,
+		level:       h.level,
+		attrsPrefix: h.attrsPrefix,
+		groupPrefix: h.groupPrefix,
+		groups:      h.groups,
 	}
 }
 
