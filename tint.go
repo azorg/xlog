@@ -20,6 +20,9 @@ import (
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
+// New line sequency
+const NEW_LINE = '\n'
+
 type TintOptions struct {
 	// Minimum level to log (Default: slog.LevelInfo)
 	Level slog.Leveler
@@ -96,8 +99,8 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= h.level.Level()
 }
 
-// Format record to byte array
-func (h *TintHandler) Format(r slog.Record) []byte {
+// Prepare text buffer to log
+func (h *TintHandler) format(r slog.Record) []byte {
 	// Get a buffer from the sync pool
 	buf := NewBuffer()
 	defer buf.Free()
@@ -174,21 +177,35 @@ func (h *TintHandler) Format(r slog.Record) []byte {
 		return true
 	})
 
-	if len(*buf) == 0 {
-		return *buf
+	return *buf
+}
+
+// Format record to byte array
+func (h *TintHandler) Format(r slog.Record) string {
+	buf := h.format(r)
+
+	size := len(buf)
+	if size == 0 {
+		return ""
 	}
 
-	// Replace last space with newline
-	(*buf)[len(*buf)-1] = '\n'
-
-	return *buf
+	// Trim last space
+	return string(buf[:size-1])
 }
 
 // Handle() implements slog.Handler interface
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error {
-	buf := h.Format(r)
+	buf := h.format(r)
+	if len(buf) == 0 {
+		return nil
+	}
+
+	// Replace last space to new line
+	buf[len(buf)-1] = NEW_LINE
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
 	_, err := h.w.Write(buf)
 	return err
 }

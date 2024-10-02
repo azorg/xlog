@@ -52,4 +52,8 @@ func (b *Buffer) WriteStringIf(ok bool, str string) int {
 	return b.WriteString(str)
 }
 
+func (b *Buffer) String() string {
+	return string(*b)
+}
+
 // EOF: "buffer.go"
