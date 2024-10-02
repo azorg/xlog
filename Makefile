@@ -40,7 +40,7 @@ tidy: go.mod
 
 go.sum: go.mod Makefile #tidy
 	@#go get golang.org/x/exp/slog # experimental slog (go <1.21)
-	@go get github.com/gofrs/uuid # UUID v1-v7
+	@go get github.com/google/uuid # Google UUID
 	@touch go.sum
 
 vendor: go.sum

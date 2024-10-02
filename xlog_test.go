@@ -11,7 +11,7 @@ import (
 	"time"
 
 	//"golang.org/x/exp/slog" // depricated for go>=1.21
-	"github.com/gofrs/uuid" // UUID v1-v7
+	"github.com/google/uuid"
 )
 
 func TestUsage(t *testing.T) {

@@ -21,45 +21,46 @@ import (
 )
 
 type TintOptions struct {
+	// Minimum level to log (Default: slog.LevelInfo)
+	Level slog.Leveler
+
 	// Enable source code location
 	AddSource bool
 
 	// Log long file path (directory + file name)
 	SourceLong bool
 
-	// Minimum level to log (Default: slog.LevelInfo)
-	Level slog.Leveler
-
 	// Off level keys
 	NoLevel bool
-
-	// ReplaceAttr is called to rewrite each non-group attribute before it is logged.
-	// See https://pkg.go.dev/log/slog#HandlerOptions for details.
-	ReplaceAttr func(groups []string, attr slog.Attr) slog.Attr
 
 	// Time format
 	TimeFormat string
 
 	// Disable color
 	NoColor bool
+
+	// ReplaceAttr is called to rewrite each non-group attribute before it is logged.
+	// See https://pkg.go.dev/log/slog#HandlerOptions for details.
+	ReplaceAttr func(groups []string, attr slog.Attr) slog.Attr
 }
 
 // Tinted (colorized) handler implements a slog.Handler
 type TintHandler struct {
+	mu sync.Mutex
+	w  io.Writer
+
+	level      slog.Leveler
+	addSource  bool
+	sourceLong bool
+	noLevel    bool
+	timeFormat string
+	noColor    bool
+
 	attrsPrefix string
 	groupPrefix string
 	groups      []string
 
-	mu sync.Mutex
-	w  io.Writer
-
-	addSource   bool
-	sourceLong  bool
-	level       slog.Leveler
-	noLevel     bool
 	replaceAttr func([]string, slog.Attr) slog.Attr
-	timeFormat  string
-	noColor     bool
 }
 
 // Create new tinted (colorized) handler
@@ -95,8 +96,8 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= h.level.Level()
 }
 
-// Handle() implements slog.Handler interface
-func (h *TintHandler) Handle(_ context.Context, r slog.Record) error {
+// Format record to byte array
+func (h *TintHandler) Format(r slog.Record) []byte {
 	// Get a buffer from the sync pool
 	buf := NewBuffer()
 	defer buf.Free()
@@ -174,14 +175,21 @@ func (h *TintHandler) Handle(_ context.Context, r slog.Record) error {
 	})
 
 	if len(*buf) == 0 {
-		return nil
+		return *buf
 	}
-	(*buf)[len(*buf)-1] = '\n' // replace last space with newline
 
+	// Replace last space with newline
+	(*buf)[len(*buf)-1] = '\n'
+
+	return *buf
+}
+
+// Handle() implements slog.Handler interface
+func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error {
+	buf := h.Format(r)
 	h.mu.Lock()
 	defer h.mu.Unlock()
-
-	_, err := h.w.Write(*buf)
+	_, err := h.w.Write(buf)
 	return err
 }
 

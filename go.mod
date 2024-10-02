@@ -1,5 +1,5 @@
 module github.com/azorg/xlog
 
-go 1.21.6
+go 1.22.6
 
-require github.com/gofrs/uuid v4.4.0+incompatible // indirect
+require github.com/google/uuid v1.6.0 // indirect
