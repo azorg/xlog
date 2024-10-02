@@ -73,13 +73,13 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 	if conf.Tint {
 		// Use Tinted Handler
 		opts := &TintOptions{
+			Level:       &level,
 			AddSource:   conf.Src,
 			SourceLong:  conf.SrcLong,
-			Level:       &level,
 			NoLevel:     conf.NoLevel,
-			ReplaceAttr: nil,
 			TimeFormat:  conf.TimeTint,
 			NoColor:     conf.NoColor,
+			ReplaceAttr: nil,
 		}
 
 		if conf.TimeTint == "" {
