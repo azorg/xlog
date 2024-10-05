@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog" // go>=1.21
+	//"log/slog" // go>=1.21
 	"testing"
 	"time"
 
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
 	"github.com/google/uuid"
+	"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
 func TestUsage(t *testing.T) {

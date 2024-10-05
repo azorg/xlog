@@ -8,7 +8,7 @@ import (
 	"encoding"
 	"fmt"
 	"io"
-	"log/slog" // go>=1.21
+	//"log/slog" // go>=1.21
 	"path"
 	"path/filepath"
 	"runtime"
@@ -17,7 +17,8 @@ import (
 	"sync"
 	"time"
 	"unicode"
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+
+	"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
 // New line sequency

@@ -4,8 +4,9 @@ package xlog
 
 import (
 	"log"
-	"log/slog" // go>=1.21
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	//"log/slog" // go>=1.21
+
+	"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
 // Logger interface
