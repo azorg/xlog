@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
 	"github.com/google/uuid"
+	//"golang.org/x/exp/slog" // depricated for go>=1.21
 )
 
 func TestUsage(t *testing.T) {
@@ -269,8 +269,9 @@ func TestWith(t *testing.T) {
 		//JSON: true,
 		Tint: true,
 		//NoColor: true,
-		Level: "debug",
-		Time:  true, TimeUS: true, TimeTint: "lab",
+		NoLevel: true,
+		Level:   "debug",
+		Time:    true, TimeUS: true, TimeTint: "lab",
 		Src: true, SrcLong: true,
 	})
 
