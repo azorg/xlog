@@ -248,6 +248,7 @@ func (h *TintHandler) clone() *TintHandler {
 		replaceAttr: h.replaceAttr,
 		timeFormat:  h.timeFormat,
 		noColor:     h.noColor,
+		noLevel:     h.noLevel,
 		level:       h.level,
 		attrsPrefix: h.attrsPrefix,
 		groupPrefix: h.groupPrefix,

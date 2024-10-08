@@ -269,8 +269,9 @@ func TestWith(t *testing.T) {
 		//JSON: true,
 		Tint: true,
 		//NoColor: true,
-		Level: "debug",
-		Time:  true, TimeUS: true, TimeTint: "lab",
+		NoLevel: true,
+		Level:   "debug",
+		Time:    true, TimeUS: true, TimeTint: "lab",
 		Src: true, SrcLong: true,
 	})
 
