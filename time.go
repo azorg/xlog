@@ -14,12 +14,15 @@ const (
 
 	// Default time format of standart logger
 	STD_TIME = "2006/01/02 15:04:05"
-
-	// Default time format of standart logger + microseconds
-	STD_TIME_US = "2006/01/02 15:04:05.999999"
+	STD_LOG  = "2006-01-02 15:04:05"
 
 	// Default time format of standart logger + milliseconds
 	STD_TIME_MS = "2006/01/02 15:04:05.999"
+	STD_LOG_MS  = "2006-01-02 15:04:05.999"
+
+	// Default time format of standart logger + microseconds
+	STD_TIME_US = "2006/01/02 15:04:05.999999"
+	STD_LOG_US  = "2006-01-02 15:04:05.999999"
 
 	// RFC3339 time format + nanoseconds (slog.TextHandler by default)
 	RFC3339Nano = time.RFC3339Nano // "2006-01-02T15:04:05.999999999Z07:00"
@@ -80,8 +83,11 @@ var timeFormat = map[string]string{
 
 	// xlog ideas:
 	"StdTime":       STD_TIME,                  // "2006/01/02 15:04:05"
-	"StdTimeMicro":  STD_TIME_US,               // "2006/01/02 15:04:05.999999"
 	"StdTimeMilli":  STD_TIME_MS,               // "2006/01/02 15:04:05.999"
+	"StdTimeMicro":  STD_TIME_US,               // "2006/01/02 15:04:05.999999"
+	"StdLog":        STD_LOG,                   // "2006-01-02 15:04:05"
+	"StdLogMilli":   STD_LOG_MS,                // "2006-01-02 15:04:05.999"
+	"StdLogMicro":   STD_LOG_US,                // "2006-01-02 15:04:05.999999"
 	"RFC3339Micro":  RFC3339Micro,              // "2006-01-02T15:04:05.999999Z07:00"
 	"RFC3339Milli":  RFC3339Milli,              // "2006-01-02T15:04:05.999Z07:00"
 	"TimeOnlyMicro": TimeOnlyMicro,             // "15:04:05.999999"
