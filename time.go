@@ -13,16 +13,16 @@ const (
 	TIME_OFF = ""
 
 	// Default time format of standart logger
-	STD_TIME = "2006/01/02 15:04:05"
-	STD_LOG  = "2006-01-02 15:04:05"
+	STD_TIME  = "2006/01/02 15:04:05"
+	DATE_TIME = time.DateTime // "2006-01-02 15:04:05"
 
 	// Default time format of standart logger + milliseconds
-	STD_TIME_MS = "2006/01/02 15:04:05.999"
-	STD_LOG_MS  = "2006-01-02 15:04:05.999"
+	STD_TIME_MS  = "2006/01/02 15:04:05.999"
+	DATE_TIME_MS = "2006-01-02 15:04:05.999"
 
 	// Default time format of standart logger + microseconds
-	STD_TIME_US = "2006/01/02 15:04:05.999999"
-	STD_LOG_US  = "2006-01-02 15:04:05.999999"
+	STD_TIME_US  = "2006/01/02 15:04:05.999999"
+	DATE_TIME_US = "2006-01-02 15:04:05.999999"
 
 	// RFC3339 time format + nanoseconds (slog.TextHandler by default)
 	RFC3339Nano = time.RFC3339Nano // "2006-01-02T15:04:05.999999999Z07:00"
@@ -61,33 +61,32 @@ const (
 // Time format aliases
 var timeFormat = map[string]string{
 	// From "time" Go package:
-	"Layout":      time.Layout,      // "01/02 03:04:05PM '06 -0700"
-	"ANSIC":       time.ANSIC,       // "Mon Jan _2 15:04:05 2006"
-	"UnixDate":    time.UnixDate,    // "Mon Jan _2 15:04:05 MST 2006"
-	"RubyDate":    time.RubyDate,    // "Mon Jan 02 15:04:05 -0700 2006"
-	"RFC822":      time.RFC822,      // "02 Jan 06 15:04 MST"
-	"RFC822Z":     time.RFC822Z,     // "02 Jan 06 15:04 -0700"
-	"RFC850":      time.RFC850,      // "Monday, 02-Jan-06 15:04:05 MST"
-	"RFC1123":     time.RFC1123,     // "Mon, 02 Jan 2006 15:04:05 MST"
-	"RFC1123Z":    time.RFC1123Z,    // "Mon, 02 Jan 2006 15:04:05 -0700"
-	"RFC3339":     time.RFC3339,     // "2006-01-02T15:04:05Z07:00"
-	"RFC3339Nano": time.RFC3339Nano, // "2006-01-02T15:04:05.999999999Z07:00"
-	"Kitchen":     time.Kitchen,     // "3:04PM"
-	"Stamp":       time.Stamp,       // "Jan _2 15:04:05"
-	"StampMilli":  time.StampMilli,  // "Jan _2 15:04:05.000"
-	"StampMicro":  time.StampMicro,  // "Jan _2 15:04:05.000000"
-	"StampNano":   time.StampNano,   // "Jan _2 15:04:05.000000000"
-	"DateTime":    time.DateTime,    // "2006-01-02 15:04:05"
-	"DateOnly":    time.DateOnly,    // "2006-01-02"
-	"TimeOnly":    time.TimeOnly,    // "15:04:05"
+	"Layout":        time.Layout,      // "01/02 03:04:05PM '06 -0700"
+	"ANSIC":         time.ANSIC,       // "Mon Jan _2 15:04:05 2006"
+	"UnixDate":      time.UnixDate,    // "Mon Jan _2 15:04:05 MST 2006"
+	"RubyDate":      time.RubyDate,    // "Mon Jan 02 15:04:05 -0700 2006"
+	"RFC822":        time.RFC822,      // "02 Jan 06 15:04 MST"
+	"RFC822Z":       time.RFC822Z,     // "02 Jan 06 15:04 -0700"
+	"RFC850":        time.RFC850,      // "Monday, 02-Jan-06 15:04:05 MST"
+	"RFC1123":       time.RFC1123,     // "Mon, 02 Jan 2006 15:04:05 MST"
+	"RFC1123Z":      time.RFC1123Z,    // "Mon, 02 Jan 2006 15:04:05 -0700"
+	"RFC3339":       time.RFC3339,     // "2006-01-02T15:04:05Z07:00"
+	"RFC3339Nano":   time.RFC3339Nano, // "2006-01-02T15:04:05.999999999Z07:00"
+	"Kitchen":       time.Kitchen,     // "3:04PM"
+	"Stamp":         time.Stamp,       // "Jan _2 15:04:05"
+	"StampMilli":    time.StampMilli,  // "Jan _2 15:04:05.000"
+	"StampMicro":    time.StampMicro,  // "Jan _2 15:04:05.000000"
+	"StampNano":     time.StampNano,   // "Jan _2 15:04:05.000000000"
+	"DateTime":      time.DateTime,    // "2006-01-02 15:04:05"
+	"DateTimeMilli": DATE_TIME_MS,     // "2006-01-02 15:04:05.999"
+	"DateTimeMicro": DATE_TIME_US,     // "2006-01-02 15:04:05.999999"
+	"DateOnly":      time.DateOnly,    // "2006-01-02"
+	"TimeOnly":      time.TimeOnly,    // "15:04:05"
 
 	// xlog ideas:
 	"StdTime":       STD_TIME,                  // "2006/01/02 15:04:05"
 	"StdTimeMilli":  STD_TIME_MS,               // "2006/01/02 15:04:05.999"
 	"StdTimeMicro":  STD_TIME_US,               // "2006/01/02 15:04:05.999999"
-	"StdLog":        STD_LOG,                   // "2006-01-02 15:04:05"
-	"StdLogMilli":   STD_LOG_MS,                // "2006-01-02 15:04:05.999"
-	"StdLogMicro":   STD_LOG_US,                // "2006-01-02 15:04:05.999999"
 	"RFC3339Micro":  RFC3339Micro,              // "2006-01-02T15:04:05.999999Z07:00"
 	"RFC3339Milli":  RFC3339Milli,              // "2006-01-02T15:04:05.999Z07:00"
 	"TimeOnlyMicro": TimeOnlyMicro,             // "15:04:05.999999"

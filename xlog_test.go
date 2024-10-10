@@ -17,11 +17,11 @@ import (
 func TestUsage(t *testing.T) {
 	fmt.Println(">>> Test Usage")
 
-	conf := NewConf()             // create default config (look xlog.Conf for details)
-	conf.Level = "flood"          // set logger level
-	conf.Tint = true              // select tinted logger
-	conf.Src = true               // add source file:line to log
-	conf.TimeTint = "stdLogMilli" // add custom timestamp
+	conf := NewConf()               // create default config (look xlog.Conf for details)
+	conf.Level = "flood"            // set logger level
+	conf.Tint = true                // select tinted logger
+	conf.Src = true                 // add source file:line to log
+	conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
 	Env(&conf, "LOG_") // read setting from enviroment
 
@@ -292,11 +292,11 @@ func TestWith(t *testing.T) {
 }
 
 func _TestFatalPanic(t *testing.T) {
-	conf := NewConf()        // create default config (look xlog.Conf for details)
-	conf.Level = "flood"     // set logger level
-	conf.Tint = true         // select tinted logger
-	conf.Src = true          // add source file:line to log
-	conf.TimeTint = "stdLog" // add custom timestamp
+	conf := NewConf()               // create default config (look xlog.Conf for details)
+	conf.Level = "flood"            // set logger level
+	conf.Tint = true                // select tinted logger
+	conf.Src = true                 // add source file:line to log
+	conf.TimeTint = "DateTimeMicro" // add custom timestamp
 
 	Env(&conf) // read setting from enviroment
 
