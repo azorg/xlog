@@ -17,10 +17,10 @@ import (
 	"sync"
 	"time"
 	"unicode"
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	//"golang.org/x/exp/slog" // deprecated for go>=1.21
 )
 
-// New line sequency
+// New line sequence
 const NEW_LINE = '\n'
 
 type TintOptions struct {
@@ -32,6 +32,9 @@ type TintOptions struct {
 
 	// Log long file path (directory + file name)
 	SourceLong bool
+
+	// Log functions name
+	SourceFunc bool
 
 	// Remove ".go" extension from file name
 	NoExt bool
@@ -58,6 +61,7 @@ type TintHandler struct {
 	level      slog.Leveler
 	addSource  bool
 	sourceLong bool
+	sourceFunc bool
 	noExt      bool
 	noLevel    bool
 	timeFormat string
@@ -84,6 +88,7 @@ func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler {
 
 	h.addSource = opts.AddSource
 	h.sourceLong = opts.SourceLong
+	h.sourceFunc = opts.SourceFunc
 	h.noExt = opts.NoExt
 	h.noLevel = opts.NoLevel
 	h.noColor = opts.NoColor
@@ -154,6 +159,12 @@ func (h *TintHandler) format(r slog.Record) []byte {
 			}
 			if h.noExt { // remove ".go" extension
 				src.File = RemoveGoExt(src.File)
+			}
+			if h.sourceFunc { // add function name
+				funcName := GetFuncName(5) // skip=5 (some magic)
+				if funcName != "" {
+					src.File += ":" + funcName + "()"
+				}
 			}
 			if rep == nil {
 				h.appendSource(buf, src)
@@ -252,6 +263,7 @@ func (h *TintHandler) clone() *TintHandler {
 		w:           h.w,
 		addSource:   h.addSource,
 		sourceLong:  h.sourceLong,
+		sourceFunc:  h.sourceFunc,
 		noExt:       h.noExt,
 		replaceAttr: h.replaceAttr,
 		timeFormat:  h.timeFormat,

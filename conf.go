@@ -15,6 +15,7 @@ type Conf struct {
 	TimeTint string `json:"time-tint"` // tinted log time format (like time.Kitchen, time.DateTime)
 	Src      bool   `json:"src"   `    // log file name and line number
 	SrcLong  bool   `json:"src-long"`  // log long file path (directory + file name)
+	SrcFunc  bool   `json:"src-func"`  // add function name to log
 	NoExt    bool   `json:"no-ext"`    // remove ".go" extension from file name
 	NoLevel  bool   `json:"no-level"`  // don't print log level tag to log (~level="INFO")
 	NoColor  bool   `json:"no-color"`  // disable tinted colors (only if Tint=true)
@@ -37,6 +38,7 @@ func NewConf() Conf {
 		TimeTint: TIME_TINT,
 		Src:      SRC,
 		SrcLong:  SRC_LONG,
+		SrcFunc:  SRC_FUNC,
 		NoExt:    NO_EXT,
 		NoLevel:  NO_LEVEL,
 		NoColor:  NO_COLOR,

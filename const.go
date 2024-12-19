@@ -15,6 +15,7 @@ const (
 	TIME_TINT = ""       // tinted log time format (~time.Kitchen, "15:04:05.999")
 	SRC       = false    // log file name and line number
 	SRC_LONG  = false    // log long file path (directory + file name)
+	SRC_FUNC  = false    // add function name to log
 	NO_EXT    = false    // remove ".go" extension from file name
 	NO_LEVEL  = false    // don't print log level tag to log (~level="INFO")
 	NO_COLOR  = false    // don't use tinted colors (only if Tint=true)

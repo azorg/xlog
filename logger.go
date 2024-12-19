@@ -7,7 +7,7 @@ import (
 	"log/slog" // go>=1.21
 	"os"
 	"strings"
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	//"golang.org/x/exp/slog" // deprecated for go>=1.21
 )
 
 const ERR_KEY = "err"
@@ -112,7 +112,7 @@ func (x *Logger) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// Return standart logger with prefix
+// Return standard logger with prefix
 func (x *Logger) NewLog(prefix string) *log.Logger {
 	return log.New(x, prefix, 0) // use x as io.Writer
 }
@@ -231,103 +231,103 @@ func Panic(msg string) {
 	panic(msg)
 }
 
-// Logf logs at given level as standart logger
+// Logf logs at given level as standard logger
 func (x *Logger) Logf(level slog.Level, format string, args ...any) {
 	logf(x.Logger, level, format, args...)
 }
 
-// Logf logs at given level as standart logger with default logger
+// Logf logs at given level as standard logger with default logger
 func Logf(level slog.Level, format string, args ...any) {
 	logf(currentXlog.Logger, level, format, args...)
 }
 
-// Floodf logs at LevelFlood as standart logger
+// Floodf logs at LevelFlood as standard logger
 func (x *Logger) Floodf(format string, args ...any) {
 	logf(x.Logger, LevelFlood, format, args...)
 }
 
-// Floodf logs at LevelFlood as standart logger with default logger
+// Floodf logs at LevelFlood as standard logger with default logger
 func Floodf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelFlood, format, args...)
 }
 
-// Tracef logs at LevelTrace as standart logger
+// Tracef logs at LevelTrace as standard logger
 func (x *Logger) Tracef(format string, args ...any) {
 	logf(x.Logger, LevelTrace, format, args...)
 }
 
-// Tracef logs at LevelTrace as standart logger with default logger
+// Tracef logs at LevelTrace as standard logger with default logger
 func Tracef(format string, args ...any) {
 	logf(currentXlog.Logger, LevelTrace, format, args...)
 }
 
-// Debugf logs at LevelDebug as standart logger
+// Debugf logs at LevelDebug as standard logger
 func (x *Logger) Debugf(format string, args ...any) {
 	logf(x.Logger, LevelDebug, format, args...)
 }
 
-// Debugf logs at LevelDebug as standart logger with default logger
+// Debugf logs at LevelDebug as standard logger with default logger
 func Debugf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelDebug, format, args...)
 }
 
-// Infof logs at LevelInfo as standart logger
+// Infof logs at LevelInfo as standard logger
 func (x *Logger) Infof(format string, args ...any) {
 	logf(x.Logger, LevelInfo, format, args...)
 }
 
-// Infof logs at LevelInfo as standart logger with default logger
+// Infof logs at LevelInfo as standard logger with default logger
 func Infof(format string, args ...any) {
 	logf(currentXlog.Logger, LevelInfo, format, args...)
 }
 
-// Noticef logs at LevelNotice as standart logger
+// Noticef logs at LevelNotice as standard logger
 func (x *Logger) Noticef(format string, args ...any) {
 	logf(x.Logger, LevelNotice, format, args...)
 }
 
-// Noticef logs at LevelNotice as standart logger with default logger
+// Noticef logs at LevelNotice as standard logger with default logger
 func Noticef(format string, args ...any) {
 	logf(currentXlog.Logger, LevelNotice, format, args...)
 }
 
-// Warnf logs at LevelWarn as standart logger
+// Warnf logs at LevelWarn as standard logger
 func (x *Logger) Warnf(format string, args ...any) {
 	logf(x.Logger, LevelWarn, format, args...)
 }
 
-// Warnf logs at LevelWarn as standart logger with default logger
+// Warnf logs at LevelWarn as standard logger with default logger
 func Warnf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelWarn, format, args...)
 }
 
-// Errorf logs at LevelError as standart logger
+// Errorf logs at LevelError as standard logger
 func (x *Logger) Errorf(format string, args ...any) {
 	logf(x.Logger, LevelError, format, args...)
 }
 
-// Errorf logs at LevelError as standart logger with default logger
+// Errorf logs at LevelError as standard logger with default logger
 func Errorf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelError, format, args...)
 }
 
-// Critf logs at LevelCritical as standart logger
+// Critf logs at LevelCritical as standard logger
 func (x *Logger) Critf(format string, args ...any) {
 	logf(x.Logger, LevelCritical, format, args...)
 }
 
-// Critf logs at LevelCritical as standart logger with default logger
+// Critf logs at LevelCritical as standard logger with default logger
 func Critf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelCritical, format, args...)
 }
 
-// Fatalf logs at LevelFatal as standart logger and os.Exit(1)
+// Fatalf logs at LevelFatal as standard logger and os.Exit(1)
 func (x *Logger) Fatalf(format string, args ...any) {
 	logf(x.Logger, LevelFatal, format, args...)
 	os.Exit(1)
 }
 
-// Fatalf logs at LevelFatal as standart logger with default logger
+// Fatalf logs at LevelFatal as standard logger with default logger
 // and os.Exit(1)
 func Fatalf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelFatal, format, args...)

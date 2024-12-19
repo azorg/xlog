@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	//"golang.org/x/exp/slog" // deprecated for go>=1.21
 )
 
 // xlog level delivered from slog.Level, implements slog.Leveler interface
@@ -203,7 +203,7 @@ func logs(l *slog.Logger, level slog.Level, msg string, args ...any) {
 	_ = l.Handler().Handle(ctx, r)
 }
 
-// Internal wrapper to work with additional log levels as standart logger
+// Internal wrapper to work with additional log levels as standard logger
 func logf(l *slog.Logger, level slog.Level, format string, args ...any) {
 	//if l == nil {
 	//	l = slog.Default()
