@@ -12,20 +12,21 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
-	//"golang.org/x/exp/slog" // depricated for go>=1.21
+	//"golang.org/x/exp/slog" // deprecated for go>=1.21
 )
 
 // Saved loggers, current log level
 var (
-	defaultLog  *log.Logger  = log.Default()  // initial standtart logger
+	defaultLog  *log.Logger  = log.Default()  // initial standard logger
 	defaultSlog *slog.Logger = slog.Default() // initial structured logger
 	currentXlog *Logger      = Default()      // current global logger
 	defaultLock sync.Mutex
 )
 
-// Setup standart simple logger
+// Setup standard simple logger
 func SetupLog(logger *log.Logger, conf Conf) {
 	flag := 0
 	if conf.Time {
@@ -51,7 +52,7 @@ func SetupLog(logger *log.Logger, conf Conf) {
 	logger.SetFlags(flag)
 }
 
-// Create new configured standart logger
+// Create new configured standard logger
 func NewLog(conf Conf) *log.Logger {
 	logger := log.New(os.Stdout, "", 0)
 	SetupLog(logger, conf)
@@ -62,7 +63,7 @@ func NewLog(conf Conf) *log.Logger {
 // (return Leveler to may change log level later too)
 func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 	if !conf.Slog && !conf.JSON && !conf.Tint {
-		// Don't use Text/JSON/Tint handler, tune standart logger
+		// Don't use Text/JSON/Tint handler, tune standard logger
 		return newSlogStd(conf)
 	}
 
@@ -76,6 +77,8 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 			Level:       &level,
 			AddSource:   conf.Src,
 			SourceLong:  conf.SrcLong,
+			SourceFunc:  conf.SrcFunc,
+			NoExt:       conf.NoExt,
 			NoLevel:     conf.NoLevel,
 			TimeFormat:  conf.TimeTint,
 			NoColor:     conf.NoColor,
@@ -99,7 +102,11 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 			Level:     &level,
 		}
 
-		if ADD_LEVELS || !conf.Time || conf.Src || !conf.SrcLong || conf.NoLevel {
+		if conf.JSON {
+			conf.SrcFunc = false // force off
+		}
+
+		if ADD_LEVELS || !conf.Time || conf.Src || conf.NoExt || conf.NoLevel {
 			opts.ReplaceAttr = func(groups []string, a slog.Attr) slog.Attr {
 				switch a.Key {
 				case slog.TimeKey:
@@ -117,7 +124,7 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 					}
 				case slog.SourceKey:
 					src := a.Value.Any().(*slog.Source)
-					if src.File == "" { // FIX some bug if slog work as standart logger
+					if src.File == "" { // FIX some bug if slog work as standard logger
 						return slog.Attr{}
 					}
 					if conf.SrcLong { // long: directory + file name
@@ -125,6 +132,19 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 						src.File = filepath.Join(filepath.Base(dir), file)
 					} else { // short: only file name
 						src.File = path.Base(src.File)
+					}
+					if conf.NoExt { // remove ".go" extension
+						src.File = RemoveGoExt(src.File)
+					}
+					parts := strings.Split(src.Function, ".")
+					if len(parts) != 0 {
+						src.Function = parts[len(parts)-1]
+					}
+					//src.Funcion = GetFuncName(7) // skip=7 (some magic)
+					if conf.SrcFunc { // add function name
+						if src.Function != "" {
+							src.File += ":" + src.Function + "()"
+						}
 					}
 					a.Value = slog.AnyValue(src)
 				case slog.LevelKey:
@@ -257,9 +277,9 @@ func openFile(file, mode string) *os.File {
 	return out
 }
 
-// Create custom structured logger based on default standart logger
+// Create custom structured logger based on default standard logger
 func newSlogStd(conf Conf) (*slog.Logger, Leveler) {
-	// Setup standart logger
+	// Setup standard logger
 	stdlog := logDefault()
 	SetupLog(stdlog, conf)
 
@@ -282,7 +302,7 @@ func newSlogStd(conf Conf) (*slog.Logger, Leveler) {
 	return logger, &leveler
 }
 
-// Help wrapper to direct log level in standart logger mode
+// Help wrapper to direct log level in standard logger mode
 type stdHandler struct {
 	handler slog.Handler
 	level   slog.Leveler

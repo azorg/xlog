@@ -12,15 +12,15 @@ const (
 	// Time OFF
 	TIME_OFF = ""
 
-	// Default time format of standart logger
+	// Default time format of standard logger
 	STD_TIME  = "2006/01/02 15:04:05"
 	DATE_TIME = time.DateTime // "2006-01-02 15:04:05"
 
-	// Default time format of standart logger + milliseconds
+	// Default time format of standard logger + milliseconds
 	STD_TIME_MS  = "2006/01/02 15:04:05.999"
 	DATE_TIME_MS = "2006-01-02 15:04:05.999"
 
-	// Default time format of standart logger + microseconds
+	// Default time format of standard logger + microseconds
 	STD_TIME_US  = "2006/01/02 15:04:05.999999"
 	DATE_TIME_US = "2006-01-02 15:04:05.999999"
 
@@ -51,10 +51,10 @@ const (
 	// Digital clock
 	CLOCK_TIME_FORMAT = "15:04"
 
-	// Default (recomented) time format wuth milliseconds
+	// Default (recommended) time format wuth milliseconds
 	DEFAULT_TIME_FORMAT = STD_TIME_MS
 
-	// Default (recomented) time format witn microseconds
+	// Default (recommended) time format with microseconds
 	DEFAULT_TIME_FORMAT_US = STD_TIME_US
 )
 

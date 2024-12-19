@@ -1,3 +1,7 @@
+2024.12.19: v1.2.0
+ * remove ".go" from source file name by NoExt option
+ * add SrcFunc option (add functions name to log)
+
 2024.10.10: v1.1.5
  * add "DateTime*" time format to "time.go"
 
@@ -5,7 +9,7 @@
  * fix bug with copy noLevel for With()
 
 2024.10.05: v1.1.2-go1.20
- * buil for legacy go1.20
+ * build for legacy go1.20
 
 2024.10.02: v1.1.0
  * add Tint::Format() method
@@ -14,7 +18,7 @@
  * add -lfile option
 
 2024.03.01: v1.0.0
- * сhange xlog.Xlog то xlog.Logger (more traditional name)
+ * change xlog.Xlog то xlog.Logger (more traditional name)
 
 2024.02.05:
  * add TimeFormat and etc ("time.go")

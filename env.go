@@ -29,7 +29,7 @@ func StringToBool(s string) bool {
 	return false // by default
 }
 
-// Add settings from eviroment variables
+// Add settings from environment variables
 func Env(conf *Conf, prefixOpt ...string) {
 	prefix := DEFAULT_PREFIX
 	if len(prefixOpt) != 0 {
@@ -74,6 +74,12 @@ func Env(conf *Conf, prefixOpt ...string) {
 	}
 	if v := os.Getenv(prefix + "SRC_LONG"); v != "" {
 		conf.SrcLong = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "SRC_FUNC"); v != "" {
+		conf.SrcFunc = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "NO_EXT"); v != "" {
+		conf.NoExt = StringToBool(v)
 	}
 	if v := os.Getenv(prefix + "NO_LEVEL"); v != "" {
 		conf.NoLevel = StringToBool(v)
