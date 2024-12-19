@@ -21,6 +21,7 @@ func TestUsage(t *testing.T) {
 	conf.Level = "flood"            // set logger level
 	conf.Tint = true                // select tinted logger
 	conf.Src = true                 // add source file:line to log
+	conf.NoExt = true               // remove ".go" extension
 	conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
 	Env(&conf, "LOG_") // read setting from enviroment
@@ -272,7 +273,9 @@ func TestWith(t *testing.T) {
 		NoLevel: true,
 		Level:   "debug",
 		Time:    true, TimeUS: true, TimeTint: "lab",
-		Src: true, SrcLong: true,
+		Src:     true,
+		SrcLong: true,
+		NoExt:   true,
 	})
 
 	x.Info("x.Info()", "value", 3.1415926)

@@ -13,6 +13,8 @@ type Opt struct {
 	TLog    bool   // -tlog
 	Src     bool   // -lsrc
 	NoSrc   bool   // -lnosrc
+	Ext     bool   // -lext
+	NoExt   bool   // -lnoext
 	Pkg     bool   // -lpkg
 	NoPkg   bool   // -lnopkg
 	Time    bool   // -ltime
@@ -33,6 +35,7 @@ type Opt struct {
 //	-tlog              - use tinted (colorized) logger (tint)
 //	-lsrc|-lnosrc      - force on/off log source file name and line number
 //	-lpkg|-lnopkg      - force on/off log source directory/file name and line number
+//	-lext|-lnoext      - force enable/disable remove ".go" extension from source file name
 //	-ltime|-lnotime    - force on/off timestamp
 //	-ltimefmt <format> - override log time format (e.g. 15:04:05.999 or TimeOnly)
 //	-lnolevel          - disable log level tag (~level="INFO")
@@ -48,6 +51,8 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.NoSrc, "lnosrc", false, "force off source file name and line number")
 	flag.BoolVar(&opt.Pkg, "lpkg", false, "force log source directory/file name and line number")
 	flag.BoolVar(&opt.NoPkg, "lnopkg", false, "force off source directory/file name and line number")
+	flag.BoolVar(&opt.Ext, "lext", true, "force enable remove '.go' extension from source file name")
+	flag.BoolVar(&opt.NoExt, "lnoext", false, "force disable remove '.go' extension from source file name")
 	flag.BoolVar(&opt.Time, "ltime", false, "force add timestamp to log")
 	flag.BoolVar(&opt.NoTime, "lnotime", false, "force off timestamp")
 	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "override log time format (e.g. 15:04:05.999 or TimeOnly)")
@@ -87,6 +92,12 @@ func AddOpt(opt *Opt, conf *Conf) {
 		conf.SrcLong = true
 	} else if opt.NoPkg {
 		conf.SrcLong = false
+	}
+	if opt.Ext {
+		conf.Src = true
+		conf.NoExt = false
+	} else if opt.NoExt {
+		conf.NoExt = true
 	}
 	if opt.Time {
 		conf.Time = true

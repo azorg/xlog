@@ -33,6 +33,9 @@ type TintOptions struct {
 	// Log long file path (directory + file name)
 	SourceLong bool
 
+	// Remove ".go" extension from file name
+	NoExt bool
+
 	// Off level keys
 	NoLevel bool
 
@@ -55,6 +58,7 @@ type TintHandler struct {
 	level      slog.Leveler
 	addSource  bool
 	sourceLong bool
+	noExt      bool
 	noLevel    bool
 	timeFormat string
 	noColor    bool
@@ -80,6 +84,7 @@ func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler {
 
 	h.addSource = opts.AddSource
 	h.sourceLong = opts.SourceLong
+	h.noExt = opts.NoExt
 	h.noLevel = opts.NoLevel
 	h.noColor = opts.NoColor
 	h.replaceAttr = opts.ReplaceAttr
@@ -146,6 +151,9 @@ func (h *TintHandler) format(r slog.Record) []byte {
 			}
 			if !h.sourceLong {
 				src.File = path.Base(src.File) // only file name
+			}
+			if h.noExt { // remove ".go" extension
+				src.File = RemoveGoExt(src.File)
 			}
 			if rep == nil {
 				h.appendSource(buf, src)
@@ -244,6 +252,7 @@ func (h *TintHandler) clone() *TintHandler {
 		w:           h.w,
 		addSource:   h.addSource,
 		sourceLong:  h.sourceLong,
+		noExt:       h.noExt,
 		replaceAttr: h.replaceAttr,
 		timeFormat:  h.timeFormat,
 		noColor:     h.noColor,
@@ -297,6 +306,7 @@ func (h *TintHandler) appendSource(buf *Buffer, src *slog.Source) {
 		buf.WriteString(AnsiSource)
 		defer buf.WriteString(AnsiReset)
 	}
+
 	dir, file := filepath.Split(src.File)
 	buf.WriteString(filepath.Join(filepath.Base(dir), file))
 	buf.WriteByte(':')

@@ -75,6 +75,9 @@ func Env(conf *Conf, prefixOpt ...string) {
 	if v := os.Getenv(prefix + "SRC_LONG"); v != "" {
 		conf.SrcLong = StringToBool(v)
 	}
+	if v := os.Getenv(prefix + "NO_EXT"); v != "" {
+		conf.NoExt = StringToBool(v)
+	}
 	if v := os.Getenv(prefix + "NO_LEVEL"); v != "" {
 		conf.NoLevel = StringToBool(v)
 	}
