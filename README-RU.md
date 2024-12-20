@@ -89,6 +89,9 @@ slog.Logger ещё и xlog.Leveler - интерфейс, который може
   SetLvl(level string)
 ```
 
+## Ротация логов
+Используется популярный пакет https://github.com/natefinch/lumberjack
+
 ## Полезные ссылки на документацию
 
 * https://go.dev/blog/slog - Structured Logging with slog (August 2023)

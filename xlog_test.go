@@ -312,4 +312,36 @@ func _TestFatalPanic(t *testing.T) {
 	x.Panic("x.Panic()")
 }
 
+func TestRotate(t *testing.T) {
+	fmt.Println(">>> Test Rotate")
+
+	conf := NewConf()    // create default config
+	conf.Level = "flood" // set logger level
+	conf.Tint = true     // select tinted logger
+	conf.Src = true      // add source file:line to log
+	//conf.SrcLong = true  // add package name
+	conf.SrcFunc = true // add function mame to log
+	conf.NoColor = true // no color
+	conf.NoExt = true   // remove ".go" extension
+	//conf.Time = false
+	//conf.TimeTint = "dateTimeMilli" // add custom timestamp
+
+	conf.File = "logs/test.log" // log file
+
+	conf.Rotate.Enable = true
+	//conf.Rotate.Enable = false
+	conf.Rotate.MaxBackups = 3
+
+	Env(&conf, "LOG_") // read setting from environment
+
+	x := New(conf) // create xlog with TintHandler
+	//x.SetDefault() // set default xlog
+
+	x.Info("hello 1")
+	x.Rotate()
+	x.Info("hello 2")
+	time.Sleep(time.Second)
+	x.Close()
+}
+
 // EOF: "xlog_test.go"

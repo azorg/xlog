@@ -12,16 +12,21 @@ import (
 
 const ERR_KEY = "err"
 
-// Logger wrapper (logger + leveler)
+// Logger wrapper (logger + leveler + io.WriteCloser/Rotator)
 type Logger struct {
-	Logger *slog.Logger
-	Level  Leveler
+	Logger  *slog.Logger
+	Level   Leveler
+	Rotator Rotator
 }
 
 // Create logger based on default slog.Logger
 func Default() *Logger {
 	level := Level(DEFAULT_LEVEL)
-	return &Logger{Logger: slogDefault(), Level: &level}
+	return &Logger{
+		Logger:  slogDefault(),
+		Level:   &level,
+		Rotator: newPipe(os.Stdout),
+	}
 }
 
 // Return current Logger
@@ -36,36 +41,37 @@ func X(logger *slog.Logger) *Logger {
 		return Default()
 	}
 	level := Level(DEFAULT_LEVEL)
-	return &Logger{Logger: logger, Level: &level}
-}
-
-// Create new custom logger
-func New(conf Conf) *Logger {
-	logger, level := NewSlogEx(conf)
-	return &Logger{Logger: logger, Level: level}
+	return &Logger{
+		Logger:  logger,
+		Level:   &level,
+		Rotator: newPipe(os.Stdout),
+	}
 }
 
 // Create logger that includes the given attributes in each output
 func (x *Logger) With(args ...any) *Logger {
 	return &Logger{
-		Logger: x.Logger.With(args...),
-		Level:  x.Level,
+		Logger:  x.Logger.With(args...),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
 // Create logger that includes the given attributes in each output
 func (x *Logger) WithAttrs(attrs []slog.Attr) *Logger {
 	return &Logger{
-		Logger: slog.New(x.Logger.Handler().WithAttrs(attrs)),
-		Level:  x.Level,
+		Logger:  slog.New(x.Logger.Handler().WithAttrs(attrs)),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
 // Create logger that starts a group
 func (x *Logger) WithGroup(name string) *Logger {
 	return &Logger{
-		Logger: x.Logger.WithGroup(name),
-		Level:  x.Level,
+		Logger:  x.Logger.WithGroup(name),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
@@ -115,6 +121,26 @@ func (x *Logger) Write(p []byte) (n int, err error) {
 // Return standard logger with prefix
 func (x *Logger) NewLog(prefix string) *log.Logger {
 	return log.New(x, prefix, 0) // use x as io.Writer
+}
+
+// Close log file
+func (x *Logger) Close() error {
+	return x.Rotator.Close()
+}
+
+// Close current log file
+func Close() error {
+	return currentXlog.Close()
+}
+
+// Rotate log file
+func (x *Logger) Rotate() error {
+	return x.Rotator.Rotate()
+}
+
+// Rotate current log file
+func Rotate() error {
+	return currentXlog.Rotate()
 }
 
 // Log logs at given level

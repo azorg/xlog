@@ -4,14 +4,12 @@ package xlog
 
 import (
 	"context"
-	"fmt"
-	"io/fs"
+	//"io"
 	"log"
 	"log/slog" // go>=1.21
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -46,8 +44,8 @@ func SetupLog(logger *log.Logger, conf Conf) {
 		flag |= log.Lmsgprefix
 	}
 
-	out := openFile(conf.File, conf.FileMode)
-	logger.SetOutput(out)
+	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
+	logger.SetOutput(rotator.Writer())
 	logger.SetPrefix(conf.Prefix)
 	logger.SetFlags(flag)
 }
@@ -60,15 +58,14 @@ func NewLog(conf Conf) *log.Logger {
 }
 
 // Create new configured structured logger (default/text/JSON/Tinted handler)
-// (return Leveler to may change log level later too)
-func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
+func New(conf Conf) *Logger {
 	if !conf.Slog && !conf.JSON && !conf.Tint {
 		// Don't use Text/JSON/Tint handler, tune standard logger
 		return newSlogStd(conf)
 	}
 
 	level := Level(ParseLvl(conf.Level))
-	out := openFile(conf.File, conf.FileMode)
+	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
 	var handler slog.Handler
 
 	if conf.Tint {
@@ -94,7 +91,7 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 			}
 		}
 
-		handler = NewTintHandler(out, opts)
+		handler = NewTintHandler(rotator.Writer(), opts)
 	} else {
 		// Use Text/JSON handler
 		opts := &slog.HandlerOptions{
@@ -163,9 +160,9 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 		}
 
 		if conf.JSON {
-			handler = slog.NewJSONHandler(out, opts)
+			handler = slog.NewJSONHandler(rotator.Writer(), opts)
 		} else {
-			handler = slog.NewTextHandler(out, opts)
+			handler = slog.NewTextHandler(rotator.Writer(), opts)
 		}
 	}
 
@@ -173,13 +170,18 @@ func NewSlogEx(conf Conf) (*slog.Logger, Leveler) {
 	if conf.AddKey != "" && conf.AddValue != "" {
 		logger = logger.With(conf.AddKey, conf.AddValue)
 	}
-	return logger, &level
+
+	return &Logger{
+		Logger:  logger,
+		Level:   &level,
+		Rotator: rotator,
+	}
 }
 
 // Create new configured structured logger (default/text/JSON/Tinted handler)
 func NewSlog(conf Conf) *slog.Logger {
-	logger, _ := NewSlogEx(conf)
-	return logger
+	logger := New(conf)
+	return logger.Logger
 }
 
 // Setup standart and structured default global loggers
@@ -189,12 +191,12 @@ func Setup(conf Conf) {
 	SetupLog(l, conf)
 
 	// Setup structured logger
-	logger, level := NewSlogEx(conf)
-	slog.SetDefault(logger)
+	logger := New(conf)
+	slog.SetDefault(logger.Logger)
 
 	// Save log level and update global xlog wrapper
 	defaultLock.Lock()
-	currentXlog = &Logger{Logger: logger, Level: level}
+	currentXlog = logger
 	defaultLock.Unlock()
 
 	// Repeat setup standart logger (stop loop forever)
@@ -236,49 +238,16 @@ func logDefault() *log.Logger {
 func slogDefault() *slog.Logger {
 	defaultLock.Lock()
 	defer defaultLock.Unlock()
-	l := defaultSlog
-	if l == nil {
-		l = slog.Default()
-		defaultSlog = l
+	lg := defaultSlog
+	if lg == nil {
+		lg = slog.Default()
+		defaultSlog = lg
 	}
-	return l
-}
-
-// Convert file mode string (oct like "0644") to fs.FileMode
-func fileMode(mode string) fs.FileMode {
-	if mode == "" {
-		mode = FILE_MODE
-	}
-	perm, err := strconv.ParseInt(mode, 8, 10)
-	if err != nil {
-		//fmt.Fprintf(os.Stderr, "ERROR: bad logfile mode='%s'; set mode=0%03o\n",
-		//	mode, DEFAULT_FILE_MODE)
-		return DEFAULT_FILE_MODE
-	}
-	return fs.FileMode(perm & 0777)
-}
-
-// Select (open) log file
-func openFile(file, mode string) *os.File {
-	switch file {
-	case "stdout", "os.Stdout", "":
-		return os.Stdout
-	case "stderr", "os.Stderr":
-		return os.Stderr
-	}
-
-	perm := fileMode(mode)
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perm)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: can't create logfile: %v; use os.Stdout\n", err)
-		return os.Stdout
-	}
-
-	return out
+	return lg
 }
 
 // Create custom structured logger based on default standard logger
-func newSlogStd(conf Conf) (*slog.Logger, Leveler) {
+func newSlogStd(conf Conf) *Logger {
 	// Setup standard logger
 	stdlog := logDefault()
 	SetupLog(stdlog, conf)
@@ -299,7 +268,12 @@ func newSlogStd(conf Conf) (*slog.Logger, Leveler) {
 	if conf.AddKey != "" && conf.AddValue != "" {
 		logger = logger.With(conf.AddKey, conf.AddValue)
 	}
-	return logger, &leveler
+
+	return &Logger{
+		Logger:  logger,
+		Level:   &leveler,
+		Rotator: newPipe(os.Stdout),
+	}
 }
 
 // Help wrapper to direct log level in standard logger mode
