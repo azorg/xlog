@@ -29,6 +29,15 @@ func StringToBool(s string) bool {
 	return false // by default
 }
 
+// String to int converter
+func StringToInt(s string) int {
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return val
+}
+
 // Add settings from environment variables
 func Env(conf *Conf, prefixOpt ...string) {
 	prefix := DEFAULT_PREFIX
@@ -100,10 +109,13 @@ func Env(conf *Conf, prefixOpt ...string) {
 		conf.Rotate.Enable = StringToBool(v)
 	}
 	if v := os.Getenv(prefix + "ROTATE_MAX_SIZE"); v != "" {
+		conf.Rotate.MaxSize = StringToInt(v)
 	}
 	if v := os.Getenv(prefix + "ROTATE_MAX_AGE"); v != "" {
+		conf.Rotate.MaxAge = StringToInt(v)
 	}
 	if v := os.Getenv(prefix + "ROTATE_MAX_BACKUPS"); v != "" {
+		conf.Rotate.MaxBackups = StringToInt(v)
 	}
 	if v := os.Getenv(prefix + "ROTATE_LOCAL_TIME"); v != "" {
 		conf.Rotate.LocalTime = StringToBool(v)

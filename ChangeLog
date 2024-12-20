@@ -3,6 +3,7 @@
  (import "gopkg.in/natefinch/lumberjack.v2")
  * add "rotator.go"
  * test/debug log rotation
+ * update/fix env.go
 
 2024.12.19: v1.2.0
  * remove ".go" from source file name by NoExt option
