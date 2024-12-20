@@ -97,10 +97,19 @@ func Env(conf *Conf, prefixOpt ...string) {
 		conf.AddValue = v
 	}
 	if v := os.Getenv(prefix + "ROTATE"); v != "" {
-		if conf.Rotate == nil {
-			conf.Rotate = &RotateOpt{}
-		}
 		conf.Rotate.Enable = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_SIZE"); v != "" {
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_AGE"); v != "" {
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_BACKUPS"); v != "" {
+	}
+	if v := os.Getenv(prefix + "ROTATE_LOCAL_TIME"); v != "" {
+		conf.Rotate.LocalTime = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_COMPRESS"); v != "" {
+		conf.Rotate.Compress = StringToBool(v)
 	}
 }
 

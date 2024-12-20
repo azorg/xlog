@@ -27,7 +27,7 @@ const (
 	ROTATE_ENABLE      = true
 	ROTATE_MAX_SIZE    = 100 // megabytes
 	ROTATE_MAX_AGE     = 1   // days
-	ROTATE_MAX_BACKUPS = 1
+	ROTATE_MAX_BACKUPS = 10
 	ROTATE_LOCAL_TIME  = true
 	ROTATE_COMPRESS    = true
 )

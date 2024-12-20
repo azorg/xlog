@@ -328,10 +328,9 @@ func TestRotate(t *testing.T) {
 
 	conf.File = "logs/test.log" // log file
 
-	if conf.Rotate == nil {
-		conf.Rotate = &RotateOpt{}
-	}
 	conf.Rotate.Enable = true
+	//conf.Rotate.Enable = false
+	conf.Rotate.MaxBackups = 3
 
 	Env(&conf, "LOG_") // read setting from environment
 
@@ -341,6 +340,7 @@ func TestRotate(t *testing.T) {
 	x.Info("hello 1")
 	x.Rotate()
 	x.Info("hello 2")
+	time.Sleep(time.Second)
 	x.Close()
 }
 

@@ -44,8 +44,8 @@ func SetupLog(logger *log.Logger, conf Conf) {
 		flag |= log.Lmsgprefix
 	}
 
-	writer := NewWriter(conf.File, conf.FileMode, conf.Rotate)
-	logger.SetOutput(writer.Writer())
+	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
+	logger.SetOutput(rotator.Writer())
 	logger.SetPrefix(conf.Prefix)
 	logger.SetFlags(flag)
 }
@@ -65,7 +65,7 @@ func New(conf Conf) *Logger {
 	}
 
 	level := Level(ParseLvl(conf.Level))
-	writer := NewWriter(conf.File, conf.FileMode, conf.Rotate)
+	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
 	var handler slog.Handler
 
 	if conf.Tint {
@@ -91,7 +91,7 @@ func New(conf Conf) *Logger {
 			}
 		}
 
-		handler = NewTintHandler(writer.Writer(), opts)
+		handler = NewTintHandler(rotator.Writer(), opts)
 	} else {
 		// Use Text/JSON handler
 		opts := &slog.HandlerOptions{
@@ -160,9 +160,9 @@ func New(conf Conf) *Logger {
 		}
 
 		if conf.JSON {
-			handler = slog.NewJSONHandler(writer.Writer(), opts)
+			handler = slog.NewJSONHandler(rotator.Writer(), opts)
 		} else {
-			handler = slog.NewTextHandler(writer.Writer(), opts)
+			handler = slog.NewTextHandler(rotator.Writer(), opts)
 		}
 	}
 
@@ -172,9 +172,9 @@ func New(conf Conf) *Logger {
 	}
 
 	return &Logger{
-		Logger: logger,
-		Level:  &level,
-		Writer: writer,
+		Logger:  logger,
+		Level:   &level,
+		Rotator: rotator,
 	}
 }
 
@@ -270,9 +270,9 @@ func newSlogStd(conf Conf) *Logger {
 	}
 
 	return &Logger{
-		Logger: logger,
-		Level:  &leveler,
-		Writer: Writer{os.Stdout},
+		Logger:  logger,
+		Level:   &leveler,
+		Rotator: newPipe(os.Stdout),
 	}
 }
 

@@ -29,7 +29,7 @@ distclean:
 	@rm -rf vendor
 	@go clean -modcache
 	
-commit: fmt
+commit: clean fmt
 	git add .
 	git commit -am $(GIT_MESSAGE)
 	git push

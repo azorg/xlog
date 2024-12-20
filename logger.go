@@ -14,18 +14,18 @@ const ERR_KEY = "err"
 
 // Logger wrapper (logger + leveler + io.WriteCloser/Rotator)
 type Logger struct {
-	Logger *slog.Logger
-	Level  Leveler
-	Writer Writer
+	Logger  *slog.Logger
+	Level   Leveler
+	Rotator Rotator
 }
 
 // Create logger based on default slog.Logger
 func Default() *Logger {
 	level := Level(DEFAULT_LEVEL)
 	return &Logger{
-		Logger: slogDefault(),
-		Level:  &level,
-		Writer: Writer{os.Stdout},
+		Logger:  slogDefault(),
+		Level:   &level,
+		Rotator: newPipe(os.Stdout),
 	}
 }
 
@@ -42,36 +42,36 @@ func X(logger *slog.Logger) *Logger {
 	}
 	level := Level(DEFAULT_LEVEL)
 	return &Logger{
-		Logger: logger,
-		Level:  &level,
-		Writer: Writer{nil},
+		Logger:  logger,
+		Level:   &level,
+		Rotator: newPipe(os.Stdout),
 	}
 }
 
 // Create logger that includes the given attributes in each output
 func (x *Logger) With(args ...any) *Logger {
 	return &Logger{
-		Logger: x.Logger.With(args...),
-		Level:  x.Level,
-		Writer: x.Writer,
+		Logger:  x.Logger.With(args...),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
 // Create logger that includes the given attributes in each output
 func (x *Logger) WithAttrs(attrs []slog.Attr) *Logger {
 	return &Logger{
-		Logger: slog.New(x.Logger.Handler().WithAttrs(attrs)),
-		Level:  x.Level,
-		Writer: x.Writer,
+		Logger:  slog.New(x.Logger.Handler().WithAttrs(attrs)),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
 // Create logger that starts a group
 func (x *Logger) WithGroup(name string) *Logger {
 	return &Logger{
-		Logger: x.Logger.WithGroup(name),
-		Level:  x.Level,
-		Writer: x.Writer,
+		Logger:  x.Logger.WithGroup(name),
+		Level:   x.Level,
+		Rotator: x.Rotator,
 	}
 }
 
@@ -125,7 +125,7 @@ func (x *Logger) NewLog(prefix string) *log.Logger {
 
 // Close log file
 func (x *Logger) Close() error {
-	return x.Writer.Close()
+	return x.Rotator.Close()
 }
 
 // Close current log file
@@ -135,7 +135,7 @@ func Close() error {
 
 // Rotate log file
 func (x *Logger) Rotate() error {
-	return x.Writer.Rotate()
+	return x.Rotator.Rotate()
 }
 
 // Rotate current log file

@@ -23,8 +23,8 @@ type Conf struct {
 	AddKey   string `json:"add-key"`   // add key to structured log (Slog=true)
 	AddValue string `json:"add-value"` // add value to structured log (Slog=true
 
-	// Log rotate options or nil
-	Rotate *RotateOpt `json:"rotate"`
+	// Log rotate options
+	Rotate RotateOpt `json:"rotate"`
 }
 
 // Log rotate options (delivered from lumberjack)
@@ -78,7 +78,7 @@ func NewConf() Conf {
 		Prefix:   PREFIX,
 		AddKey:   ADD_KEY,
 		AddValue: ADD_VALUE,
-		Rotate: &RotateOpt{
+		Rotate: RotateOpt{
 			Enable:     ROTATE_ENABLE,
 			MaxSize:    ROTATE_MAX_SIZE,
 			MaxAge:     ROTATE_MAX_AGE,

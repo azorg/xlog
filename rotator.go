@@ -6,38 +6,50 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Interface of *lumberjack.Logger + get io.Writer
+// Interface of log rotator
 type Rotator interface {
-	io.WriteCloser
-	Rotate() error
-	Writer() io.Writer
+	Writer() io.Writer // get io.Writer for write
+	Rotate() error     // rotate log
+	Close() error      // close file
 }
 
-// Any log writer
-type Writer struct {
-	out any // *os.File or *lumberjack.Logger or nil
-}
+// Stdout/Stderr writer
+type pipe struct{ *os.File }
 
-// Ensure Writer implements Rotator
-var _ Rotator = Writer{}
+// Direct *os.File writer
+type file struct{ *os.File }
 
-// Select (open) log file, setup log rotation
-// (return *os.File or *lumberjack.Logger)
-func NewWriter(file, mode string, rotate *RotateOpt) Writer {
-	switch file {
+// Rotator by *lumberjack.Logger
+type rotator struct{ *lumberjack.Logger }
+
+// Ensure file/rotator implements Rotator
+var _ Rotator = pipe{}
+var _ Rotator = file{}
+var _ Rotator = rotator{}
+
+// Convert os.Stdout/os.Stderr to Rotator
+func newPipe(f *os.File) Rotator { return pipe{f} }
+
+// Convert *os.File to Rotator
+func newFile(f *os.File) Rotator { return file{f} }
+
+// Select (open) log file, setup log rotation (return file or rotator)
+func newRotator(fileName, mode string, rotate *RotateOpt) Rotator {
+	switch fileName {
 	case "stdout", "os.Stdout", "":
-		return Writer{os.Stdout}
+		return pipe{os.Stdout}
 	case "stderr", "os.Stderr":
-		return Writer{os.Stderr}
+		return pipe{os.Stderr}
 	}
 
 	if rotate != nil && rotate.Enable {
-		return Writer{&lumberjack.Logger{
-			Filename:   file,
+		return rotator{&lumberjack.Logger{
+			Filename:   fileName,
 			MaxSize:    rotate.MaxSize,
 			MaxAge:     rotate.MaxAge,
 			MaxBackups: rotate.MaxBackups,
@@ -46,59 +58,43 @@ func NewWriter(file, mode string, rotate *RotateOpt) Writer {
 		}}
 	}
 
-	perm := fileMode(mode)
-	out, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perm)
+	perm := FileMode(mode)
+
+	// Make directory
+	dir := filepath.Dir(fileName)
+	if dir != "" {
+		err := os.MkdirAll(dir, perm|0711)
+		if err != nil {
+			fmt.Fprintf(os.Stderr,
+				"ERROR: can't create logfile directory: %v; use os.Stdout\n", err)
+			return pipe{os.Stdout}
+		}
+	}
+
+	// Open log file
+	out, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perm)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: can't create logfile: %v; use os.Stdout\n", err)
-		return Writer{os.Stdout}
+		fmt.Fprintf(os.Stderr,
+			"ERROR: can't create logfile: %v; use os.Stdout\n", err)
+		return pipe{os.Stdout}
 	}
 
-	return Writer{out}
-}
-
-// Write data to file
-func (w Writer) Write(p []byte) (n int, err error) {
-	switch writer := w.out.(type) {
-	case *os.File:
-		return writer.Write(p)
-	case *lumberjack.Logger:
-		return writer.Write(p)
-	}
-	return 0, nil
-}
-
-// Close log file
-func (w Writer) Close() error {
-	switch closer := w.out.(type) {
-	case *os.File:
-		return closer.Close()
-	case *lumberjack.Logger:
-		return closer.Close()
-	}
-	return nil
-}
-
-// Rotate log file
-func (w Writer) Rotate() error {
-	rotator, ok := w.out.(*lumberjack.Logger)
-	Debugf("type of out is %T", w.out)  //!!!
-	Debugf("value of out is %v", w.out) //!!!
-	if ok {
-		Debug("rotate")
-		return rotator.Rotate()
-	}
-	return nil
+	return file{out}
 }
 
 // Get io.Writer
-func (w Writer) Writer() io.Writer {
-	switch writer := w.out.(type) {
-	case *os.File:
-		return writer
-	case *lumberjack.Logger:
-		return writer
-	}
-	return nil
-}
+func (p pipe) Writer() io.Writer    { return p.File }
+func (f file) Writer() io.Writer    { return f.File }
+func (r rotator) Writer() io.Writer { return r.Logger }
+
+// Rotate log
+func (p pipe) Rotate() error    { return nil } // do nothing
+func (f file) Rotate() error    { return nil } // do nothing
+func (r rotator) Rotate() error { return r.Logger.Rotate() }
+
+// Close log
+func (p pipe) Close() error    { return nil } // do nothing
+func (f file) Close() error    { return f.File.Close() }
+func (r rotator) Close() error { return r.Logger.Close() }
 
 // EOF: "rotator.go"

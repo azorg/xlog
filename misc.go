@@ -28,7 +28,7 @@ func GetFuncName(skip int) string {
 }
 
 // Convert file mode string (oct like "0644") to fs.FileMode
-func fileMode(mode string) fs.FileMode {
+func FileMode(mode string) fs.FileMode {
 	if mode == "" {
 		mode = FILE_MODE
 	}

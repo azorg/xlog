@@ -133,9 +133,6 @@ func AddOpt(opt *Opt, conf *Conf) {
 	} else if opt.Color {
 		conf.NoColor = false
 	}
-	if (opt.Rotate || opt.NoRotate) && conf.Rotate == nil {
-		conf.Rotate = &RotateOpt{}
-	}
 	if opt.Rotate {
 		conf.Rotate.Enable = true
 	} else if opt.NoRotate {
