@@ -6,43 +6,46 @@ import "flag"
 
 // Command line logger option structure
 type Opt struct {
-	Level   string // -log <level>
-	File    string // -lfile <file>
-	SLog    bool   // -slog
-	JLog    bool   // -jlog
-	TLog    bool   // -tlog
-	Src     bool   // -lsrc
-	NoSrc   bool   // -lnosrc
-	Pkg     bool   // -lpkg
-	NoPkg   bool   // -lnopkg
-	Func    bool   // -lfunc
-	NoFunc  bool   // -lnofunc
-	Ext     bool   // -lext
-	NoExt   bool   // -lnoext
-	Time    bool   // -ltime
-	NoTime  bool   // -lnotime
-	TimeFmt string // -ltimefmt <fmt>
-	NoLevel bool   // -lnolevel
-	Color   bool   // -lcolor
-	NoColor bool   // -lnocolor
+	Level    string // -log <level>
+	File     string // -lfile <file>
+	SLog     bool   // -slog
+	JLog     bool   // -jlog
+	TLog     bool   // -tlog
+	Src      bool   // -lsrc
+	NoSrc    bool   // -lnosrc
+	Pkg      bool   // -lpkg
+	NoPkg    bool   // -lnopkg
+	Func     bool   // -lfunc
+	NoFunc   bool   // -lnofunc
+	Ext      bool   // -lext
+	NoExt    bool   // -lnoext
+	Time     bool   // -ltime
+	NoTime   bool   // -lnotime
+	TimeFmt  string // -ltimefmt <fmt>
+	NoLevel  bool   // -lnolevel
+	Color    bool   // -lcolor
+	NoColor  bool   // -lnocolor
+	Rotate   bool   // -lrotate
+	NoRotate bool   // -lnorotate
 }
 
 // Setup command line logger options
 // Usage:
 //
-//		-log <level>       - log level (flood/trace/debug/info/notice/warm/error/critical)
-//		-lfile <file>      - log file path or stdout/stderr
-//		-slog              - use structured text logger (slog)
-//		-jlog              - use structured JSON logger (slog)
-//		-tlog              - use tinted (colorized) logger (tint)
-//		-lsrc|-lnosrc      - force on/off log source file name and line number
-//		-lpkg|-lnopkg      - force on/off log source directory/file name and line number
-//	 -lfunc|-lnofunc    - force on/off log function name
-//		-lext|-lnoext      - force enable/disable remove ".go" extension from source file name
-//		-ltime|-lnotime    - force on/off timestamp
-//		-ltimefmt <format> - override log time format (e.g. 15:04:05.999 or TimeOnly)
-//		-lnolevel          - disable log level tag (~level="INFO")
-//		-lcolor|-lnocolor  - force enable/disable tinted colors
+//	-log <level>        - log level (flood/trace/debug/info/notice/warm/error/critical)
+//	-lfile <file>       - log file path or stdout/stderr
+//	-slog               - use structured text logger (slog)
+//	-jlog               - use structured JSON logger (slog)
+//	-tlog               - use tinted (colorized) logger (tint)
+//	-lsrc|-lnosrc       - force on/off log source file name and line number
+//	-lpkg|-lnopkg       - force on/off log source directory/file name and line number
+//	-lfunc|-lnofunc     - force on/off log function name
+//	-lext|-lnoext       - force enable/disable remove ".go" extension from source file name
+//	-ltime|-lnotime     - force on/off timestamp
+//	-ltimefmt <format>  - override log time format (e.g. 15:04:05.999 or TimeOnly)
+//	-lnolevel           - disable log level tag (~level="INFO")
+//	-lcolor|-lnocolor   - force enable/disable tinted colors
+//	-lrotate|-lnorotate - force on/off log rotate
 func NewOpt() *Opt {
 	opt := &Opt{}
 	flag.StringVar(&opt.Level, "log", "", "override log level (flood/trace/debug/info/warm/error/fatal)")
@@ -64,6 +67,8 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.NoLevel, "lnolevel", false, `disable log level tag (~level="INFO")`)
 	flag.BoolVar(&opt.Color, "lcolor", false, "force enable tinted colors")
 	flag.BoolVar(&opt.NoColor, "lnocolor", false, "force disable tinted colors")
+	flag.BoolVar(&opt.Rotate, "lrotate", false, "force enable log rotate")
+	flag.BoolVar(&opt.NoRotate, "lnorotate", false, "force disable log rotate")
 	return opt
 }
 
@@ -127,6 +132,14 @@ func AddOpt(opt *Opt, conf *Conf) {
 		conf.NoColor = true
 	} else if opt.Color {
 		conf.NoColor = false
+	}
+	if (opt.Rotate || opt.NoRotate) && conf.Rotate == nil {
+		conf.Rotate = &RotateOpt{}
+	}
+	if opt.Rotate {
+		conf.Rotate.Enable = true
+	} else if opt.NoRotate {
+		conf.Rotate.Enable = false
 	}
 }
 

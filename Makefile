@@ -10,7 +10,7 @@ SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 # go packages
 PKGS = $(PRJ)
 
-.PHONY: all help distclean commit tidy vendor fmt test
+.PHONY: all help distclean clean commit tidy vendor fmt test
 
 all: fmt test
 
@@ -18,6 +18,9 @@ help:
 	@echo "make fmt       - format Go sources"
 	@echo "make test      - run test"
 	@echo "make distclean - full clean (go.mod, go.sum)"
+
+clean:
+	rm -rf logs
 
 distclean:
 	@rm -f go.mod
@@ -39,7 +42,8 @@ tidy: go.mod
 	@go mod tidy
 
 go.sum: go.mod Makefile #tidy
-	@go get golang.org/x/exp/slog@v0.0.0-20240904232852-e7e105dedf7e # experimental slog (go <1.21)
+	@#go get golang.org/x/exp/slog@v0.0.0-20240904232852-e7e105dedf7e # experimental slog (go <1.21)
+	@go get gopkg.in/natefinch/lumberjack.v2 # Lumberjack as log rotate
 	@go get github.com/google/uuid # Google UUID
 	@touch go.sum
 

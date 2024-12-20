@@ -96,6 +96,12 @@ func Env(conf *Conf, prefixOpt ...string) {
 	if v := os.Getenv(prefix + "ADD_VALUE"); v != "" {
 		conf.AddValue = v
 	}
+	if v := os.Getenv(prefix + "ROTATE"); v != "" {
+		if conf.Rotate == nil {
+			conf.Rotate = &RotateOpt{}
+		}
+		conf.Rotate.Enable = StringToBool(v)
+	}
 }
 
 // EOF: "env.go"

@@ -108,6 +108,15 @@ type Xlogger interface {
 
 	// Fatalf logs at LevelFatal as standard logger and os.Exit(1)
 	Fatalf(format string, args ...any)
+
+	// Close current log file
+	Close() error
+
+	// Close the existing log file and immediately create a new one
+	Rotate() error
 }
+
+// Ensure *Logger implements Xlogger
+var _ Xlogger = (*Logger)(nil)
 
 // EOF: "interface.go"

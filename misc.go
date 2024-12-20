@@ -3,7 +3,9 @@
 package xlog
 
 import (
+	"io/fs"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -23,6 +25,20 @@ func GetFuncName(skip int) string {
 		return ""
 	}
 	return parts[len(parts)-1]
+}
+
+// Convert file mode string (oct like "0644") to fs.FileMode
+func fileMode(mode string) fs.FileMode {
+	if mode == "" {
+		mode = FILE_MODE
+	}
+	perm, err := strconv.ParseInt(mode, 8, 10)
+	if err != nil {
+		//fmt.Fprintf(os.Stderr, "ERROR: bad logfile mode='%s'; set mode=0%03o\n",
+		//	mode, DEFAULT_FILE_MODE)
+		return DEFAULT_FILE_MODE
+	}
+	return fs.FileMode(perm & 0777)
 }
 
 // EOF: "misc.go"
