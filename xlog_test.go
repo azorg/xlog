@@ -5,8 +5,10 @@ package xlog
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"log/slog" // go>=1.21
+	"os"
 	"testing"
 	"time"
 
@@ -349,6 +351,35 @@ func TestRotate(t *testing.T) {
 	x.Info("hello 2")
 	time.Sleep(time.Second)
 	x.Close()
+}
+
+func TestCustom(t *testing.T) {
+	fmt.Println(">>> Test Custom")
+
+	conf := NewConf() // create default config
+	//conf.Level = "flood" // set logger level
+	conf.Tint = true // select tinted logger
+	//conf.JSON = true // select JSON logger
+	//conf.Slog = true    // select JSON logger
+	conf.Src = true // add source file:line to log
+	//conf.SrcLong = true  // add package name
+	//conf.SrcFunc = true  // add function mame to log
+	conf.NoColor = false // no color
+	//conf.NoExt = true    // remove ".go" extension
+	//conf.Time = true
+	conf.TimeTint = "space" // add custom timestamp
+
+	Env(&conf) // read setting from environment
+
+	var w io.Writer = os.Stderr
+	x := NewCustom(conf, w) // create xlog with custom io.Writer
+	x.SetDefaultLogs()
+	//l := log.Default()
+	//SetupLog(l, conf)
+
+	slog.Info("hello slog")
+	Info("hello xlog")
+	log.Println("hello log")
 }
 
 // EOF: "xlog_test.go"
