@@ -1,7 +1,10 @@
-2024.12.21: v1.3.2
+2024.12.21: v1.3.3
  * set correct directory/file mode
  * update Logger struct
  * add Rotable() method to Rotator intrerface
+ * NoExt set by default
+ * add NewEx/NewCustom, SetupLogEx/SetupLogCustom
+ * update "doc.go"
 
 2024.12.20: v1.3.0
  * add log rotation by https://github.com/natefinch/lumberjack

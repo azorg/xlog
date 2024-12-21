@@ -101,8 +101,6 @@ func (x *Logger) SetDefaultLogs() {
 // Return log level as int (slog.Level)
 func (x *Logger) GetLevel() slog.Level { return x.Leveler.Level() }
 
-//func (x *Logger) Level() slog.Level { return x.Leveler.Level() }
-
 // Set log level as int (slog.Level)
 func (x *Logger) SetLevel(level slog.Level) { x.Leveler.Update(level) }
 
@@ -125,20 +123,15 @@ func (x *Logger) NewLog(prefix string) *log.Logger {
 	return log.New(x, prefix, 0) // use x as io.Writer
 }
 
-// Close log file
-//func (x *Logger) Close() error {
-//	return x.Rotator.Close()
-//}
-
 // Close current log file
 func Close() error {
 	return currentXlog.Close()
 }
 
-// Rotate log file
-//func (x *Logger) Rotate() error {
-//	return x.Rotator.Rotate()
-//}
+// Check current log rotation possible
+func Rotable() bool {
+	return currentXlog.Rotable()
+}
 
 // Rotate current log file
 func Rotate() error {

@@ -110,11 +110,14 @@ type Xlogger interface {
 	// Fatalf logs at LevelFatal as standard logger and os.Exit(1)
 	Fatalf(format string, args ...any)
 
-	// Close current log file
-	Close() error
+	// Check log rotation possible
+	Rotable() bool
 
 	// Close the existing log file and immediately create a new one
 	Rotate() error
+
+	// Close current log file
+	Close() error
 }
 
 // Ensure *Logger implements Xlogger

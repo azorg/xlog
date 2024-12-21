@@ -112,5 +112,6 @@ slog.Logger ещё и xlog.Leveler - интерфейс, который може
 
 3. В файле "const.go" задать `OLD_SLOG_FIX = false`
 
-Переход на "golang.org/x/exp/slog" (например для go-1.19) делается в обратной
+Переход на "golang.org/x/exp/slog" (для go-1.20) делается в обратной
 последовательности.
+

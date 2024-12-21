@@ -13,11 +13,14 @@ import (
 
 // Interface of log rotator
 type Rotator interface {
-	Writer() io.Writer // get io.Writer for write
-	Rotable() bool     // check rotation possible
-	Rotate() error     // rotate log
-	Close() error      // close file
+	io.Writer
+	Rotable() bool // check rotation possible
+	Rotate() error // rotate log
+	Close() error  // close file
 }
+
+// Custop io.Writer
+type writer struct{ io.Writer }
 
 // Stdout/Stderr writer
 type pipe struct{ *os.File }
@@ -29,9 +32,13 @@ type file struct{ *os.File }
 type rotator struct{ *lumberjack.Logger }
 
 // Ensure file/rotator implements Rotator
+var _ Rotator = writer{}
 var _ Rotator = pipe{}
 var _ Rotator = file{}
 var _ Rotator = rotator{}
+
+// Convert io.Writer to Rotator
+func newWriter(w io.Writer) Rotator { return writer{w} }
 
 // Convert os.Stdout/os.Stderr to Rotator
 func newPipe(f *os.File) Rotator { return pipe{f} }
@@ -86,24 +93,19 @@ func newRotator(fileName, mode string, rotate *RotateOpt) Rotator {
 	}}
 }
 
-// Get io.Writer
-func (p pipe) Writer() io.Writer    { return p.File }
-func (f file) Writer() io.Writer    { return f.File }
-func (r rotator) Writer() io.Writer { return r.Logger }
-
 // Check rotation possible
+func (p writer) Rotable() bool  { return false }
 func (p pipe) Rotable() bool    { return false }
 func (p file) Rotable() bool    { return false }
 func (p rotator) Rotable() bool { return true }
 
 // Rotate log
-func (p pipe) Rotate() error    { return nil } // do nothing
-func (f file) Rotate() error    { return nil } // do nothing
-func (r rotator) Rotate() error { return r.Logger.Rotate() }
+func (w writer) Rotate() error { return nil } // do nothing
+func (p pipe) Rotate() error   { return nil } // do nothing
+func (f file) Rotate() error   { return nil } // do nothing
 
 // Close log
-func (p pipe) Close() error    { return nil } // do nothing
-func (f file) Close() error    { return f.File.Close() }
-func (r rotator) Close() error { return r.Logger.Close() }
+func (w writer) Close() error { return nil } // do nothing
+func (p pipe) Close() error   { return nil } // do nothing
 
 // EOF: "rotator.go"

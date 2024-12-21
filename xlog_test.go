@@ -318,13 +318,15 @@ func TestRotate(t *testing.T) {
 	conf := NewConf()    // create default config
 	conf.Level = "flood" // set logger level
 	conf.Tint = true     // select tinted logger
-	conf.Src = true      // add source file:line to log
-	//conf.SrcLong = true  // add package name
+	//conf.JSON = true // select JSON logger
+	//conf.Slog = true    // select JSON logger
+	conf.Src = true     // add source file:line to log
+	conf.SrcLong = true // add package name
 	conf.SrcFunc = true // add function mame to log
 	conf.NoColor = true // no color
-	conf.NoExt = true   // remove ".go" extension
-	//conf.Time = false
-	//conf.TimeTint = "dateTimeMilli" // add custom timestamp
+	//conf.NoExt = true   // remove ".go" extension
+	//conf.Time = true
+	conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
 	conf.File = "logs/test.log" // log file
 	//conf.FileMode = "0600"
@@ -339,7 +341,11 @@ func TestRotate(t *testing.T) {
 	//x.SetDefault() // set default xlog
 
 	x.Info("hello 1")
-	x.Rotate()
+	if x.Rotable() {
+		x.Rotator.Rotate()
+	} else {
+		x.Error("can't rotate")
+	}
 	x.Info("hello 2")
 	time.Sleep(time.Second)
 	x.Close()
