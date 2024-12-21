@@ -1,3 +1,7 @@
+2024.12.21: v1.3.4
+ * add -lonlevel option
+ * fix bugs in "flag.go"
+
 2024.12.21: v1.3.3
  * set correct directory/file mode
  * update Logger struct
