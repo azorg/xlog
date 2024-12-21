@@ -19,7 +19,7 @@ type Rotator interface {
 	Close() error  // close file
 }
 
-// Custop io.Writer
+// Custom io.Writer
 type writer struct{ io.Writer }
 
 // Stdout/Stderr writer
@@ -31,7 +31,7 @@ type file struct{ *os.File }
 // Rotator by *lumberjack.Logger
 type rotator struct{ *lumberjack.Logger }
 
-// Ensure file/rotator implements Rotator
+// Ensure writer/pipe/file/rotator implements Rotator
 var _ Rotator = writer{}
 var _ Rotator = pipe{}
 var _ Rotator = file{}
