@@ -30,6 +30,7 @@ type Xlogger interface {
 
 	// Return log level as int (slog.Level)
 	GetLevel() slog.Level
+	Level() slog.Level
 
 	// Set log level as int (slog.Level)
 	SetLevel(level slog.Level)
