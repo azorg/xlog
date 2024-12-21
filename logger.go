@@ -12,19 +12,19 @@ import (
 
 const ERR_KEY = "err"
 
-// Logger wrapper (logger + leveler + io.WriteCloser/Rotator)
+// Logger wrapper structure
 type Logger struct {
-	Logger  *slog.Logger
-	Level   Leveler
-	Rotator Rotator
+	Logger  *slog.Logger // standard slog logger
+	Leveler              // set/get level interface
+	Rotator              // log rotate interface
 }
 
 // Create logger based on default slog.Logger
 func Default() *Logger {
-	level := Level(DEFAULT_LEVEL)
+	leveler := Level(DEFAULT_LEVEL)
 	return &Logger{
 		Logger:  slogDefault(),
-		Level:   &level,
+		Leveler: &leveler,
 		Rotator: newPipe(os.Stdout),
 	}
 }
@@ -40,10 +40,10 @@ func X(logger *slog.Logger) *Logger {
 	if logger == nil {
 		return Default()
 	}
-	level := Level(DEFAULT_LEVEL)
+	leveler := Level(DEFAULT_LEVEL)
 	return &Logger{
 		Logger:  logger,
-		Level:   &level,
+		Leveler: &leveler,
 		Rotator: newPipe(os.Stdout),
 	}
 }
@@ -52,7 +52,7 @@ func X(logger *slog.Logger) *Logger {
 func (x *Logger) With(args ...any) *Logger {
 	return &Logger{
 		Logger:  x.Logger.With(args...),
-		Level:   x.Level,
+		Leveler: x.Leveler,
 		Rotator: x.Rotator,
 	}
 }
@@ -61,7 +61,7 @@ func (x *Logger) With(args ...any) *Logger {
 func (x *Logger) WithAttrs(attrs []slog.Attr) *Logger {
 	return &Logger{
 		Logger:  slog.New(x.Logger.Handler().WithAttrs(attrs)),
-		Level:   x.Level,
+		Leveler: x.Leveler,
 		Rotator: x.Rotator,
 	}
 }
@@ -70,7 +70,7 @@ func (x *Logger) WithAttrs(attrs []slog.Attr) *Logger {
 func (x *Logger) WithGroup(name string) *Logger {
 	return &Logger{
 		Logger:  x.Logger.WithGroup(name),
-		Level:   x.Level,
+		Leveler: x.Leveler,
 		Rotator: x.Rotator,
 	}
 }
@@ -99,13 +99,15 @@ func (x *Logger) SetDefaultLogs() {
 }
 
 // Return log level as int (slog.Level)
-func (x *Logger) GetLevel() slog.Level { return x.Level.Level() }
+func (x *Logger) GetLevel() slog.Level { return x.Leveler.Level() }
+
+//func (x *Logger) Level() slog.Level { return x.Leveler.Level() }
 
 // Set log level as int (slog.Level)
-func (x *Logger) SetLevel(level slog.Level) { x.Level.Update(level) }
+func (x *Logger) SetLevel(level slog.Level) { x.Leveler.Update(level) }
 
 // Return log level as string
-func (x *Logger) GetLvl() string { return ParseLevel(x.GetLevel()) }
+func (x *Logger) GetLvl() string { return ParseLevel(x.Leveler.Level()) }
 
 // Set log level as string
 func (x *Logger) SetLvl(level string) { x.SetLevel(ParseLvl(level)) }
@@ -124,9 +126,9 @@ func (x *Logger) NewLog(prefix string) *log.Logger {
 }
 
 // Close log file
-func (x *Logger) Close() error {
-	return x.Rotator.Close()
-}
+//func (x *Logger) Close() error {
+//	return x.Rotator.Close()
+//}
 
 // Close current log file
 func Close() error {
@@ -134,9 +136,9 @@ func Close() error {
 }
 
 // Rotate log file
-func (x *Logger) Rotate() error {
-	return x.Rotator.Rotate()
-}
+//func (x *Logger) Rotate() error {
+//	return x.Rotator.Rotate()
+//}
 
 // Rotate current log file
 func Rotate() error {

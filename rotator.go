@@ -47,39 +47,42 @@ func newRotator(fileName, mode string, rotate *RotateOpt) Rotator {
 		return pipe{os.Stderr}
 	}
 
-	if rotate != nil && rotate.Enable {
-		return rotator{&lumberjack.Logger{
-			Filename:   fileName,
-			MaxSize:    rotate.MaxSize,
-			MaxAge:     rotate.MaxAge,
-			MaxBackups: rotate.MaxBackups,
-			LocalTime:  rotate.LocalTime,
-			Compress:   rotate.Compress,
-		}}
-	}
-
+	// Get oct file mode from string
 	perm := FileMode(mode)
 
-	// Make directory
+	// Make logs directory with permission
 	dir := filepath.Dir(fileName)
 	if dir != "" {
-		err := os.MkdirAll(dir, perm|0711)
+		dirPerm := perm | ((perm & 0044) >> 2) | 0700 // FIXME: some magic
+		err := os.MkdirAll(dir, dirPerm)
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
-				"ERROR: can't create logfile directory: %v; use os.Stdout\n", err)
+				"ERROR: can't create logfile directory: %v; use stdout\n", err)
 			return pipe{os.Stdout}
 		}
 	}
 
 	// Open log file
-	out, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perm)
+	out, err := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, perm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr,
-			"ERROR: can't create logfile: %v; use os.Stdout\n", err)
+			"ERROR: can't open/create logfile: %v; use stdout\n", err)
 		return pipe{os.Stdout}
 	}
 
-	return file{out}
+	if rotate == nil || !rotate.Enable {
+		return file{out}
+	}
+
+	out.Close()
+	return rotator{&lumberjack.Logger{
+		Filename:   fileName,
+		MaxSize:    rotate.MaxSize,
+		MaxAge:     rotate.MaxAge,
+		MaxBackups: rotate.MaxBackups,
+		LocalTime:  rotate.LocalTime,
+		Compress:   rotate.Compress,
+	}}
 }
 
 // Get io.Writer

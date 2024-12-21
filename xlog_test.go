@@ -327,6 +327,7 @@ func TestRotate(t *testing.T) {
 	//conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
 	conf.File = "logs/test.log" // log file
+	//conf.FileMode = "0600"
 
 	conf.Rotate.Enable = true
 	//conf.Rotate.Enable = false

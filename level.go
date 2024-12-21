@@ -25,6 +25,9 @@ type Leveler interface {
 	ColorString() string // get log level as color label
 }
 
+// Ensure *Level implements Leveler
+var _ Leveler = (*Level)(nil)
+
 // Log levels delivered from slog.Level
 const (
 	LevelFlood    = slog.Level(-12) // FLOOD    (-12)
