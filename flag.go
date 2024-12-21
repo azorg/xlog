@@ -22,6 +22,7 @@ type Opt struct {
 	Time     bool   // -ltime
 	NoTime   bool   // -lnotime
 	TimeFmt  string // -ltimefmt <fmt>
+	OnLevel  bool   // -lonlevel
 	NoLevel  bool   // -lnolevel
 	Color    bool   // -lcolor
 	NoColor  bool   // -lnocolor
@@ -43,7 +44,7 @@ type Opt struct {
 //	-lext|-lnoext       - force enable/disable remove ".go" extension from source file name
 //	-ltime|-lnotime     - force on/off timestamp
 //	-ltimefmt <format>  - override log time format (e.g. 15:04:05.999 or TimeOnly)
-//	-lnolevel           - disable log level tag (~level="INFO")
+//	-lnolevel|lonlevel  - disable/enable log level tag (~level="INFO")
 //	-lcolor|-lnocolor   - force enable/disable tinted colors
 //	-lrotate|-lnorotate - force on/off log rotate
 func NewOpt() *Opt {
@@ -57,13 +58,14 @@ func NewOpt() *Opt {
 	flag.BoolVar(&opt.NoSrc, "lnosrc", false, "force off source file name and line number")
 	flag.BoolVar(&opt.Pkg, "lpkg", false, "force log source directory/file name and line number")
 	flag.BoolVar(&opt.NoPkg, "lnopkg", false, "force off source directory/file name and line number")
-	flag.BoolVar(&opt.Func, "lfunc", true, "force enable functions name")
+	flag.BoolVar(&opt.Func, "lfunc", false, "force enable functions name")
 	flag.BoolVar(&opt.NoFunc, "lnofunc", false, "force disable functions name")
-	flag.BoolVar(&opt.Ext, "lext", true, "force enable remove '.go' extension from source file name")
+	flag.BoolVar(&opt.Ext, "lext", false, "force enable remove '.go' extension from source file name")
 	flag.BoolVar(&opt.NoExt, "lnoext", false, "force disable remove '.go' extension from source file name")
 	flag.BoolVar(&opt.Time, "ltime", false, "force add timestamp to log")
 	flag.BoolVar(&opt.NoTime, "lnotime", false, "force off timestamp")
 	flag.StringVar(&opt.TimeFmt, "ltimefmt", "", "override log time format (e.g. 15:04:05.999 or TimeOnly)")
+	flag.BoolVar(&opt.OnLevel, "lonlevel", false, `enable log level tag (~level="INFO")`)
 	flag.BoolVar(&opt.NoLevel, "lnolevel", false, `disable log level tag (~level="INFO")`)
 	flag.BoolVar(&opt.Color, "lcolor", false, "force enable tinted colors")
 	flag.BoolVar(&opt.NoColor, "lnocolor", false, "force disable tinted colors")
@@ -127,6 +129,8 @@ func AddOpt(opt *Opt, conf *Conf) {
 	}
 	if opt.NoLevel {
 		conf.NoLevel = true
+	} else if opt.OnLevel {
+		conf.NoLevel = false
 	}
 	if opt.NoColor {
 		conf.NoColor = true
