@@ -1,6 +1,7 @@
-2024.12.21: v1.3.1
+2024.12.21: v1.3.2
  * set correct directory/file mode
  * update Logger struct
+ * add Rotable() method to Rotator intrerface
 
 2024.12.20: v1.3.0
  * add log rotation by https://github.com/natefinch/lumberjack

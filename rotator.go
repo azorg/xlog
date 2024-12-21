@@ -14,6 +14,7 @@ import (
 // Interface of log rotator
 type Rotator interface {
 	Writer() io.Writer // get io.Writer for write
+	Rotable() bool     // check rotation possible
 	Rotate() error     // rotate log
 	Close() error      // close file
 }
@@ -89,6 +90,11 @@ func newRotator(fileName, mode string, rotate *RotateOpt) Rotator {
 func (p pipe) Writer() io.Writer    { return p.File }
 func (f file) Writer() io.Writer    { return f.File }
 func (r rotator) Writer() io.Writer { return r.Logger }
+
+// Check rotation possible
+func (p pipe) Rotable() bool    { return false }
+func (p file) Rotable() bool    { return false }
+func (p rotator) Rotable() bool { return true }
 
 // Rotate log
 func (p pipe) Rotate() error    { return nil } // do nothing
