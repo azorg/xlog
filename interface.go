@@ -3,6 +3,7 @@
 package xlog
 
 import (
+	"io"
 	"log"
 	"log/slog" // go>=1.21
 	//"golang.org/x/exp/slog" // deprecated for go>=1.21
@@ -30,7 +31,6 @@ type Xlogger interface {
 
 	// Return log level as int (slog.Level)
 	GetLevel() slog.Level
-	Level() slog.Level
 
 	// Set log level as int (slog.Level)
 	SetLevel(level slog.Level)
@@ -42,7 +42,7 @@ type Xlogger interface {
 	SetLvl(level string)
 
 	// Use xlog as io.Writer: log to level Info
-	Write(p []byte) (n int, err error)
+	//Write(p []byte) (n int, err error)
 
 	// Return standard logger with prefix
 	NewLog(prefix string) *log.Logger
@@ -118,6 +118,9 @@ type Xlogger interface {
 
 	// Close current log file
 	Close() error
+
+	// Create log io.Writer
+	NewWriter(slog.Level) io.Writer
 }
 
 // Ensure *Logger implements Xlogger

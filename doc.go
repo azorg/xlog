@@ -78,7 +78,7 @@
 
 	NewLog(prefix string) *log.Logger - вернуть стандартный логгер с префиксом
 
-	Write(p []byte) (n int, err error) - метод для соответствия io.Writer
+	NewWriter(slog.Level) - создать io.Writer перенаправляемый в журнал
 
 Методы жля ротаци логов:
 
