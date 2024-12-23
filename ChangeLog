@@ -1,3 +1,8 @@
+2024.12.21: v1.4.0
+ * add pipe (stdout/stderr) + file output
+ * add null log writer
+ * rename Rotator to Writer (rotator.go to writer.go)
+
 2024.12.21: v1.3.4
  * add -lonlevel option
  * fix bugs in "flag.go"
