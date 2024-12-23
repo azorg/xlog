@@ -4,8 +4,9 @@ package xlog
 
 // Logger configure structure
 type Conf struct {
-	File     string `json:"file"`      // log file path OR stdout/stderr
-	FileMode string `json:"file-mode"` // log file mode (if File is not stdout/stderr)
+	Pipe     string `json:"pipe"`      // log pipe ("stdout", "stderr" or "null" / "")
+	File     string `json:"file"`      // log file path or ""
+	FileMode string `json:"file-mode"` // log file mode
 	Level    string `json:"level"`     // log level (trace/debug/info/warn/error/fatal/silent)
 	Slog     bool   `json:"slog"`      // use slog instead standard log (slog.TextHandler)
 	JSON     bool   `json:"json"`      // use JSON log (slog.JSONHandler)

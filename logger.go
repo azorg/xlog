@@ -14,9 +14,9 @@ const ERR_KEY = "err"
 
 // Logger wrapper structure
 type Logger struct {
-	Logger  *slog.Logger // standard slog logger
-	Leveler              // set/get level interface
-	Rotator              // log rotate interface
+	*slog.Logger // standard slog logger
+	Leveler      // set/get level interface
+	Writer       // log writer (rotator) interface
 }
 
 // Create logger based on default slog.Logger
@@ -25,7 +25,7 @@ func Default() *Logger {
 	return &Logger{
 		Logger:  slogDefault(),
 		Leveler: &leveler,
-		Rotator: newPipe(os.Stdout),
+		Writer:  pipe{os.Stdout},
 	}
 }
 
@@ -44,7 +44,7 @@ func X(logger *slog.Logger) *Logger {
 	return &Logger{
 		Logger:  logger,
 		Leveler: &leveler,
-		Rotator: newPipe(os.Stdout),
+		Writer:  pipe{os.Stdout},
 	}
 }
 
@@ -53,7 +53,7 @@ func (x *Logger) With(args ...any) *Logger {
 	return &Logger{
 		Logger:  x.Logger.With(args...),
 		Leveler: x.Leveler,
-		Rotator: x.Rotator,
+		Writer:  x.Writer,
 	}
 }
 
@@ -62,7 +62,7 @@ func (x *Logger) WithAttrs(attrs []slog.Attr) *Logger {
 	return &Logger{
 		Logger:  slog.New(x.Logger.Handler().WithAttrs(attrs)),
 		Leveler: x.Leveler,
-		Rotator: x.Rotator,
+		Writer:  x.Writer,
 	}
 }
 
@@ -71,7 +71,7 @@ func (x *Logger) WithGroup(name string) *Logger {
 	return &Logger{
 		Logger:  x.Logger.WithGroup(name),
 		Leveler: x.Leveler,
-		Rotator: x.Rotator,
+		Writer:  x.Writer,
 	}
 }
 

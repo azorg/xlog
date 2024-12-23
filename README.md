@@ -29,7 +29,7 @@ go get github.com/azorg/xlog
   err := errors.New("some error")
   count := 12345
 
-  xlog.Flood("Tinted logger xlog.Flood()", "count", 16384)
+  xlog.Floodf("Tinted logger xlog.Floodf() count=%d", 16384)
   xlog.Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
   xlog.Debug("Tinted logger xlog.Debug()")
   xlog.Info("Tinted logger xlog.Info()", "count", count)

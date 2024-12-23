@@ -24,8 +24,8 @@ var (
 	defaultLock sync.Mutex
 )
 
-// Setup standard simple logger with custom Rotator
-func SetupLogEx(logger *log.Logger, conf Conf, rotator Rotator) {
+// Setup standard simple logger with custom io.Writer
+func SetupLogEx(logger *log.Logger, conf Conf, writer io.Writer) {
 	flag := 0
 	if conf.Time {
 		flag |= log.LstdFlags
@@ -44,20 +44,20 @@ func SetupLogEx(logger *log.Logger, conf Conf, rotator Rotator) {
 		flag |= log.Lmsgprefix
 	}
 
-	logger.SetOutput(rotator)
+	logger.SetOutput(writer)
 	logger.SetPrefix(conf.Prefix)
 	logger.SetFlags(flag)
 }
 
 // Setup standard simple logger with output to pipe/file with rotation
 func SetupLog(logger *log.Logger, conf Conf) {
-	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
-	SetupLogEx(logger, conf, rotator)
+	writer := newRotator(conf.Pipe, conf.File, conf.FileMode, &conf.Rotate)
+	SetupLogEx(logger, conf, writer)
 }
 
 // Setup standard simple logger with output to custom io.Writer
 func SetupLogCustom(logger *log.Logger, conf Conf, writer io.Writer) {
-	SetupLogEx(logger, conf, newWriter(writer))
+	SetupLogEx(logger, conf, newWriter(conf.Pipe, writer))
 }
 
 // Create new configured standard logger
@@ -67,8 +67,8 @@ func NewLog(conf Conf) *log.Logger {
 	return logger
 }
 
-// Create new configured structured logger with custom Rotator
-func NewEx(conf Conf, rotator Rotator) *Logger {
+// Create new configured structured logger with custom Writer
+func NewEx(conf Conf, writer Writer) *Logger {
 	if !conf.Slog && !conf.JSON && !conf.Tint {
 		// Don't use Text/JSON/Tint handler, tune standard logger
 		return newSlogStd(conf)
@@ -100,7 +100,7 @@ func NewEx(conf Conf, rotator Rotator) *Logger {
 			}
 		}
 
-		handler = NewTintHandler(rotator, opts)
+		handler = NewTintHandler(writer, opts)
 	} else {
 		// Use Text/JSON handler
 		opts := &slog.HandlerOptions{
@@ -169,9 +169,9 @@ func NewEx(conf Conf, rotator Rotator) *Logger {
 		}
 
 		if conf.JSON {
-			handler = slog.NewJSONHandler(rotator, opts)
+			handler = slog.NewJSONHandler(writer, opts)
 		} else {
-			handler = slog.NewTextHandler(rotator, opts)
+			handler = slog.NewTextHandler(writer, opts)
 		}
 	}
 
@@ -183,20 +183,20 @@ func NewEx(conf Conf, rotator Rotator) *Logger {
 	return &Logger{
 		Logger:  logger,
 		Leveler: &level,
-		Rotator: rotator,
+		Writer:  writer,
 	}
 }
 
 // Create new configured structured logger with output to pipe/file with rotation
 func New(conf Conf) *Logger {
-	rotator := newRotator(conf.File, conf.FileMode, &conf.Rotate)
-	return NewEx(conf, rotator)
+	writer := newRotator(conf.Pipe, conf.File, conf.FileMode, &conf.Rotate)
+	return NewEx(conf, writer)
 }
 
 // Create new configured structured logger (default/text/JSON/Tinted handler)
 // with output to custom io.Writer
 func NewCustom(conf Conf, writer io.Writer) *Logger {
-	return NewEx(conf, newWriter(writer))
+	return NewEx(conf, newWriter(conf.Pipe, writer))
 }
 
 // Create new configured structured logger (default/text/JSON/Tinted handler)
@@ -293,7 +293,7 @@ func newSlogStd(conf Conf) *Logger {
 	return &Logger{
 		Logger:  logger,
 		Leveler: &leveler,
-		Rotator: newPipe(os.Stdout),
+		Writer:  pipe{os.Stdout},
 	}
 }
 

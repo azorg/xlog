@@ -37,7 +37,7 @@ func TestUsage(t *testing.T) {
 	crit := errors.New("critical error")
 	count := 12345
 
-	Flood("Tinted logger xlog.Flood()", "count", 16384)
+	Floodf("Tinted logger xlog.Floodf() count=%d", 16384)
 	Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
 	Debug("Tinted logger xlog.Debug()")
 	Info("Tinted logger xlog.Info()", "count", count)
@@ -317,7 +317,8 @@ func _TestFatalPanic(t *testing.T) {
 func TestRotate(t *testing.T) {
 	fmt.Println(">>> Test Rotate")
 
-	conf := NewConf()    // create default config
+	conf := NewConf() // create default config
+	conf.Pipe = "stdout"
 	conf.Level = "flood" // set logger level
 	conf.Tint = true     // select tinted logger
 	//conf.JSON = true // select JSON logger
@@ -326,7 +327,7 @@ func TestRotate(t *testing.T) {
 	conf.SrcLong = true // add package name
 	conf.SrcFunc = true // add function mame to log
 	conf.NoColor = true // no color
-	//conf.NoExt = true   // remove ".go" extension
+	conf.NoExt = true   // remove ".go" extension
 	//conf.Time = true
 	conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
@@ -344,7 +345,7 @@ func TestRotate(t *testing.T) {
 
 	x.Info("hello 1")
 	if x.Rotable() {
-		x.Rotator.Rotate()
+		x.Rotate()
 	} else {
 		x.Error("can't rotate")
 	}
@@ -354,9 +355,10 @@ func TestRotate(t *testing.T) {
 }
 
 func TestCustom(t *testing.T) {
-	fmt.Println(">>> Test Custom")
+	fmt.Println("\n>>> Test Custom")
 
 	conf := NewConf() // create default config
+	//conf.Pipe = "StdErr"
 	//conf.Level = "flood" // set logger level
 	conf.Tint = true // select tinted logger
 	//conf.JSON = true // select JSON logger
@@ -373,6 +375,7 @@ func TestCustom(t *testing.T) {
 
 	var w io.Writer = os.Stderr
 	x := NewCustom(conf, w) // create xlog with custom io.Writer
+	x.Info("hello xlog with custom writer")
 	x.SetDefaultLogs()
 	//l := log.Default()
 	//SetupLog(l, conf)
@@ -380,6 +383,19 @@ func TestCustom(t *testing.T) {
 	slog.Info("hello slog")
 	Info("hello xlog")
 	log.Println("hello log")
+}
+
+func TestStderr(t *testing.T) {
+	fmt.Println("\n>>> Test os.Stderr")
+	conf := Conf{
+		Level: "debug",
+		Pipe:  "stderr",
+		Slog:  true,
+		//Tint: true,
+		Time: true,
+	}
+	x := New(conf)
+	x.Debug("hello os.Stderr")
 }
 
 // EOF: "xlog_test.go"
