@@ -3,6 +3,7 @@
 package xlog
 
 import (
+	"io"
 	"log"
 	"log/slog" // go>=1.21
 	"os"
@@ -14,17 +15,26 @@ const ERR_KEY = "err"
 
 // Logger wrapper structure
 type Logger struct {
-	*slog.Logger // standard slog logger
-	Leveler      // set/get level interface
-	Writer       // log writer (rotator) interface
+	*slog.Logger        // standard slog logger
+	Leveler      *Level // current log level with Leveler interface
+	Writer              // log writer (rotator) interface
 }
+
+// Redirect pipe to log
+type logWriter struct {
+	*slog.Logger
+	slog.Level
+}
+
+// Ensure logWriter implements io.Writer interface
+var _ io.Writer = logWriter{}
 
 // Create logger based on default slog.Logger
 func Default() *Logger {
-	leveler := Level(DEFAULT_LEVEL)
+	level := Level(DEFAULT_LEVEL)
 	return &Logger{
 		Logger:  slogDefault(),
-		Leveler: &leveler,
+		Leveler: &level,
 		Writer:  pipe{os.Stdout},
 	}
 }
@@ -40,10 +50,10 @@ func X(logger *slog.Logger) *Logger {
 	if logger == nil {
 		return Default()
 	}
-	leveler := Level(DEFAULT_LEVEL)
+	level := Level(DEFAULT_LEVEL)
 	return &Logger{
 		Logger:  logger,
-		Leveler: &leveler,
+		Leveler: &level,
 		Writer:  pipe{os.Stdout},
 	}
 }
@@ -105,18 +115,10 @@ func (x *Logger) GetLevel() slog.Level { return x.Leveler.Level() }
 func (x *Logger) SetLevel(level slog.Level) { x.Leveler.Update(level) }
 
 // Return log level as string
-func (x *Logger) GetLvl() string { return ParseLevel(x.Leveler.Level()) }
+func (x *Logger) GetLvl() string { return ParseLevel(x.GetLevel()) }
 
 // Set log level as string
 func (x *Logger) SetLvl(level string) { x.SetLevel(ParseLvl(level)) }
-
-// Use logger as io.Writer: log to level Info
-func (x *Logger) Write(p []byte) (n int, err error) {
-	msg := strings.TrimRight(string(p), "\r\n")
-	logs(x.Logger, LevelInfo, msg)
-	//x.Info(msg)
-	return len(p), nil
-}
 
 // Return standard logger with prefix
 func (x *Logger) NewLog(prefix string) *log.Logger {
@@ -353,6 +355,26 @@ func (x *Logger) Fatalf(format string, args ...any) {
 func Fatalf(format string, args ...any) {
 	logf(currentXlog.Logger, LevelFatal, format, args...)
 	os.Exit(1)
+}
+
+// Create log io.Writer
+func (x *Logger) NewWriter(level slog.Level) io.Writer {
+	return logWriter{
+		Logger: x.Logger, // slog.Logger
+		Level:  level,    // slog.Level
+	}
+}
+
+// Create log io.Writer based on current logger
+func NewWriter(level slog.Level) io.Writer {
+	return currentXlog.NewWriter(level)
+}
+
+// Redirect pipe to log writer
+func (w logWriter) Write(p []byte) (n int, err error) {
+	msg := strings.TrimRight(string(p), "\r\n")
+	logs(w.Logger, w.Level, msg)
+	return len(p), nil
 }
 
 // Err() returns slog.Attr with "err" key if err != nil

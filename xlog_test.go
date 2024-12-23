@@ -398,4 +398,15 @@ func TestStderr(t *testing.T) {
 	x.Debug("hello os.Stderr")
 }
 
+func TestNewWriter(t *testing.T) {
+	fmt.Println("\n>>> Test NewWriter()")
+	conf := Conf{
+		Level: "trace",
+		JSON:  true,
+	}
+	x := New(conf)
+	w := x.NewWriter(LevelDebug)
+	w.Write([]byte("some message"))
+}
+
 // EOF: "xlog_test.go"

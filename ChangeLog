@@ -1,3 +1,8 @@
+2024.12.21: v1.4.1
+ * change Logger.Leveler from interface to pointer
+ * add NewWriter() method to *xlog.Logger
+ - remove method Write() from *xlog.Logger
+
 2024.12.21: v1.4.0
  * add pipe (stdout/stderr) + file output
  * add null log writer

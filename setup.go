@@ -234,7 +234,7 @@ func Setup(conf Conf) {
 	// в угоду возможности управления уровнями отключаем вывод файлов и строк.
 	// Если "golang.org/x/exp/slog" доработают это FIX можно будет убрать.
 	if OLD_SLOG_FIX { // "runtime.Version() < go1.21.0"
-		if currentXlog.Leveler.Level() != DEFAULT_LEVEL {
+		if currentXlog.GetLevel() != DEFAULT_LEVEL {
 			stdlog := logDefault()
 			flag := stdlog.Flags()
 			flag = flag &^ (log.Lshortfile | log.Llongfile) // sorry...

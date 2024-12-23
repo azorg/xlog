@@ -74,6 +74,9 @@ type TintHandler struct {
 	replaceAttr func([]string, slog.Attr) slog.Attr
 }
 
+// Ensure *TintHandler implements slog.Handler interface
+var _ slog.Handler = (*TintHandler)(nil)
+
 // Create new tinted (colorized) handler
 func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler {
 	h := &TintHandler{
