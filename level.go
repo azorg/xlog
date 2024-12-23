@@ -25,7 +25,7 @@ type Leveler interface {
 	ColorString() string // get log level as color label
 }
 
-// Ensure *Level implements Leveler
+// Ensure *Level implements Leveler interface
 var _ Leveler = (*Level)(nil)
 
 // Log levels delivered from slog.Level
@@ -192,9 +192,6 @@ func SetLvl(level string) {
 
 // Internal wrapper to work with additional log levels
 func logs(l *slog.Logger, level slog.Level, msg string, args ...any) {
-	//if l == nil {
-	//	l = slog.Default()
-	//}
 	ctx := context.Background()
 	if !l.Enabled(ctx, level) {
 		return
@@ -208,9 +205,6 @@ func logs(l *slog.Logger, level slog.Level, msg string, args ...any) {
 
 // Internal wrapper to work with additional log levels as standard logger
 func logf(l *slog.Logger, level slog.Level, format string, args ...any) {
-	//if l == nil {
-	//	l = slog.Default()
-	//}
 	ctx := context.Background()
 	if !l.Enabled(ctx, level) {
 		return

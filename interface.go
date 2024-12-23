@@ -41,9 +41,6 @@ type Xlogger interface {
 	// Set log level as string
 	SetLvl(level string)
 
-	// Use xlog as io.Writer: log to level Info
-	//Write(p []byte) (n int, err error)
-
 	// Return standard logger with prefix
 	NewLog(prefix string) *log.Logger
 

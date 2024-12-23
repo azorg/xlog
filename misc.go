@@ -3,7 +3,9 @@
 package xlog
 
 import (
+	"fmt"
 	"io/fs"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -34,8 +36,8 @@ func FileMode(mode string) fs.FileMode {
 	}
 	perm, err := strconv.ParseInt(mode, 8, 10)
 	if err != nil {
-		//fmt.Fprintf(os.Stderr, "ERROR: bad logfile mode='%s'; set mode=0%03o\n",
-		//	mode, DEFAULT_FILE_MODE)
+		fmt.Fprintf(os.Stderr, "ERROR: bad logfile mode='%s'; set mode=0%03o\n",
+			mode, DEFAULT_FILE_MODE)
 		return DEFAULT_FILE_MODE
 	}
 	return fs.FileMode(perm & 0777)
