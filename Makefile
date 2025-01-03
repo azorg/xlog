@@ -12,7 +12,7 @@ PKGS = $(PRJ)
 
 .PHONY: all help distclean clean commit tidy vendor fmt test
 
-all: fmt test
+all: fmt vet doc test
 
 help:
 	@echo "make fmt       - format Go sources"
@@ -62,5 +62,16 @@ vet:
 
 test: go.mod go.sum
 	@go test
+
+doc: README-RU.txt README-RU.md
+
+README-RU.txt: *.go
+	go doc -all > README-RU.txt
+
+README-RU.md: *.go ~/go/bin/gomarkdoc
+	~/go/bin/gomarkdoc -o README-RU.md
+
+~/go/bin/gomarkdoc:
+	go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
 
 # EOF: "Makefile"

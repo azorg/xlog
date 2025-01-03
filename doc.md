@@ -8,113 +8,103 @@ import "github.com/azorg/xlog"
 
 Пакет xlog реализует простую надстройку на стандартными логерами log и slog.
 
-### Краткий экскурс
-
 Логер slog включен в стандартную поставку Go начиная с версии 1.21 \("log/slog"\). До этого логер представлен экспериментальным пакетом "golang.org/x/exp/slog".
 
-slog \- это "конструктор", "концепция", которая позволяет построить нужный именно Вам логгер в Go приложениях.
-
-Пакет \`xlog\` \- это пример использования slog с возможными его расширениями \(имеется дополнительный tinted handler, для "пестрой" раскраски с помощью ANSI/Escape последовательностей, добавлены дополнительные уровни журналирования типа Trace, Notice, Critical, Fatal и т.п.\).
-
-Заложены "мостики" единообразного поведения стандартного логгера "log" при работе через настроенный логгер slog/xlog.
-
-В ряде случаев из всего пакета может быть полезна только одна функция Setup\(\), которая на основе структуры конфигурации может настроить нужное поведение глобального стандартного Go логера "log" и структурного логера "slog".
-
-Можно предположить вариант создания структуры конфигурации "по умолчанию" с помощью функции NewConf\(\), внесения необходимых изменений \(управление уровнем журналирования например\) и последующим вызовом Setup\(\). Например так:
-
-```
-conf = xlog.NewConf() // создать структура конфигурации по умолчанию
-conf.Level = "debug" // задать уровень отладки
-conf.Tint = true // включить структурный цветной логер
-conf.Src = true // включить в журнал имена файлов и номера строк исходных текстов
-xlog.Setup(conf) // настроить глобальный логер (xlog + slog + log)
-```
-
-Структура Conf имеет JSON тега для возможности сериализации в/из JSON.
-
-### Возможные конфигурации логера
-
-```
-| Slog  | JSON  | Tint  | Описание                        |
-|:-----:|:-----:|:-----:|:--------------------------------|
-| false | false | false | логер по умолчанию              |
-| true  | false | false | структурный TextHandler         |
-| x     | true  | false | структурный JSONHandler         |
-| x     | x     | true  | структурный цветной TintHandler |
-```
-
-Если планируется настраивать только стандартный логер "log", то достаточно применения функций NewLog\(\)/SetupLog\(\) заместо Setup\(\).
-
-Для настройки только структурного логера slog стоит использовать функцию NewSlog\(\). Функция получает структуру конфигурации и возвращает стандартный \`\*slog.Logger\`.
-
-Для дополнительных "сахарных" функций реализована обёртка xlog.Logger, которая хранит указатель на структурный логер \`\*slog.Logger\`, xlog.Leveler и xlog.Writer, предоставляет дополнительные методы типа \`Infof\(\)\`, \`Trace\(\)\`, \`Fatalf\(\)\` и др. Имеются функции \- аналоги соответствующих методом для использования глобального логера. Через функции и методы SetLevel\(\)/SetLvl\(\) можно изменять уровень логирования "на лету".
-
-### Структуры данных:
+Структуры данных:
 
 ```
 Conf - Обобщенная структура конфигурации логера, имеет JSON тэги
+
 Logger - Структура/обёртка над slog для добавления методов типа Debugf/Noticef/Errorf/Trace
 ```
 
-### Интерфейсы:
+Интерфейсы:
 
 ```
 Xlogger - интерфейс к структуре Logger (приведен для наглядности API)
+
 Leveler - интерфейс управления уровнем журналирования
+
 Writer - обобщенный интерфейс для записи логов, влкючая функци ротации
 ```
 
-### Функции настройки конфигурации:
+Функции настройки конфигурации:
 
 ```
 NewConf() - заполнить обобщенную структуру конфигурации логгера значениями по умолчанию
+
 SetupLog() - настроить стандартный логгер в соответствии с заданной структурой конфигурации
+
 SetupLogEx() - настроить стандартный логгер с ротатором
+
 SetupLogCustom() - настроить стандартный логгер с заданным io.Writer
+
 NewLog() - создать стандартный логгер log.Logger в соответствии со структурой конфигурации
+
 New() - создать структурированный логгер на основе заданной конфигурации
+
 NewEx() - создать структурированный логгер с заданным ротаторм
+
 NewCustom() - создать структурированный логгер с заданным io.Writer
+
 NewSlog() - создать структурированный логгер slog.Logger в соответствии со структурой конфигурации
+
 Setup() - настроить стандартный и структурированный логгеры по умолчанию в соответствии с структурой конфигурации
-GetLevel()/SetLvl() - вернуть/установить текущий уровень журналирования
-GetLevel()/SetLevel() - вернуть/установить текущий уровень журналирования (как slog.Level)
+
+GetLevel()/Level() - вернуть текущий уровень журналирования
+
+GetLvl() - вернуть текущий уровень журналирования в виде строки
 ```
 
-### Функции для работы с надстройкой Logger:
+Функции для работы с надстройкой Logger:
 
 ```
 Default() - Создать логер на основе исходного slog.Deafult()
+
 Current() - Вернуть текущий глобальный логер
+
 Slog() - Вернуть текущий глобальный логер slog.Logger
+
 X() - Создать логер на основе логера slog (для доступа к "сахарным" методам xlog)
 ```
 
-### Методы для работы с Logger \\\(методы интерфейса Xlogger\\\):
+Методы для работы с Logger \(методы интерфейса Xlogger\):
 
 ```
 With() - Создать дочерний логгер с дополнительными атрибутами
+
 WithAttrs() - Создать дочерний логгер с дополнительными атрибутами
+
 WithGroup() - Создать дочерний логгер с группировкой ключей
+
 Slog() - Обратное преобразование *xlog.Logger -> *slog.Logger
+
 SetDefault() - Установить логер как xlog по умолчанию
+
 SetDefaultLogs() - Установить логер как log/slog/xlog по умолчанию
+
 GetLevel() - получить текуший уровень журналирования (slog.Level)
+
 SetLevel(l) - обновить текущий уровень журналирования (slog.Level)
+
 GetLvl() - получить текущий уровень журналирования в виде строки
+
 SetLvl() - обновить текущий уровень журналирования в виде строки
+
 NewLog(prefix string) *log.Logger - вернуть стандартный логгер с префиксом
+
 NewWriter(slog.Level) - создать io.Writer перенаправляемый в журнал
 ```
 
-### Методы жля ротаци логов:
+Методы жля ротаци логов:
 
 ```
 Rotable() - проверить возможна ли ротация
+
 Rotate() - совершить ротацию логов (обычно по сигналу SIGHUP)
 ```
 
-### Методы для использования xlog.Logger с дополнительными уровнями:
+Методы для использования xlog.Logger с дополнительными уровнями:
 
 ```
 Log(level slog.Level, msg string, args ...any)
@@ -143,60 +133,25 @@ Fatalf(format string, args ...any)
 
 Примечание: имеются аналогичные глобальные функции в пакете для использования глобального логера.
 
-### Вспомогательные функции работы с уровнями журналирования:
+Вспомогательные функции работы с уровнями журналирования:
 
 ```
 ParseLvl(lvl string) slog.Level - получить уровень из строки типа "debug"
+
 ParseLevel(level slog.Level) string - преобразовать уровень к строке
 ```
 
-### Методы интерфейса Leveler:
+Методы интерфейса Leveler:
 
 ```
 Level() slog.Level - получить уровень журналирования (реализация интерфейса slog.Leveler)
+
 Update(slog.Level) - обновить уровень журналирования
+
 String() string - сформировать метку для журнала
+
 ColorString() string - сформировать метку для журнала с ANSI/Escape подкраской
 ```
-
-### Ротация логов
-
-Используется популярный пакет https://github.com/natefinch/lumberjack
-
-### Пути вывода журнала
-
-Определено несколько вариантов вывода журнала.
-
-1. В никуда \(если в Pipe="null", File=""\)
-2. Только в pipe \(stdout/stderr\)
-3. В кастомный io.Writer
-4. В кастомный io.Writer и дополнительно в pipe
-5. В заданный файл
-6. В заданный файл и дополнительно в pipe
-7. В заданный файл с ротацией
-8. В заданный файл с ротацией и дополнительно в pipe
-
-Интерфейс для направления журнала доступен в поле Writer структуры Logger.
-
-Выбор пути определяется полями Pipe, File, Rotation.Enable в структуре конфигурации.
-
-Для определения катомного io.Writer'а используются отдельные функции \(типа NewCustom\(\)\).
-
-### Полезные ссылки на документацию
-
-- https://go.dev/blog/slog \- Structured Logging with slog \(August 2023\)
-- https://pkg.go.dev/log \- стандартный логер в Go
-- https://pkg.go.dev/log/slog \- \`slog\` из стандартной поставки начиная с go\-1.21.0
-- https://pkg.go.dev/golang.org/x/exp/slog \- \`slog\` для go\-1.20 и младше
-- https://github.com/golang/example/blob/master/slog-handler-guide/README.md
-
-### Как перейти с go1.20.x на go1.21.x и старше?
-
-1. Убрать из секцию import "golang.org/x/exp/slog"
-2. Добавить в секцию import "log/slog"
-3. В файле "const.go" задать \`OLD\_SLOG\_FIX = false\`
-
-Переход на "golang.org/x/exp/slog" \(для go\-1.20\) делается в обратной последовательности.
 
 ## Index
 
@@ -205,7 +160,6 @@ ColorString() string - сформировать метку для журнала
 - [func Close\(\) error](<#Close>)
 - [func Crit\(msg string, args ...any\)](<#Crit>)
 - [func Critf\(format string, args ...any\)](<#Critf>)
-- [func CropFuncName\(function string\) string](<#CropFuncName>)
 - [func Debug\(msg string, args ...any\)](<#Debug>)
 - [func Debugf\(format string, args ...any\)](<#Debugf>)
 - [func Env\(conf \*Conf, prefixOpt ...string\)](<#Env>)
@@ -615,15 +569,6 @@ func Critf(format string, args ...any)
 
 Critf logs at LevelCritical as standard logger with default logger
 
-<a name="CropFuncName"></a>
-## func [CropFuncName](<https://github.com/azorg/xlog/blob/main/misc.go#L24>)
-
-```go
-func CropFuncName(function string) string
-```
-
-Crop function name
-
 <a name="Debug"></a>
 ## func [Debug](<https://github.com/azorg/xlog/blob/main/logger.go#L179>)
 
@@ -697,7 +642,7 @@ func Fatalf(format string, args ...any)
 Fatalf logs at LevelFatal as standard logger with default logger and os.Exit\(1\)
 
 <a name="FileMode"></a>
-## func [FileMode](<https://github.com/azorg/xlog/blob/main/misc.go#L44>)
+## func [FileMode](<https://github.com/azorg/xlog/blob/main/misc.go#L39>)
 
 ```go
 func FileMode(mode string) fs.FileMode
@@ -724,7 +669,7 @@ func Floodf(format string, args ...any)
 Floodf logs at LevelFlood as standard logger with default logger
 
 <a name="GetFuncName"></a>
-## func [GetFuncName](<https://github.com/azorg/xlog/blob/main/misc.go#L37>)
+## func [GetFuncName](<https://github.com/azorg/xlog/blob/main/misc.go#L24>)
 
 ```go
 func GetFuncName(skip int) string
@@ -796,7 +741,7 @@ func Logf(level slog.Level, format string, args ...any)
 Logf logs at given level as standard logger with default logger
 
 <a name="NewLog"></a>
-## func [NewLog](<https://github.com/azorg/xlog/blob/main/setup.go#L63>)
+## func [NewLog](<https://github.com/azorg/xlog/blob/main/setup.go#L64>)
 
 ```go
 func NewLog(conf Conf) *log.Logger
@@ -805,7 +750,7 @@ func NewLog(conf Conf) *log.Logger
 Create new configured standard logger
 
 <a name="NewSlog"></a>
-## func [NewSlog](<https://github.com/azorg/xlog/blob/main/setup.go#L199>)
+## func [NewSlog](<https://github.com/azorg/xlog/blob/main/setup.go#L203>)
 
 ```go
 func NewSlog(conf Conf) *slog.Logger
@@ -913,7 +858,7 @@ func SetLvl(level string)
 Set current log level as string
 
 <a name="Setup"></a>
-## func [Setup](<https://github.com/azorg/xlog/blob/main/setup.go#L205>)
+## func [Setup](<https://github.com/azorg/xlog/blob/main/setup.go#L209>)
 
 ```go
 func Setup(conf Conf)
@@ -922,7 +867,7 @@ func Setup(conf Conf)
 Setup standart and structured default global loggers
 
 <a name="SetupLog"></a>
-## func [SetupLog](<https://github.com/azorg/xlog/blob/main/setup.go#L52>)
+## func [SetupLog](<https://github.com/azorg/xlog/blob/main/setup.go#L53>)
 
 ```go
 func SetupLog(logger *log.Logger, conf Conf)
@@ -931,7 +876,7 @@ func SetupLog(logger *log.Logger, conf Conf)
 Setup standard simple logger with output to pipe/file with rotation
 
 <a name="SetupLogCustom"></a>
-## func [SetupLogCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L58>)
+## func [SetupLogCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L59>)
 
 ```go
 func SetupLogCustom(logger *log.Logger, conf Conf, writer io.Writer)
@@ -940,7 +885,7 @@ func SetupLogCustom(logger *log.Logger, conf Conf, writer io.Writer)
 Setup standard simple logger with output to custom io.Writer
 
 <a name="SetupLogEx"></a>
-## func [SetupLogEx](<https://github.com/azorg/xlog/blob/main/setup.go#L27>)
+## func [SetupLogEx](<https://github.com/azorg/xlog/blob/main/setup.go#L28>)
 
 ```go
 func SetupLogEx(logger *log.Logger, conf Conf, writer io.Writer)
@@ -1238,7 +1183,7 @@ func Default() *Logger
 Create logger based on default slog.Logger
 
 <a name="New"></a>
-### func [New](<https://github.com/azorg/xlog/blob/main/setup.go#L187>)
+### func [New](<https://github.com/azorg/xlog/blob/main/setup.go#L191>)
 
 ```go
 func New(conf Conf) *Logger
@@ -1247,7 +1192,7 @@ func New(conf Conf) *Logger
 Create new configured structured logger with output to pipe/file with rotation
 
 <a name="NewCustom"></a>
-### func [NewCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L194>)
+### func [NewCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L198>)
 
 ```go
 func NewCustom(conf Conf, writer io.Writer) *Logger
@@ -1256,7 +1201,7 @@ func NewCustom(conf Conf, writer io.Writer) *Logger
 Create new configured structured logger \(default/text/JSON/Tinted handler\) with output to custom io.Writer
 
 <a name="NewEx"></a>
-### func [NewEx](<https://github.com/azorg/xlog/blob/main/setup.go#L70>)
+### func [NewEx](<https://github.com/azorg/xlog/blob/main/setup.go#L71>)
 
 ```go
 func NewEx(conf Conf, writer Writer) *Logger

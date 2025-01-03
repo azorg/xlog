@@ -409,4 +409,25 @@ func TestNewWriter(t *testing.T) {
 	w.Write([]byte("some message"))
 }
 
+func testFuncName[V any](value V, log *Logger) {
+	log.Infof("value: %v", value)
+}
+
+func TestFuncName(t *testing.T) {
+	fmt.Println("\n>>> Test FuncName()")
+	conf := Conf{
+		Level:   "trace",
+		Tint:    false,
+		Slog:    true,
+		JSON:    false,
+		Src:     true,
+		SrcLong: true,
+		NoExt:   true,
+		SrcFunc: true,
+	}
+	Env(&conf)
+	log := New(conf)
+	testFuncName[string]("hello", log)
+}
+
 // EOF: "xlog_test.go"

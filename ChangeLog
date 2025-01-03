@@ -1,3 +1,8 @@
+2025.01.03: v1.4.3
+ * update Makefile
+ * fix GetFuncName()
+ * add CropFuncName()
+
 2024.12.21: v1.4.2
  * change Logger.Leveler from interface to pointer
  * add NewWriter() method to *xlog.Logger

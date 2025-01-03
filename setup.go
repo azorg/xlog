@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 	//"golang.org/x/exp/slog" // deprecated for go>=1.21
@@ -142,12 +141,9 @@ func NewEx(conf Conf, writer Writer) *Logger {
 					if conf.NoExt { // remove ".go" extension
 						src.File = RemoveGoExt(src.File)
 					}
-					parts := strings.Split(src.Function, ".")
-					if len(parts) != 0 {
-						src.Function = parts[len(parts)-1]
-					}
-					//src.Funcion = GetFuncName(7) // skip=7 (some magic)
-					if conf.SrcFunc { // add function name
+					//src.Function = GetFuncName(7) // skip=7 (some magic)
+					src.Function = CropFuncName(src.Function)
+					if conf.SrcFunc { // add function name (not for JSON)
 						if src.Function != "" {
 							src.File += ":" + src.Function + "()"
 						}

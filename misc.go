@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -19,14 +20,24 @@ func RemoveGoExt(file string) string {
 	return file
 }
 
-// Return function name
-func GetFuncName(skip int) string {
-	pc, _, _, _ := runtime.Caller(skip)
-	parts := strings.Split(runtime.FuncForPC(pc).Name(), ".")
+// Crop function name
+func CropFuncName(function string) string {
+	_, f := filepath.Split(function)
+	parts := strings.Split(f, ".")
 	if len(parts) == 0 {
 		return ""
 	}
-	return parts[len(parts)-1]
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	return strings.Join(parts[1:], ".") // FIXME
+}
+
+// Return function name
+func GetFuncName(skip int) string {
+	pc, _, _, _ := runtime.Caller(skip)
+	function := runtime.FuncForPC(pc).Name()
+	return CropFuncName(function)
 }
 
 // Convert file mode string (oct like "0640") to fs.FileMode
