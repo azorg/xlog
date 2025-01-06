@@ -430,4 +430,24 @@ func TestFuncName(t *testing.T) {
 	testFuncName[string]("hello", log)
 }
 
+func TestSlogAgain(t *testing.T) {
+	fmt.Println("\n>>> Test SlogAgain()")
+
+	conf := Conf{
+		Level:   "flood",
+		Slog:    true,
+		Src:     true,
+		SrcLong: true,
+		SrcFunc: true,
+		NoExt:   true,
+		Time:    true,
+		TimeUS:  true,
+	}
+	Env(&conf)
+	Setup(conf)
+	Current().SetDefault() // slog -> xlog
+
+	Notice("setup logger", "level", string(GetLvl()))
+}
+
 // EOF: "xlog_test.go"

@@ -119,45 +119,53 @@ func NewEx(conf Conf, writer Writer) *Logger {
 						return slog.Attr{} // remove timestamp from log
 					}
 					if conf.TimeUS {
-						t := a.Value.Any().(time.Time)
-						tstr := t.Format(RFC3339Micro)
-						return slog.String(slog.TimeKey, tstr)
+						t, ok := a.Value.Any().(time.Time)
+						if ok {
+							tstr := t.Format(RFC3339Micro)
+							return slog.String(slog.TimeKey, tstr)
+						}
 					} else if conf.JSON { // FIX difference between Text and JSON handler
-						t := a.Value.Any().(time.Time)
-						tstr := t.Format(RFC3339Milli)
-						return slog.String(slog.TimeKey, tstr)
-					}
-				case slog.SourceKey:
-					src := a.Value.Any().(*slog.Source)
-					if src.File == "" { // FIX some bug if slog work as standard logger
-						return slog.Attr{}
-					}
-					if conf.SrcLong { // long: directory + file name
-						dir, file := filepath.Split(src.File)
-						src.File = filepath.Join(filepath.Base(dir), file)
-					} else { // short: only file name
-						src.File = path.Base(src.File)
-					}
-					if conf.NoExt { // remove ".go" extension
-						src.File = RemoveGoExt(src.File)
-					}
-					//src.Function = GetFuncName(7) // skip=7 (some magic)
-					src.Function = CropFuncName(src.Function)
-					if conf.SrcFunc { // add function name (not for JSON)
-						if src.Function != "" {
-							src.File += ":" + src.Function + "()"
+						t, ok := a.Value.Any().(time.Time)
+						if ok {
+							tstr := t.Format(RFC3339Milli)
+							return slog.String(slog.TimeKey, tstr)
 						}
 					}
-					a.Value = slog.AnyValue(src)
+				case slog.SourceKey:
+					src, ok := a.Value.Any().(*slog.Source)
+					if ok {
+						if src.File == "" { // FIX some bug if slog work as standard logger
+							return slog.Attr{}
+						}
+						if conf.SrcLong { // long: directory + file name
+							dir, file := filepath.Split(src.File)
+							src.File = filepath.Join(filepath.Base(dir), file)
+						} else { // short: only file name
+							src.File = path.Base(src.File)
+						}
+						if conf.NoExt { // remove ".go" extension
+							src.File = RemoveGoExt(src.File)
+						}
+						//src.Function = GetFuncName(7) // skip=7 (some magic)
+						src.Function = CropFuncName(src.Function)
+						if conf.SrcFunc { // add function name (not for JSON)
+							if src.Function != "" {
+								src.File += ":" + src.Function + "()"
+							}
+						}
+						a.Value = slog.AnyValue(src)
+					}
 				case slog.LevelKey:
 					if conf.NoLevel {
 						return slog.Attr{} // remove "level=..." etc
 					}
 					if ADD_LEVELS { // add TRACE/NOTICE/FATAL/PANIC
-						level := a.Value.Any().(slog.Level)
-						leveler := Level(level)
-						label := leveler.String()
-						return slog.String(slog.LevelKey, label)
+						level, ok := a.Value.Any().(slog.Level)
+						if ok {
+							leveler := Level(level)
+							label := leveler.String()
+							return slog.String(slog.LevelKey, label)
+						}
 					}
 				} // switch
 				return a

@@ -1,3 +1,6 @@
+2025.01.06: v1.4.4
+ * fix bug with levelKey (panic: interface conversion)
+
 2025.01.03: v1.4.3
  * update Makefile
  * fix GetFuncName()

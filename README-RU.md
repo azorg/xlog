@@ -805,7 +805,7 @@ func NewLog(conf Conf) *log.Logger
 Create new configured standard logger
 
 <a name="NewSlog"></a>
-## func [NewSlog](<https://github.com/azorg/xlog/blob/main/setup.go#L199>)
+## func [NewSlog](<https://github.com/azorg/xlog/blob/main/setup.go#L207>)
 
 ```go
 func NewSlog(conf Conf) *slog.Logger
@@ -913,7 +913,7 @@ func SetLvl(level string)
 Set current log level as string
 
 <a name="Setup"></a>
-## func [Setup](<https://github.com/azorg/xlog/blob/main/setup.go#L205>)
+## func [Setup](<https://github.com/azorg/xlog/blob/main/setup.go#L213>)
 
 ```go
 func Setup(conf Conf)
@@ -1238,7 +1238,7 @@ func Default() *Logger
 Create logger based on default slog.Logger
 
 <a name="New"></a>
-### func [New](<https://github.com/azorg/xlog/blob/main/setup.go#L187>)
+### func [New](<https://github.com/azorg/xlog/blob/main/setup.go#L195>)
 
 ```go
 func New(conf Conf) *Logger
@@ -1247,7 +1247,7 @@ func New(conf Conf) *Logger
 Create new configured structured logger with output to pipe/file with rotation
 
 <a name="NewCustom"></a>
-### func [NewCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L194>)
+### func [NewCustom](<https://github.com/azorg/xlog/blob/main/setup.go#L202>)
 
 ```go
 func NewCustom(conf Conf, writer io.Writer) *Logger
