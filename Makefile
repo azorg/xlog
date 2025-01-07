@@ -10,7 +10,7 @@ SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 # go packages
 PKGS = $(PRJ)
 
-.PHONY: all help distclean clean commit tidy vendor fmt test
+.PHONY: all help distclean clean commit tidy vendor fmt vet doc test
 
 all: fmt vet doc test
 
