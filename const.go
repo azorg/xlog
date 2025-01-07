@@ -4,22 +4,33 @@ package xlog
 
 // Default logger configure
 const (
-	FILE      = "stdout" // log file path OR stdout/stderr ("" -> stdout)
-	FILE_MODE = "0640"   // log file mode (if FILE is not stdout/stderr)
-	LEVEL     = LvlInfo  // log level (flood/trace/debug/info/warn/error/critical/fatal/silent)
-	SLOG      = false    // use slog insted standart log (slog.TextHandler)
-	JSON      = false    // use JSON log (slog.JSONHandelr)
-	TINT      = false    // use tinted (colorized) log (xlog.TintHandler)
-	TIME      = false    // add time stamp
-	TIME_US   = false    // us time stamp (only if SLOG=false)
-	TIME_TINT = ""       // tinted log time format (~time.Kitchen, "15:04:05.999")
-	SRC       = false    // log file name and line number
-	SRC_LONG  = false    // log long file path (directory + file name)
-	NO_LEVEL  = false    // don't print log level tag to log (~level="INFO")
-	NO_COLOR  = false    // don't use tinted colors (only if Tint=true)
-	PREFIX    = ""       // add prefix to standart log (SLOG=false)
-	ADD_KEY   = ""       // add key to structured log (SLOG=true)
-	ADD_VALUE = ""       // add value to structured log (SLOG=true
+	PIPE      = ""      // log pipe ("stdout", "stderr", "null" or "")
+	FILE      = ""      // log file path or ""
+	FILE_MODE = "0640"  // log file mode
+	LEVEL     = LvlInfo // log level (flood/trace/debug/info/warn/error/critical/fatal/silent)
+	SLOG      = false   // use slog instead standard log (slog.TextHandler)
+	JSON      = false   // use JSON log (slog.JSONHandelr)
+	TINT      = false   // use tinted (colorized) log (xlog.TintHandler)
+	TIME      = false   // add time stamp
+	TIME_US   = false   // us time stamp (only if SLOG=false)
+	TIME_TINT = ""      // tinted log time format (~time.Kitchen, "15:04:05.999")
+	SRC       = false   // log file name and line number
+	SRC_LONG  = false   // log long file path (directory + file name)
+	SRC_FUNC  = false   // add function name to log
+	NO_EXT    = false   // remove ".go" extension from file name
+	NO_LEVEL  = false   // don't print log level tag to log (~level="INFO")
+	NO_COLOR  = false   // don't use tinted colors (only if Tint=true)
+	PREFIX    = ""      // add prefix to standard log (SLOG=false)
+	ADD_KEY   = ""      // add key to structured log (SLOG=true)
+	ADD_VALUE = ""      // add value to structured log (SLOG=true
+
+	// Log rotate
+	ROTATE_ENABLE      = true
+	ROTATE_MAX_SIZE    = 10 // megabytes
+	ROTATE_MAX_AGE     = 10 // days
+	ROTATE_MAX_BACKUPS = 100
+	ROTATE_LOCAL_TIME  = true
+	ROTATE_COMPRESS    = true
 )
 
 const (

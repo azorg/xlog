@@ -29,7 +29,16 @@ func StringToBool(s string) bool {
 	return false // by default
 }
 
-// Add settings from eviroment variables
+// String to int converter
+func StringToInt(s string) int {
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return val
+}
+
+// Add settings from environment variables
 func Env(conf *Conf, prefixOpt ...string) {
 	prefix := DEFAULT_PREFIX
 	if len(prefixOpt) != 0 {
@@ -75,6 +84,12 @@ func Env(conf *Conf, prefixOpt ...string) {
 	if v := os.Getenv(prefix + "SRC_LONG"); v != "" {
 		conf.SrcLong = StringToBool(v)
 	}
+	if v := os.Getenv(prefix + "SRC_FUNC"); v != "" {
+		conf.SrcFunc = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "NO_EXT"); v != "" {
+		conf.NoExt = StringToBool(v)
+	}
 	if v := os.Getenv(prefix + "NO_LEVEL"); v != "" {
 		conf.NoLevel = StringToBool(v)
 	}
@@ -89,6 +104,24 @@ func Env(conf *Conf, prefixOpt ...string) {
 	}
 	if v := os.Getenv(prefix + "ADD_VALUE"); v != "" {
 		conf.AddValue = v
+	}
+	if v := os.Getenv(prefix + "ROTATE"); v != "" {
+		conf.Rotate.Enable = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_SIZE"); v != "" {
+		conf.Rotate.MaxSize = StringToInt(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_AGE"); v != "" {
+		conf.Rotate.MaxAge = StringToInt(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_MAX_BACKUPS"); v != "" {
+		conf.Rotate.MaxBackups = StringToInt(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_LOCAL_TIME"); v != "" {
+		conf.Rotate.LocalTime = StringToBool(v)
+	}
+	if v := os.Getenv(prefix + "ROTATE_COMPRESS"); v != "" {
+		conf.Rotate.Compress = StringToBool(v)
 	}
 }
 

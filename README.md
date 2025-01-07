@@ -1,11 +1,13 @@
-`xlog` - yet another "log/slog"  backend/frontend wrappers and tinted 🌈 `slog.Handler`
-=======================================================================================
+`xlog` - yet another "log/slog"  backend/frontend wrappers and tinted `slog.Handler`
+====================================================================================
 
 Package `xlog` implements some wrappers to work with structured logger
 [`slog`](https://pkg.go.dev/log/slog) and classic simple logger
 [`log`](https://pkg.go.dev/log) too.
 
 Code of xlog.TintHandler based on [`tint`](https://github.com/lmittmann/tint).
+
+Log rotation support by [`lumberjack`](https://github.com/natefinch/lumberjack).
 
 ![Tinted xlog](https://github.com/azorg/xlog/blob/main/img/xlog-tinted.png "xlog-tinded.png")
 
@@ -27,7 +29,7 @@ go get github.com/azorg/xlog
   err := errors.New("some error")
   count := 12345
 
-  xlog.Flood("Tinted logger xlog.Flood()", "count", 16384)
+  xlog.Floodf("Tinted logger xlog.Floodf() count=%d", 16384)
   xlog.Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
   xlog.Debug("Tinted logger xlog.Debug()")
   xlog.Info("Tinted logger xlog.Info()", "count", count)

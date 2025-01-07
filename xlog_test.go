@@ -5,25 +5,30 @@ package xlog
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	//"log/slog" // go>=1.21
+	"os"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/exp/slog" // depricated for go>=1.21
+	"golang.org/x/exp/slog" // deprecated for go>=1.21
 )
 
 func TestUsage(t *testing.T) {
 	fmt.Println(">>> Test Usage")
 
-	conf := NewConf()               // create default config (look xlog.Conf for details)
-	conf.Level = "flood"            // set logger level
-	conf.Tint = true                // select tinted logger
-	conf.Src = true                 // add source file:line to log
+	conf := NewConf()    // create default config (look xlog.Conf for details)
+	conf.Level = "flood" // set logger level
+	conf.Tint = true     // select tinted logger
+	conf.Src = true      // add source file:line to log
+	conf.SrcLong = true  // add package name
+	conf.SrcFunc = true  // add function mame to log
+	//conf.NoExt = true             // remove ".go" extension
 	conf.TimeTint = "dateTimeMilli" // add custom timestamp
 
-	Env(&conf, "LOG_") // read setting from enviroment
+	Env(&conf, "LOG_") // read setting from environment
 
 	x := New(conf) // create xlog with TintHandler
 	x.SetDefault() // set default xlog
@@ -32,7 +37,7 @@ func TestUsage(t *testing.T) {
 	crit := errors.New("critical error")
 	count := 12345
 
-	Flood("Tinted logger xlog.Flood()", "count", 16384)
+	Floodf("Tinted logger xlog.Floodf() count=%d", 16384)
 	Trace("Tinted logger xlog.Trace()", "conf.Level", conf.Level)
 	Debug("Tinted logger xlog.Debug()")
 	Info("Tinted logger xlog.Info()", "count", count)
@@ -109,11 +114,12 @@ func TestSlogText(t *testing.T) {
 	s := NewSlog(Conf{Slog: true})
 	s.Info(`[s := xlog.NewSlog(xlog.Conf{Slog: true}); s.Info(...)]`, "count", count, "err", err)
 
-	s = NewSlog(Conf{Slog: true, Src: true})
-	s.Info(`[s := xlog.NewSlog(xlog.Conf{Slog: true, Src: true}); s.Info(...)]`, "count", count, "err", err)
+	s = NewSlog(Conf{Slog: true, Src: true, SrcFunc: true})
+	s.Info(`[s := xlog.NewSlog(xlog.Conf{Slog: true, Src: true, SrcFunc: true}); s.Info(...)]`,
+		"count", count, "err", err)
 
-	s = NewSlog(Conf{Slog: true, Src: true, SrcLong: true})
-	s.Info(`[s := xlog.NewSlog(xlog.Conf{Slog: true, Src: true, SrcLong: true}); s.Info(...)]`,
+	s = NewSlog(Conf{Slog: true, Src: true, SrcLong: true, NoExt: true})
+	s.Info(`[s := xlog.NewSlog(xlog.Conf{Slog: true, Src: true, SrcLong: true, NoExt: true}); s.Info(...)]`,
 		"count", count, "err", err)
 
 	s = NewSlog(Conf{Slog: true, Src: true, Time: true})
@@ -136,15 +142,15 @@ func TestSlogJSON(t *testing.T) {
 	s := NewSlog(Conf{JSON: true})
 	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true}); s.Info(...)]`, "count", count, "err", err)
 
-	s = NewSlog(Conf{JSON: true, Src: true})
-	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true, Src: true}); s.Info(...)]`, "count", count, "err", err)
+	s = NewSlog(Conf{JSON: true, Src: true, NoExt: true})
+	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true, Src: true, NoExt: true}); s.Info(...)]`, "count", count, "err", err)
 
 	s = NewSlog(Conf{JSON: true, Src: true, SrcLong: true})
 	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true, Src: true, SrcLong: true}); s.Info(...)]`,
 		"count", count, "err", err)
 
-	s = NewSlog(Conf{JSON: true, Src: true, Time: true})
-	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true, Src: true, Time: true}); s.Info(...)]`,
+	s = NewSlog(Conf{JSON: true, Src: true, SrcFunc: true, Time: true})
+	s.Info(`[s := xlog.NewSlog(xlog.Conf{JSON: true, Src: true, SrcFunc: true, Time: true}); s.Info(...)]`,
 		"count", count, "err", err)
 
 	s = NewSlog(Conf{JSON: true, Time: true, TimeUS: true})
@@ -242,7 +248,7 @@ func TestSetDefault(t *testing.T) {
 	fmt.Println()
 }
 
-// Fake struct of UUID value generator
+// Fake structure of UUID value generator
 type genUUID struct{}
 
 // Create bew UUID v7
@@ -250,7 +256,7 @@ func NewUUID() uuid.UUID {
 	return uuid.Must(uuid.NewV7()) // FIXME: panic in error
 }
 
-// Implemens slog.LogaValuer interface
+// Implements slog.LogaValuer interface
 func (_ genUUID) LogValue() slog.Value {
 	return slog.AnyValue(NewUUID())
 }
@@ -272,7 +278,9 @@ func TestWith(t *testing.T) {
 		NoLevel: true,
 		Level:   "debug",
 		Time:    true, TimeUS: true, TimeTint: "lab",
-		Src: true, SrcLong: true,
+		Src:     true,
+		SrcLong: true,
+		NoExt:   true,
 	})
 
 	x.Info("x.Info()", "value", 3.1415926)
@@ -298,12 +306,148 @@ func _TestFatalPanic(t *testing.T) {
 	conf.Src = true                 // add source file:line to log
 	conf.TimeTint = "DateTimeMicro" // add custom timestamp
 
-	Env(&conf) // read setting from enviroment
+	Env(&conf) // read setting from environment
 
 	x := New(conf) // create xlog with TintHandler
 
 	x.Fatal("x.Fatal()", "err", errors.New("fatal error"))
 	x.Panic("x.Panic()")
+}
+
+func TestRotate(t *testing.T) {
+	fmt.Println(">>> Test Rotate")
+
+	conf := NewConf() // create default config
+	conf.Pipe = "stdout"
+	conf.Level = "flood" // set logger level
+	conf.Tint = true     // select tinted logger
+	//conf.JSON = true // select JSON logger
+	//conf.Slog = true    // select JSON logger
+	conf.Src = true     // add source file:line to log
+	conf.SrcLong = true // add package name
+	conf.SrcFunc = true // add function mame to log
+	conf.NoColor = true // no color
+	conf.NoExt = true   // remove ".go" extension
+	//conf.Time = true
+	conf.TimeTint = "dateTimeMilli" // add custom timestamp
+
+	conf.File = "logs/test.log" // log file
+	//conf.FileMode = "0600"
+
+	conf.Rotate.Enable = true
+	//conf.Rotate.Enable = false
+	conf.Rotate.MaxBackups = 3
+
+	Env(&conf, "LOG_") // read setting from environment
+
+	x := New(conf) // create xlog with TintHandler
+	//x.SetDefault() // set default xlog
+
+	x.Info("hello 1")
+	if x.Rotable() {
+		x.Rotate()
+	} else {
+		x.Error("can't rotate")
+	}
+	x.Info("hello 2")
+	time.Sleep(time.Second)
+	x.Close()
+}
+
+func TestCustom(t *testing.T) {
+	fmt.Println("\n>>> Test Custom")
+
+	conf := NewConf() // create default config
+	//conf.Pipe = "StdErr"
+	//conf.Level = "flood" // set logger level
+	conf.Tint = true // select tinted logger
+	//conf.JSON = true // select JSON logger
+	//conf.Slog = true    // select JSON logger
+	conf.Src = true // add source file:line to log
+	//conf.SrcLong = true  // add package name
+	//conf.SrcFunc = true  // add function mame to log
+	conf.NoColor = false // no color
+	//conf.NoExt = true    // remove ".go" extension
+	//conf.Time = true
+	conf.TimeTint = "space" // add custom timestamp
+
+	Env(&conf) // read setting from environment
+
+	var w io.Writer = os.Stderr
+	x := NewCustom(conf, w) // create xlog with custom io.Writer
+	x.Info("hello xlog with custom writer")
+	x.SetDefaultLogs()
+	//l := log.Default()
+	//SetupLog(l, conf)
+
+	slog.Info("hello slog")
+	Info("hello xlog")
+	log.Println("hello log")
+}
+
+func TestStderr(t *testing.T) {
+	fmt.Println("\n>>> Test os.Stderr")
+	conf := Conf{
+		Level: "debug",
+		Pipe:  "stderr",
+		Slog:  true,
+		//Tint: true,
+		Time: true,
+	}
+	x := New(conf)
+	x.Debug("hello os.Stderr")
+}
+
+func TestNewWriter(t *testing.T) {
+	fmt.Println("\n>>> Test NewWriter()")
+	conf := Conf{
+		Level: "trace",
+		JSON:  true,
+	}
+	x := New(conf)
+	w := x.NewWriter(LevelDebug)
+	w.Write([]byte("some message"))
+}
+
+func testFuncName[V any](value V, log *Logger) {
+	log.Infof("value: %v", value)
+}
+
+func TestFuncName(t *testing.T) {
+	fmt.Println("\n>>> Test FuncName()")
+	conf := Conf{
+		Level:   "trace",
+		Tint:    false,
+		Slog:    true,
+		JSON:    false,
+		Src:     true,
+		SrcLong: true,
+		NoExt:   true,
+		SrcFunc: true,
+	}
+	Env(&conf)
+	log := New(conf)
+	testFuncName[string]("hello", log)
+}
+
+func TestSlogAgain(t *testing.T) {
+	fmt.Println("\n>>> Test SlogAgain()")
+
+	conf := Conf{
+		Level:   "flood",
+		Slog:    true,
+		Src:     true,
+		SrcLong: true,
+		SrcFunc: true,
+		NoExt:   true,
+		Time:    true,
+		TimeUS:  true,
+	}
+	Env(&conf)
+	Setup(conf)
+	Current().SetDefault() // slog -> xlog
+
+	Notice("setup logger", "level", string(GetLvl()))
 }
 
 // EOF: "xlog_test.go"
