@@ -1,6 +1,6 @@
 module github.com/azorg/xlog
 
-go 1.22
+go 1.22.9
 
 require (
 	github.com/google/uuid v1.6.0

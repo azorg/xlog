@@ -44,6 +44,9 @@ func Env(conf *Conf, prefixOpt ...string) {
 	if len(prefixOpt) != 0 {
 		prefix = prefixOpt[0]
 	}
+	if v := os.Getenv(prefix + "PIPE"); v != "" {
+		conf.Pipe = v
+	}
 	if v := os.Getenv(prefix + "FILE"); v != "" {
 		conf.File = v
 	}
