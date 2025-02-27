@@ -142,12 +142,12 @@ func Rotate() error {
 
 // Log logs at given level
 func (x *Logger) Log(level slog.Level, msg string, args ...any) {
-	logs(x.Logger, level, msg, args)
+	logs(x.Logger, level, msg, args...)
 }
 
 // Log logs at given level with default logger
 func Log(level slog.Level, msg string, args ...any) {
-	logs(currentXlog.Logger, level, msg, args)
+	logs(currentXlog.Logger, level, msg, args...)
 }
 
 // Flood logs at LevelFlood
