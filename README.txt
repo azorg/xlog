@@ -1,0 +1,1755 @@
+package xlog // import "github.com/azorg/xlog"
+
+# X-logger
+
+xlog - пакет реализует средства настройки *slog.Logger из стандартного пакета
+"log/slog".
+
+Пакет предоставляет возможности настройки логгера на основе структуры
+конфигурации Conf. Имеется возможность управления уровнем логирования в
+процессе выполнения программы. Встроена поддержка ротации файлов журналов.
+Имеется возможность одновременно вывода журналов в канал (stdout/stderr), в
+файл и в кастомный io.Writer при необходимости. Добавлены дополнительные уровни
+логирования и для них установлены метки (trace/notice/crit и т.п.). Имеется
+возможность выбора нескольких хендлеров (Text/JSON). Есть опции управления видом
+журнала (в т.ч. форматом) метки времени. Имеется возможность встраивания т.н.
+middleware для реализации различных "хуков", "фильтров".
+
+Есть возможность дополнения каждого сообщения в журнале специальным UUID
+идентификатором содержащем монотонное время и контрольную сумму.
+
+Используемый пакет "log/slog" включен в стандартную поставку Go начиная с версии
+go1.21. Для использования с go1.20 может использоваться экспериментальный пакет
+"golang.org/x/exp/slog".
+
+Для реализации ротации файлов журналов используется пакет
+"gopkg.in/natefinch/lumberjack.v2".
+
+Заложены "мостики" единообразного поведения стандартного (legacy) логгера из
+стандартного пакета "log" при работе через настроенный логгер slog.
+
+В ряде случаев из всего пакета может быть полезна только одна функция Setup(),
+которая на основе структуры конфигурации может настроить нужное поведение
+глобального стандартного Go логгера "log" и структурного логгера "slog".
+
+Для настройки логгера логгера в перую очередь нужно обратить внимание на фабрику
+New(), которая на основе заданной структуры конфигурации возвращает указатель
+на структуру *Logger, которая в свою очередь содержит указатель *slog.Logger,
+переменную slog.LevelVar и интерфейс Writer. Последние два поля могут
+использоваться для изменения уровня логирования во время выполнения программы и
+принудительной ротации логов соответственно.
+
+Для создания логгеров с направлением журнала в заданный io.Writer может
+использоваться фабрика NewWithWriter() или NewEx().
+
+# Об архитектуре slog и xlog
+
+Пакет slog предлагает "фронтенд" в виде структуры slog.Logger и ее методов
+для формирования записей журнала и "бэкенд" в виде реализаций интерфейса
+slog.Handler, который производит упаковку и отправку записей в заданный
+io.Writer интерфейс. "Из коробки" slog предлагает несколько Handler'ов (хендлер
+по умолчанию, slog.TextHandler и slog.JSONHandler).
+
+Пакет xlog реализует расширение "фронтенда" в виде структуры xlog.Logger и её
+методов. Реализованы дополнительные "сахарные" методы вроде Trace или Debugf.
+В тоже время может использоваться "канонический фронтенд" slog и использование
+"сахарных" методов не обязательно.
+
+Пакет xlog обеспечивает гибкую настройку hanlder'ов c требуемыми обертками
+и Middleware. Кроме форматов стандартного, Text и JSON hendler'а возможно
+использование "человеческого" хендлера с простым текстовым выводом (TintHandler)
+в т.ч. с ANSI подкраской вывода.
+
+Дополнительно API xlog позволяет направлять журнал сразу по нескольким
+направлениям (например в канал stderr и в заданный файл с ротацией).
+Для подробностей см. интерфейс Writer и функции его формирования. Имеется
+возможность отправки данных журнала по произвольному числу направлений (см.
+MiltiWtiter).
+
+Как при создании Handler'ов, так и при создании Logger'а может быть задана
+цепочка Middleware, которая позволяет оборачивать функцию Handle используемого
+Handler'а.
+
+# Сценарий простейшего использования глобальных log/slog логгеров
+
+    // Заполнить структуру конфигурации
+    conf := xlog.Conf{
+      Level: "info",
+    }
+
+    // Обогатить структуру конфигурации переменными окружения
+    xlog.Env(&conf)
+
+    // Настроить все глобальные логгеры однотипно
+    xlog.Setup(conf)
+
+    // Обновить уровень логирования глобального логгера
+    xlog.SetLevel(slog.LevelDebug)
+
+    // Использовать глобальные логгеры log/slog
+    slog.Debug("debug message", "value", 42)
+    slog.Info("simple slog", "logLevel", GetLvl())
+    slog.Error("error", "err", errors.New("some error"))
+    log.Print("legacy logger")
+
+# Сценарий использования xlog с обработкой переменных окружения и опций командной
+строки
+
+    opt := xlog.NewOpt()  // создать набор опций (*xlog.Opt)
+    conf := xlog.Conf{}   // подготовить структуру конфигурации xlog
+    flag.Parse()          // обогатить opt из опций командной строки
+    opt.UpdateConf(&conf) // обогатить conf опциями командной строки
+
+    log := xlog.New(conf) // создать X-logger (*xlog.Logger)
+    logger := log.Logger  // получить указатель на *slog.Logger
+
+    log.Notice("Привет, XLog", "version", "1.0.0")
+    mylog := logger.With("app", "helloworld")
+    mylog.Info("application started")
+
+    userLoginInfo := xlog.Fields{
+      "user_id":   123,
+      "ip":        "192.168.0.1",
+      "timestamp": time.Now(),
+    }
+
+    mylog.Debug("user login", "userLoginInfo", userLoginInfo)
+
+# Преобразование xlog.Logger в slog.Logger и обратно
+
+X-logger (`*xlog.Logger`) может быть преобразован в `*slog.Logger` с помощью
+метода Slog() или просто доступа к полю Logger.
+
+Обратное преобразование тоже возможно с помощью функции NewFromSlog().
+При этом для логгера будут доступны "сахарные" методы типа Debugf(), Notice(),
+Log(), но изменить уровень логирования "на лету" с помощью Leveler'а или вызвать
+принудительную ротацию уже не получиться.
+
+# Перенаправление журналов в произвольные каналы
+
+Функции-фабрики NewWithWriter() и NewEx() позволяют создавать логгеры,
+вывод которых будет перенаправлен в заданный интерфейс io.Writer, что позволит
+например отправлять журналы через какие-либо сокеты и FIFO, syslog.
+
+# Интерфейс Writer
+
+С помощью фабрики NewWriter может быть создан интерфейс Writer, который
+используется при вызове функции NewEx(). В зависимости от аргументов в пакете
+реализовано 12 возможных вариантов реализации интерфейса Writer. Вывод журнала
+может производиться по нескольким направлениям:
+
+ 1. Канал/pipe (stdout/stderr)
+ 2. Файл журнала с ротацией или без
+ 3. Кастомный io.Writer заданный пользователем.
+
+# Middleware
+
+Имеется тип Middleware и тип методов MiddlewareFunc для их построения.
+Middleware позволяет "оборачивать" (в т.ч. цепочками) методы Handle()
+интерфейса slog.Handler. Middleware позволяет реализовывать "хуки/обёртки"
+для дополнительного управления журналированием. В частности middleware могут
+позволить записи журалов с определенным свойствами направлять особым путем.
+С использованием Middleware реализовано обогащение журналов дополнительными
+атрибутами (goroutine, logId, logSum). Данный middleware добавляется в конец
+цепочки.
+
+# Режим "Multi handler"
+
+С использованием Middleware можно создать логгер, который к примеру будет
+пистать журнал в файл в формате JSON и на стандартный вывод в текстовом
+формате одноврнеменно. Для достижения данной возможности может использоваться
+middleware, создаваемая с помощью функции NewMiddlewareMulti().
+
+Ниже приведен пример соответствующего программного кода. В примере для журнала
+выводимого на stdout и в файл используются различные опции конфигурации.
+
+    // Настройки журнала для вывода в JSON файл с ротацией
+    conf := xlog.Conf{
+      Level:     "debug",
+      File:      "logs/itcagent.log",
+      FileMode:  "0640",
+      Format:    "json", // JSON handler
+      GoId:      true,
+      IdOn:      true,
+      SumOn:     true,
+      SumFull:   true,
+      SumAlone:  false,
+      TimeLocal: false, // UTC
+      Src:       true,
+      SrcPkg:    true,
+      SrcFunc:   true,
+      SrcFields: &xlog.Fields{
+        "id":   "xservice", // идентификатор сервиса
+        "host": "xservice.example.com",
+      },
+      Rotate: xlog.RotateConf{
+        Enable:     true,
+        MaxSize:    5,     // MB
+        MaxAge:     7,     // days
+        MaxBackups: 100,   // number
+        LocalTime:  false, // UTC
+        Compress:   true,
+      },
+    }
+
+    // Создать логгер (хендлер) для вывода в файл
+    log := xlog.New(conf)
+
+    // Настройки "человеческого" журнала для вывода на stdout
+    conf = xlog.Conf{
+      Level:      "trace",
+      Pipe:       "stdout",
+      Format:     "tint", // tinted handler
+      GoId:       false,
+      IdOn:       true,
+      SumOn:      true,
+      TimeLocal:  true,    // Local time
+      TimeFormat: "space", // 2006-01-02_15.04.05.999999999
+      Src:        true,
+      SrcPkg:     false,
+      SrcFunc:    false,
+      Color:      true,
+    }
+
+    // Создать "Multi Handler" логгер (stdout/text + file/JSON)
+    log = xlog.New(conf, xlog.NewMiddlewareMulti(log))
+
+    log.Debug("Hello, Multi Handler!", "cnt", 1) // попадет в JSON файл и на stdout
+    log.Trace("Hello, Multi Handler!", "cnt", 2) // попадет только на stdout
+    log.Flood("Hello, Multi Handler!", "cnt", 3) // будет пропущено
+
+# Fields, FieldsProvider
+
+Имеется простой биндинг для наполнения записей журнала из карты ключ/значение.
+Это исключительно косметическая возможность. Утилита go fmt хорошо форматирует
+литералы для карт, что благотворно влияет на читаемость программного кода.
+Имеются фнкции и методы логгера WithFields, которые аналогичны методам With и
+WithAttrs, но должны получать на вход интерфейсы FieldsProvider.
+
+Пример использование Fields:
+
+    xlog.Error(
+      "error with fields (Args)",
+      "err", errors.New("error"),
+      slog.Group(
+        "header",
+        xlog.Fields{
+          "type": "magic",
+          "size": 16384,
+        }.Args()...))
+
+    log := xlog.WithAttrs(xlog.Fields{
+      "application": "testAplication",
+      "version":     "1.2.3",
+    }.Attrs())
+
+    log.Notice("notice with fields (Args)", "someFlag", true)
+
+    log.Debug(
+      "debug with fields",
+      xlog.Fields{
+       "superValue": 123,
+       "now":        time.Now(),
+       "str":        "some string",
+       "pi":         3.1415926,
+      }.Args()...)
+
+    logXY := log.WithFields(xlog.Fields{
+    	"x": 1,
+    	"y": 2,
+    })
+
+    logXY.Debug("vector", "z", 3)
+
+# Утилита xlogscan
+
+Утилита предназначена для проверки целостности файлов журналов в JSON формате с
+помощью сверки контрольных сумм (logSum или LogId).
+
+Утилита основана на работе функции ChecksumVerify(), которая возвращает
+структуру типа ChecksumRes по результатам обработки каждой записи. Каждая
+запись должна быть обработана JSON декодером перед передачей на вход функции
+ChecksumVerify.
+
+# С чего начать?
+
+ 1. Ознакомьтесь со структурой конфигурации Conf
+ 2. Ознакомьтесь со структурой Logger
+ 3. Ознакомьтесь с интерфейсом Writer
+ 4. Ознакомьтесь с конструкторами для структуры Logger
+ 5. Ознакомьтесь с методами структуры Logger
+ 6. Ознакомиться с устройством Middleware
+
+В пакете есть функции глобального логгера эквивалентные методам структуры Logger
+(например Infof() или Fatal())
+
+CONSTANTS
+
+const (
+	// Метка времени в JSON/text журнале
+	TimeKey = "time"
+
+	// Метка уровня в JSON/text журнале
+	LevelKey = "level"
+
+	// Метка сообщения JSON/logfmt журнале
+	MsgKey = "msg"
+
+	// Метка исходных текстов в JSON журнале
+	SourceKey = "source"
+)
+const (
+	// Права доступа к файлу журнала по умолчанию
+	// (при пустой строке конфигурации)
+	FileModeDefault = 0640
+
+	// Права доступа к файлу журнала в случае ошибки в строке конфигурации
+	FileModeOnError = 0600 // разрешить чтение/запись только владельцу
+
+	// Максимальный размер файла журнала в мегабайтах до его ротации по
+	// умолчанию, если MaxSize=0
+	RotateMaxSize = 10 // 10 мегабайт
+
+	// Использовать JSON теги структур для форматированного их вывода
+	// в журнал (только для TintHandler и для функции Sprint())
+	UseJSONTags = true
+)
+const (
+	// Формат журнала JSON, эксплуатируется slog.JSONHandler
+	LogFormatJSON = "json"
+	LogFormatProd = "prod"
+
+	// Формат журнала Logfmt, эксплуатируется slog.TextHandler
+	LogFormatText   = "text"
+	LogFormatSlog   = "slog"
+	LogFormatLogfmt = "logfmt"
+
+	// Формат журнала HumanText, эксплуатируется кастомный TintHandler
+	LogFormatTint   = "tint"
+	LogFormatTinted = "tinted"
+	LogFormatHuman  = "human"
+
+	// Формат журнала, предоставляемый библиотекой Go по умолчанию
+	LogFormatStd     = "std"
+	LogFormatDefault = "default"
+)
+    Форматы журнала (4 типа)
+
+const (
+	// Ключ идентификации горутины (если GoId=true)
+	GoKey = "goroutine"
+
+	// Ключ UUID идентификатора записи в журнале (если LogId=true)
+	IdKey = "logId"
+
+	// Ключ контрольной суммы в журнале (если SumAlone=true)
+	SumKey = "logSum"
+)
+    Дополнительные атрибуты для каждой записи в журнале
+
+const (
+	LevelFlood  = slog.Level(-12) // FLOOD  (-12)
+	LevelTrace  = slog.Level(-8)  // TRACE  (-8)
+	LevelDebug  = slog.LevelDebug // DEBUG  (-4)
+	LevelInfo   = slog.LevelInfo  // INFO   (0)
+	LevelNotice = slog.Level(2)   // NOTICE (2)
+	LevelWarn   = slog.LevelWarn  // WARN   (4)
+	LevelError  = slog.LevelError // ERROR  (8)
+	LevelCrit   = slog.Level(10)  // CRIT   (10)
+	LevelAlert  = slog.Level(12)  // ALERT  (12)
+	LevelEmerg  = slog.Level(14)  // EMERG  (14)
+	LevelFatal  = slog.Level(16)  // FATAL  (16)
+	LevelPanic  = slog.Level(18)  // PANIC  (18)
+	LevelSilent = slog.Level(20)  // SILENT (20)
+)
+    Уровни логирования
+
+        DEBUG, INFO, WARN, ERROR - распространенные (стандартные) уровни (slog)
+        TRACE - распространенный уровень для трассировки программ
+        FLOOD - нестандартный уровень вывода избыточных данных в журнал
+        NOTICE, CRIT, ALERT, EMERG - уровни принятые в syslog
+        FATAL - уровень прерывания выполнения (по аналогии с log.Fatal())
+        PANIC - уровень паники
+        SILENT - фиктивный уровень для отключения журналирования вовсе
+
+const (
+	LvlFlood  = "flood"
+	LvlTrace  = "trace"
+	LvlDebug  = "debug"
+	LvlInfo   = "info"
+	LvlNotice = "notice"
+	LvlWarn   = "warn"
+	LvlError  = "error"
+	LvlCrit   = "crit"
+	LvlAlert  = "alert"
+	LvlEmerg  = "emerg"
+	LvlFatal  = "fatal"
+	LvlPanic  = "panic"
+	LvlSilent = "silent"
+)
+    Строковые идентификаторы уровней логирования для представления в структуре
+    конфигурации
+
+const (
+	// Метка времени как у стандартного логгера в Go
+	StdTime  = "2006/01/02 15:04:05"
+	DateTime = time.DateTime // "2006-01-02 15:04:05"
+
+	// Стандартная метка времени с миллисекундами
+	StdTimeMilli  = "2006/01/02 15:04:05.999"
+	DateTimeMilli = "2006-01-02 15:04:05.999"
+
+	// Стандартная метка времени с микросекундами
+	StdTimeMicro  = "2006/01/02 15:04:05.999999"
+	DateTimeMicro = "2006-01-02 15:04:05.999999"
+
+	// Формат RFC3339 с наносекундами (slog.TextHandler использует по умолчанию)
+	RFC3339Nano = time.RFC3339Nano // "2006-01-02T15:04:05.999999999Z07:00"
+
+	// Формат RFC3339 с микросекундами
+	RFC3339Micro = "2006-01-02T15:04:05.999999Z07:00"
+
+	// Формат RFC3339 с миллисекундами
+	RFC3339Milli = "2006-01-02T15:04:05.999Z07:00"
+
+	// Только время с миллисекундами
+	TimeOnlyMilli = "15:04:05.999"
+
+	// Только время с микросекундами
+	TimeOnlyMicro = "15:04:05.999999"
+
+	// Формат простых цифровых часов (по аналогии с time.Kitchen)
+	Office = "15:04"
+
+	// Форматы времени дата+время без пробелов (с долями секунд)
+	File    = "2006-01-02_15.04.05"
+	Home    = "2006-01-02_15.04.05.9"
+	Lab     = "2006-01-02_15.04.05.999"
+	Science = "2006-01-02_15.04.05.999999"
+	Space   = "2006-01-02_15.04.05.999999999"
+)
+    Форматы временной метки для TintHanler'а
+
+const DefaultEnvPrefix = "LOG_"
+    Префикс для переменных окружения по умолчанию
+
+const DefaultFlagPrefix = "log-"
+    Префикс для флагов по умолчанию
+
+const DefaultLevel = slog.LevelInfo
+    Уровень логирования по умолчанию
+
+const ErrKey = "err"
+    Ключ для ошибки в журнале при использовании обертки Err()
+
+
+VARIABLES
+
+var ErrNotRotatable = errors.New("logger is not rotatable")
+    Ошибка: "ротация файла журнала не предусмотрена конфигурацией"
+
+
+FUNCTIONS
+
+func Alert(msg string, args ...any)
+    Alert записывает сообщение в журнал по умолчанию (LevelAlert)
+
+func Alertf(format string, args ...any)
+    Alertf записывает сообщение в традиционный журнал по умолчанию (LevelAlert)
+
+func Checksum(
+	sum uint16, full, timeOn bool, r slog.Record, logId uuid.UUID) uint16
+    Checksum вычисляет контрольную сумму (на основе CRC16) записи в журнале.
+    Используется один из двух алгоритмов (full=true/false).
+
+    На входе:
+
+        full - признак для вычисления контрольной суммы по всем атрибутам рекурсивно
+        sum - значение контрольной суммы предыдущей записи или 0
+        timeOn - включить в расчет CRC метку времени
+        r - подготовленная для выдачи в slog-журнал запись
+        logId - UUID записи
+
+func ChecksumAttr(key string, value any) uint16
+    ChecksumAttr вычисляет контрольную сумму записи для одного произвольного
+    атрибута key/value. Контрольная сумма вычисляется рекурсивно для всех
+    вложенных структур с использованием рефлексии. Контрольные суммы смежных
+    атрибутов складываются по модулю 2 (XOR). Контрольные суммы key и value
+    складываются по правилу сложения в дополнительном коде.
+
+func ChecksumAttrSlog(key string, value slog.Value) uint16
+    ChecksumAttrSlog - вычисляет контрольную сумму записи для одного атрибута
+    slog key/value. Анализируется тип slog значения и если тип, не стандартный
+    (см. slogg.Kind) применяется рефлексия (таким образом рассчитываем немного
+    поднять производительность). Контрольная сумма вычисляется рекурсивно для
+    всех вложенных структур. Контрольные суммы смежных атрибутов складываются
+    по модулю 2 (XOR). Контрольные суммы key и value складываются по правилу
+    сложения в дополнительном коде. Функция принимает key и slog.Value. Функция
+    корректно обрабатывает slog группы.
+
+func ChecksumFull(
+	sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
+    ChecksumFull вычисляет контрольную сумму записи в журнале. Контрольная сумма
+    вычисляется специальным образом по всем атрибутам JSON.
+
+    Контрольные суммы для последовательности пар ключ/значение складываются
+    по модулю 2 (XOR), таким образом обеспечивается инвариантность контрольную
+    суммы в случае перестановки атрибутов при обработке журналов разными
+    фильтрами. Контрольная сумма для каждой пары ключ/значение формируется путем
+    простого сложения в дополнительном коде CRC16 сумм. Перед вычислением CRC16
+    каждое значением приводится к строке.
+
+    Контрольная сумма включает в себя:
+
+      - временную метку в RFC3339Milli, если timeOn=true (time=<string>);
+      - уровень сообщения журнала (level=<int>)
+      - текст сообщения r.Message (msg=<string>)
+      - "рекурсивную сумму" всех атрибутов не зависящую от любых перестановок
+      - первые (старшие) 14 байт UUID идентификатора (logId=<bytes>)
+
+    На входе:
+
+        sum - начальное значение контрольной суммы или 0
+        timeOn - включить в расчет суммы метку времени
+        r - подготовленная для выдачи в slog-журнал запись
+        logId - UUID записи
+
+func ChecksumSimple(
+	sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
+    ChecksumSimple вычисляет контрольную сумму (CRC16) записи в журнале.
+    Контрльная сумма включает в себя:
+
+      - time (RFC3339Milli или RFC3339Micro как в журнале)
+      - level (как строка типа ERROR, WARN и т.п.)
+      - msg (как строка)
+      - logId (старшие 14 байт)
+      - err, если есть (как строку)
+
+    На входе:
+
+        sum - значение контрольной суммы предыдущей записи или 0
+        timeOn - включить в расчет CRC метку времени
+        r - подготовленная для выдачи в slog-журнал запись
+        logId - UUID записи
+
+func Crit(msg string, args ...any)
+    Crit записывает сообщение в журнал по умолчанию (LevelCrit)
+
+func Critf(format string, args ...any)
+    Critf записывает сообщение в традиционный журнал по умолчанию (LevelCrit)
+
+func Debug(msg string, args ...any)
+    Debug записывает сообщение в журнал по умолчанию (LevelDebug)
+
+func Debugf(format string, args ...any)
+    Debugf записывает сообщение в традиционный журнал по умолчанию (LevelDebug)
+
+func Emerg(msg string, args ...any)
+    Emerg записывает сообщение в журнал по умолчанию (LevelEmerg)
+
+func Emergf(format string, args ...any)
+    Emergf записывает сообщение в традиционный журнал по умолчанию (LevelEmerg)
+
+func Env(conf *Conf, prefixOpt ...string)
+    Env - обогащает структуру конфигурации логгера данными из переменных
+    окружения.
+
+        conf - обогащаемая структура конфигурации логгера
+        prefixOpt - опциональный префикс (по умолчанию "LOG_")
+
+    Анализируются следующие переменные окружения, соответствующие (возможно с
+    инверсией) полям структуры Conf:
+
+        LOG_LEVEL       (string/int: "debug", "trace", "error", "0", "-20"...)
+        LOG_PIPE        (string: "stdout", "stderr", "null")
+        LOG_FILE        (string: ~"logs/app.log")
+        LOG_FILE_MODE   (string: ~"0640")
+        LOG_FORMAT      (string: "json", "logfmt", "tinted", "default")
+        LOG_GOID        (bool)
+        LOG_ID          (bool)
+        LOG_SUM         (bool)
+        LOG_SUM_FULL    (bool)
+        LOG_SUM_CHAIN   (bool)
+        LOG_SUM_ALONE   (bool)
+        LOG_TIME        (bool)
+        LOG_TIME_LOCAL  (bool)
+        LOG_TIME_MICRO  (bool)
+        LOG_TIME_FORMAT (string: "default", "lab", "15.04.05"...)
+        LOG_SRC         (bool)
+        LOG_SRC_PKG     (bool)
+        LOG_SRC_FUNC    (bool)
+        LOG_SRC_EXT     (bool)
+        LOG_COLOR       (bool)
+        LOG_LEVEL_OFF   (bool)
+        LOG_ROTATE      (bool)
+        LOG_ROTATE_MAX_SIZE    (int: мегабайт)
+        LOG_ROTATE_MAX_AGE     (int: суток)
+        LOG_ROTATE_MAX_BACKUPS (int: число файлов)
+        LOG_ROTATE_LOCAL_TIME  (bool)
+        LOG_ROTATE_COMPRESS    (bool)
+
+    Для получения bool значений используется функция StringToBool(), допускаются
+    определенны "вольности", кроме традиционных true/false.
+
+    Если соответствующая переменная окружения не найдена (или имеет значение
+    в виде пустой строки), то соответствующее поле структуры Conf не
+    модифицируется.
+
+    Типовое использование:
+
+        conf := xlog.Conf{}   // подготовить структуру конфигурации логгера
+        xlog.Env(&conf)       // обогатить структуру конфигурации переменными окружения
+
+func Err(err error) slog.Attr
+    Err возвращает slog.Attr с ключом "err" если err != nil или возвращает
+    "пустой" атрибут, если err == nil. Таким образом можно логировать сообщения
+    и исключать не информативные записи типа "err=nil".
+
+func Error(msg string, args ...any)
+    Error записывает сообщение в журнал по умолчанию (LevelError)
+
+func Errorf(format string, args ...any)
+    Errorf записывает сообщение в традиционный журнал по умолчанию (LevelError)
+
+func Fatal(msg string, args ...any)
+    Fatal записывает сообщение в журнал по умолчанию (LevelFatal) и завершает
+    приложение путем вызова os.Exit(1)
+
+func Fatalf(format string, args ...any)
+    Fatalf записывает сообщение в традиционный журнал по умолчанию (LevelFatal)
+    и завершает приложение путем вызова os.Exit(1)
+
+func Flood(msg string, args ...any)
+    Flood записывает сообщение в журнал по умолчанию (LevelFlood)
+
+func Floodf(format string, args ...any)
+    Floodf записывает сообщение в традиционный журнал по умолчанию (LevelFlood)
+
+func GetLevel() slog.Level
+    GetLevel возвращает текущий уровень логирования для глобального логгера
+
+func GetLvl() string
+    GetLvl возвращает текущий уровень логирования глобального логгера в виде
+    строки вида "info", "debug" и т.п.
+
+func Info(msg string, args ...any)
+    Info записывает сообщение в журнал по умолчанию (LevelInfo)
+
+func Infof(format string, args ...any)
+    Infof записывает сообщение в традиционный журнал по умолчанию (LevelInfo)
+
+func Int(key string, value int) slog.Attr
+    Int возвращает slog.Attr, если key != "" и value != 0 или иначе возвращает
+    "пустой" атрибут. Данная обёртка позволяет исключить из журнала нулевые
+    значения.
+
+func IsRotatable() bool
+    IsRotatable возвращает признак возможности ротации файла журнала для
+    лобального логгера
+
+func LevelFromLabel(label string) slog.Level
+    LevelFromLabel преобразует метку уровня логирования (INFO, WARN, ...) в
+    численное значение. Функция может быть востребована для парсинга логов.
+    Входное значением может быть вида "ERROR+2", принятого в slog.
+
+func LevelFromString(level string) slog.Level
+    LevelFromString преобразует строку идентификатор уровня логирования
+    ("debug", "info", "0" и др.), используемый в структуре конфигурации к
+    slog.Level. Функция не чувствительна в регистру. Уровень логирования может
+    быть задан как строкой, так и десятичным целым числом.
+
+func LevelToColorLabel(level slog.Level) string
+    LevelToColorLabel преобразует уровень логирования к строке/метке для
+    представления в журнале с применением Escape/Ansi символов подсветки.
+    Используется в TintHandler'е, если в структуре конфигурации Conf заданы
+    Format="tinted" и Color=true. Поддерживаются дополнительные уровни (FLOOD,
+    EMERG, ALERT и др.).
+
+func LevelToLabel(level slog.Level) string
+    LevelToLabel преобразует уровень логирования к строке/метке для
+    представления в журнале ("INFO", "ERROR" и др.) в стиле slog, подобно
+    одноименному методам String() типов slog.Level/slog.LevelVar. Поддерживаются
+    дополнительные уровни (TRACE, NOTICE, CRIT и др.).
+
+func LevelToString(level slog.Level) string
+    LevelToString преобразовывает численное значение уровня логгирования
+    slog.Level к представлению виде строки в структуре конфигурации. Если задан
+    не известный уровень, то возвращается его десятичное представление.
+
+func Log(
+	ctx context.Context,
+	level slog.Level, msg string, args ...any) error
+    Log записывает сообщение в структурированный журнал по умолчанию с заданным
+    уровнем журналирования и заданным контекстом
+
+func LogAttrs(
+	ctx context.Context,
+	level slog.Level, msg string, attrs ...slog.Attr) error
+    LogAttr записывает сообщение с атрибутами в структурированный журнал по
+    умолчанию с заданным уровнем журналирования и заданным контекстом
+
+func Logf(level slog.Level, format string, args ...any)
+    Log записывает сообщение в традиционный журнал по умолчанию с заданным
+    уровнем журналирования
+
+func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (
+	handler slog.Handler, _ *slog.LevelVar)
+    NewHandler создаёт новый *slog.Handler на основе заданной структуры
+    конфигурации conf с выдачей журнала через заданный writer. Возвращаемый
+    хендлер в соответствии с конфигурацией будет формировать требуемые
+    дополнительные атрибуты (goroutine, logId, logSum). Заодно возвращается
+    указатель на slog.LevelVar для возможности безопасного управления уровнем
+    логирования в будущем.
+
+        conf - параметры конфигурации логгера
+        writer - писатель журнала
+        mws - обёртки для метода Hanlde() интерфейса slog.Handler
+
+func NewLog(conf Conf) *log.Logger
+    NewLog создает стандартный (legacy) логгер и настраивает его с учётом
+    унифицированной структуры конфигурации Conf для X-logger
+
+func NewLogWriter(
+	ctx context.Context,
+	logger *slog.Logger, level slog.Level) io.Writer
+    NewLogWiter создает io.Writer на основе заданного slog логгера, в который
+    может быть перенаправлен поток байт с заданным уровнем логирования.
+    Записываемые в заданный io.Wtiter будут направляться в заданный slog.Logger
+    в виде сообщений (атрибуты использоваться не будут). Функция может
+    использоваться для построения legacy логгеров на основе пакета "log" с
+    перенаправлением журнала в структурированный журнал slog.
+
+func NewStdHandler(conf Conf, mws ...Middleware) (slog.Handler, *slog.LevelVar)
+    Создать модернизированный хендлер стандартного slog логгера по умолчанию с
+    возможностью управления уровнем логирования и с формированием дополнительных
+    атрибутов (goroutine, logId, logSum) и middleware
+
+        conf - параметры конфигурации логгера
+        mws - обёртки для метода Hanlde() интерфейса slog.Handler
+
+func Notice(msg string, args ...any)
+    Notice записывает сообщение в журнал по умолчанию (LevelNotice)
+
+func Noticef(format string, args ...any)
+    Noticef записывает сообщение в традиционный журнал по умолчанию
+    (LevelNotice)
+
+func Panic(msg string)
+    Panic записывает сообщение в журнал по умолчанию (LevelPanic) и завершает
+    приложение путем вызова panic()
+
+func Rotate() error
+    Rotate производит ротацию файла журнала (если это возможно) для глобального
+    логгера. К примеру, в реальных приложениях возможна организации ротация
+    логов по сигналу SIGHUP.
+
+func SetLevel(level slog.Level)
+    SetLevel обновляет уровень логирования для глобального логгера
+
+func SetLvl(level string)
+    SetLvl обновляет уровень логирования глобального логгера на основе строки
+    идентификатора типа "trace", "error" и т.п.
+
+func Setup(conf Conf)
+    Setup - мега функция, которая настраивает все глобальные логгеры в
+    соответствии с заданной структурой конфигурации Conf. Функция потоко не
+    безопасная!
+
+func SetupLog(logger *log.Logger, conf Conf)
+    SetupLog производит настройку стандартного *log.Logger на основе
+    унифицированной структуры конфигурации Conf для "Client Logger" с
+    направлением вывода в файл с ротацией (если предусмотрено конфигурацией).
+    Функция вызывает последовательно NewWriter() и SetupLogWithWriter().
+
+func SetupLogWithWriter(logger *log.Logger, conf Conf, writer io.Writer)
+    SetupLogWithWriter производит настройку стандартного *log.Logger на
+    основе унифицированной структуры конфигурации Conf для "Client Logger" с
+    направлением вывода в заданный io.Writer вместо заданного файла
+
+func Slog() *slog.Logger
+    Slog возвращает указатель *slog.Logger из текущего (глобального) логгера
+
+func SlogWithFields(log *slog.Logger, fields ...FieldsProvider) *slog.Logger
+    SlogWithFields создает дочерний *slog.Logger с добавлением заданных
+    атрибутов
+
+        log - исходной slog логгер
+        fields - интерфейс для получения дополнительных атрибутов
+
+func Sprint(val any) string
+    Sprint - преобразует структуру данных в строку в формате близком к
+    стандартному формату "%+v", но с обработкой указателей и вложенных структур.
+    Используется рефлексия. Опционально могут поддерживаться JSON теги (если
+    UseJSONTags=true) Функция используется для отображения структур данных в
+    TintHandler'е.
+
+        val - значение произвольного типа, включая структуры, указатели
+        на структуры, ошибки и карты.
+
+func String(key, value string) slog.Attr
+    String возвращает slog.Attr, если key != "" и value != "" или иначе
+    возвращает "пустой" атрибут. Данная обёртка позволяет исключить из журнала
+    пустые строки.
+
+func StringToBool(s string) bool
+    StringToBool преобразует строку в булево значение. Допустимы следующие
+    варианты входных значений:
+
+        true:  "true", "True", "yes", "YES", "on", "1", "2", "99"
+        false: "false", "FALSE", "no", "Off", "0", "Abra-Cadabra"
+
+    В случае ошибки (по умолчанию) возвращается false. Функция используется при
+    обработке переменных окружения и флагов.
+
+func StringToInt(s string) int
+    StrintToInt преобразует строку к целому числу. В случае ошибки возвращается
+    0. Функция используется при обработке переменных окружения и флагов.
+
+func TimeFormat(alias string) (format string, ok bool)
+    TimeFormat возвращает строку форматирования временной метки в соответствии с
+    заданной строкой идентификатором. Идентификатор (псевдоним) обрабатывается
+    без учета регистра. Если псевдоним не найден, то входная строка используется
+    как формат времени в Go нотации (аля "2006-01-02 15:04:05").
+
+    На выходе ok=true, если псевдоним найден. Функция используется только для
+    Tinted хендлера. Допустимы следующие псевдонимы:
+
+        Стандартные форматы из библиотеки Go начиная с версии go1.20:
+        "Layout":        time.Layout       "01/02 03:04:05PM '06 -0700"
+        "ANSIC":         time.ANSIC        "Mon Jan _2 15:04:05 2006"
+        "UnixDate":      time.UnixDate     "Mon Jan _2 15:04:05 MST 2006"
+        "RubyDate":      time.RubyDate     "Mon Jan 02 15:04:05 -0700 2006"
+        "RFC822":        time.RFC822       "02 Jan 06 15:04 MST"
+        "RFC822Z":       time.RFC822Z      "02 Jan 06 15:04 -0700"
+        "RFC850":        time.RFC850       "Monday, 02-Jan-06 15:04:05 MST"
+        "RFC1123":       time.RFC1123      "Mon, 02 Jan 2006 15:04:05 MST"
+        "RFC1123Z":      time.RFC1123Z     "Mon, 02 Jan 2006 15:04:05 -0700"
+        "RFC3339":       time.RFC3339      "2006-01-02T15:04:05Z07:00"
+        "RFC3339Nano":   time.RFC3339Nano  "2006-01-02T15:04:05.999999999Z07:00"
+        "Kitchen":       time.Kitchen      "3:04PM"
+        "Stamp":         time.Stamp        "Jan _2 15:04:05"
+        "StampMilli":    time.StampMilli   "Jan _2 15:04:05.000"
+        "StampMicro":    time.StampMicro   "Jan _2 15:04:05.000000"
+        "StampNano":     time.StampNano    "Jan _2 15:04:05.000000000"
+        "DateTime":      time.DateTime     "2006-01-02 15:04:05"
+        "DateTimeMilli": DateTimeMilli     "2006-01-02 15:04:05.999"
+        "DateTimeMicro": DateTimeMicro     "2006-01-02 15:04:05.999999"
+        "DateOnly":      time.DateOnly     "2006-01-02"
+        "TimeOnly":      time.TimeOnly     "15:04:05"
+
+        Дополнительные форматы времени, предоставляемые пакетом xlog:
+        "StdTime":       StdTime        "2006/01/02 15:04:05"
+        "StdTimeMilli":  StdTimeMilli   "2006/01/02 15:04:05.999"
+        "StdTimeMicro":  StdTimeMicro   "2006/01/02 15:04:05.999999"
+        "RFC3339Micro":  RFC3339Micro   "2006-01-02T15:04:05.999999Z07:00"
+        "RFC3339Milli":  RFC3339Milli   "2006-01-02T15:04:05.999Z07:00"
+        "TimeOnlyMicro": TimeOnlyMicro  "15:04:05.999999"
+        "TimeOnlyMilli": TimeOnlyMilli  "15:04:05.999"
+        "Default":       StdTimeMilli   "2006/01/02 15:04:05.999"
+        "DefaultMicro":  StdTimeMicro   "2006/01/02 15:04:05.999999
+        "File":          File           "2006-01-02_15.04.05"
+        "Office":        Office         "15:04" по аналогии с "Kitchen" в Go
+        "Home":          Home           "2006-01-02_15.04.05.9"
+        "Lab":           Lab            "2006-01-02_15.04.05.999"
+        "Science":       Science        "2006-01-02_15.04.05.999999"
+        "Space":         Space          "2006-01-02_15.04.05.999999999"
+
+        Идентификаторы, которые подразумевают отключение метки времени в журнале:
+        "" (пустая строка), "off", "no", "false", "disable", "0"
+
+func Trace(msg string, args ...any)
+    Trace записывает сообщение в журнал по умолчанию (LevelTrace)
+
+func Tracef(format string, args ...any)
+    Tracef записывает сообщение в традиционный журнал по умолчанию (LevelTrace)
+
+func Value(value any) slog.Value
+    Value - образует slog.Value из any
+
+func Warn(msg string, args ...any)
+    Warn записывает сообщение в журнал по умолчанию (LevelWarn)
+
+func Warnf(format string, args ...any)
+    Warnf записывает сообщение в традиционный журнал по умолчанию (LevelWarn)
+
+
+TYPES
+
+type ChecksumRes struct {
+	Time      time.Time      // метка времени записи
+	Level     slog.Level     // уровень сообщения
+	Source    map[string]any // ссылка на исходные тексты (если есть)
+	Message   string         // сообщение журнала
+	Goroutine int            // идентификатор горутины (если есть)
+	LogId     uuid.UUID      // идентификатор записи в журнале
+	Err       string         // ошибка в сообщении с ключом "err"
+	LogSum    uint16         // контрольная сумма извлеченная их журнала
+	Sum       uint16         // контрольная сумма вычисленная
+}
+    ChecksumRes - это результат проверки контрольной суммы JSON записи.
+    Пользователь может сверить поля LogSum и Sum. Заполняется по результатам
+    выполнения функции ChecksumVerify().
+
+func ChecksumVerify(full bool, rec map[string]any) (ChecksumRes, error)
+    ChecksumVerify производит вычисление контрольной суммы JSON записи и
+    заполняет структуру ChecksumRes. Ошибка возвращается, если не удалось
+    распарить данные. Сравнение Sum и LogSum должен делать внешний код (при
+    несовпадении ошибка не возвращается). Если в записи журнала нет одновременно
+    и logId, и logSum, то возвращается ошибка.
+
+        full - признак для вычисления контрольной суммы по всем атрибутам рекурсивно
+        rec - запись извлекаемая из журнала с помощью JSON декодера
+
+func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error)
+    ChecksumVerifyFull производит вычисление контрольной суммы JSON записи и
+    заполняет структуру ChecksumRes. Контрольная сумма вычисляется специальным
+    образом по всем атрибутам JSON.
+
+    Ошибка возвращается, если не удалось распарить данные. Сравнение Sum и
+    LogSum должен делать внешний код (при несовпадении ошибка не возвращается).
+    Если в записи журнала нет одновременно и logId, и logSum, то возвращается
+    ошибка.
+
+        rec - запись извлекаемая из журнала с помощью JSON декодера
+
+func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error)
+    ChecksumVerify производит вычисление контрольной суммы JSON записи и
+    заполняет структуру ChecksumRes. Контрольная сумма вычисляется упрощенно не
+    по всем атрибутам JSON (time, level, msg, logId, err).
+
+    Ошибка возвращается, если не удалось распарить данные. Сравнение Sum и
+    LogSum должен делать внешний код (при несовпадении ошибка не возвращается).
+    Если в записи журнала нет одновременно и logId, и logSum, то возвращается
+    ошибка.
+
+        rec - запись извлекаемая из журнала с помощью JSON декодера
+
+func (res ChecksumRes) SourceToString() string
+    SourceToString - преобразуем map/JSON представление ссылки на исходные
+    тексты (file/function/line) в строку вида "file:function():line". Функция
+    может быть полезна для визуализации поля Source структуры ChecksumRes.
+
+type Conf struct {
+	// Заданный исходный уровень журналирования.
+	// Задается или строкой (trace/debug/info/warn/error/crit/fatal/...),
+	// или строкой содержащей целое десятичное число в нотации `slog.Level`
+	// (см. константы типа LogLevelTrace/LogLevelInfo/...).
+	// Доступ к полю Level структуры Logger позволяет изменять текущий уровень
+	// логирования в процессе выполнения программы.
+	// Пустая строка интерпретируется как уровень "info".
+	//
+	//  flood  = slog.Level(-12) - чрезвычайно избыточный уровень журналирования
+	//  trace  = slog.Level(-8)  - уровень трассировки всех вызовов и переходов (syslog)
+	//  debug  = slog.LevelDebug - уровень вывода отладочный сообщений (опытная эксплуатация)
+	//  info   = slog.LevelInfo  - уровень вывода только информационных сообщений (эксплуатация)
+	//  notice = slog.Level(2)   - дополнительный уровень важных уведомлений (syslog)
+	//  warn   = slog.LevelWarn  - уровень предупреждений
+	//  error  = slog.LevelError - уровень стандартных ошибок
+	//  crit   = slog.Level(10)  - уровень критических ошибок
+	//  alert  = slog.Level(12)  - уровень серьезных ошибок (syslog)
+	//  emerg  = slog.Level(14)  - уровень аварии (syslog)
+	//  fatal  = slog.Level(16)  - уровень вывода чрезвычайных ошибок с завершением программы
+	//  panic  = slog.Level(18)  - уровень вывода чрезвычайных сообщений перед паникой
+	//  silent = slog.Level(20)  - полная блокировка вывода каких-либо сообщений в журнал
+	Level string `json:"level"`
+
+	// Заданный выходной поток ("stdout", "stderr", "null" или пустая строка).
+	// Если поток не задан (пустая строка) и не задан файл журнала (пустая
+	// строка), то по умолчанию используется "stdout" (действие по умолчанию).
+	// Отключить полностью формирование журнала можно только установкой
+	// Pipe="null" и File="".
+	Pipe string `json:"pipe"`
+
+	// Заданный выходной файл журнала (пустая строка, если не задан).
+	// Если задан File, а Pipe="", то журналирование производится только
+	// в файл. Если явно задать Pipe (stdout или stderr) и File, то
+	// журналирование будет производиться в двух направлениях.
+	// К примеру, поток stdout может обрабатывать systemd/journald,
+	// а для журнала в файле может применяться заданная политика хранения
+	// и ротации.
+	File string `json:"file"`
+
+	// Права доступа к файлу журнала (строка в восьмеричной Unix нотации).
+	// Если FileMode - пустая строка, то устанавливаются права 0640
+	// (см. константу FileModeDefault).
+	// Если, к примеру, необходимо ограничить права доступа к файлу журнала
+	// всем кроме владельца, то необходимо задать "0600".
+	// Если требуется сделать логи доступные для чтения всем, то допустимо
+	// установить значение "0644".
+	// В случае ошибки преобразования данной строки (неверные символы),
+	// устанавливаются самые "строгие" права доступа 0600
+	// (см. константу FileModeOnError).
+	FileMode string `json:"file-mode"`
+
+	// Формат журнала ("json", "logfmt", "tinted", "default").
+	// По умолчанию используется формат "default".
+	// Вместо "json" допускается псевдоним "prod".
+	// Вместо "logfmt" допускаются псевдонимы "slog" и "text".
+	// Вместо "tinted" допускаются псевдонимы "tint" и "human".
+	// Вместо "default" допускается псевдоним "std".
+	// Для формата JSON используется slog.JSONHandler.
+	// Для формата Logfmt - slog.TextHandler.
+	// Для Tinted - кастомный TintHandler.
+	// Для Default - slog.defaultHandler "из коробки Go".
+	// Форматы JSON и Logfmt - это промышленные стандарты для журналов.
+	// Формат Tinted - предназначен для стендовой отработки, удобен для
+	// анализа человеку (есть возможность изменить формат метки времени,
+	// включить ANSI/Escape подкраску).
+	// Формат Default сохранен для совместимости с примитивными приложениями,
+	// которые используют log/slog без каких-либо настроек.
+	// Регистр строки формата не имеет значение.
+	Format string `json:"format"`
+
+	// Добавлять в каждую запись в журнале идентификатор горутины с ключом "goroutine"
+	GoId bool `json:"go-id"`
+
+	// Обогадить журнал уникальным UUID идентификатором каждую запись.
+	// К каждому сообщению в журнале добавляется UUIDv7
+	// идентификатор с ключом "logId". В UUID идентификаторе младшие биты могут
+	// быть перезаписаны контрольной суммой.
+	IdOn bool `json:"id-on"`
+
+	// Добавить в журнал контрольную сумму для каждой записи.
+	// Контрольная сумма помещается в младшие биты UUID идентификатора или
+	// в шестнадцатеричном формате добавляется в журнал с ключом "logSum".
+	SumOn bool `json:"sum-on"`
+
+	// Вычислять контрольную сумму по ВСЕМ атрибутам рекурсивно.
+	// При включении данной опции используется более сложный алгоритм
+	// вычисления контрольной суммы.
+	SumFull bool `json:"sum-full"`
+
+	// Вычислять контрольную сумму с использованием начального значения
+	// контрольной суммы предыдущей записи в журнале.
+	// Данная опция позволяет отслеживать систематические потери или
+	// подмену записей в журнале.
+	SumChain bool `json:"sum-chain"`
+
+	// Не упаковать контрольную сумму (КС) в младшие биты UUID
+	// идентификатора записи (что делается по умолчанию).
+	// При упаковке КС в UUID есть небольшая вероятность нарушения
+	// монотонности возрастания идентификаторов от записи к записи.
+	// С данной опцией КС записывается в журнал как отдельный атрибут с
+	// ключом "logSum" в шестнадцатеричном формате.
+	SumAlone bool `json:"sum-alone"`
+
+	// Признак отключения вывода метки времени (timestamp) в журнал.
+	// В некоторых случаях метка времени не требуется. К примеру
+	// при сохранении записей в журнале systemd/journald к ним метка
+	// времени добавляется автоматически и этого достаточно.
+	TimeOff bool `json:"time-off"`
+
+	// Признак использования локального времени в метке времени
+	// (по умолчанию используется UTC)
+	TimeLocal bool `json:"time-local"`
+
+	// Признак использования метки времени с микросекундами.
+	// По умолчанию метка времени для форматов Tinted/JSON/Logfmt
+	// указывается с миллисекундами. Для формата Default доли секунд
+	// не используются. Данная опция "унаследована" еще от legacy
+	// логгера из пакета "log".
+	TimeMicro bool `json:"time-micro"`
+
+	// Формат метки времени для TintHandler'а (если Format="tinted").
+	// Допускаются значения типа "Kitchen", "DateTime", "space" и другие,
+	// или строка в стандартной Go-нотация для формата времени вида
+	// "2006-01-02_15.04.05.999".
+	// Подробнее см. функцию TimeFormat(), которая используется для обработки
+	// данного параметра конфигурации.
+	// Регистр строки не имеет значение.
+	TimeFormat string `json:"time-format"`
+
+	// Признак для включения в журнал информации с ссылками на исходные тексты
+	// в месте вызова функции журналирования (файл:номер_строки).
+	//
+	// ВНИМАНИЕ: для сервисов ЦУГИ в продуктовой среде данное значение
+	// должно быть ОБЯЗАТЕЛЬНО задано как true для возможности обогащения всех
+	// записей журнала идентификатором сервиса (поле id, см. ниже SrcFields).
+	Src bool `json:"src"`
+
+	// Признак добавления к имении файла с исходным текстом каталога (пакета)
+	// (пакет/файл:номер_строки)
+	SrcPkg bool `json:"src-pkg"`
+
+	// Признак добавления в журнал имен функций (методов) из контекста которых
+	// осуществляется вызов функций журналирования
+	// (пакет/файл:функция():номер_строки)
+	SrcFunc bool `json:"src-func"`
+
+	// Признак вывода расширения ".go" в именах файлов исходных текстов.
+	// По умолчанию расширение упраздняется для краткости.
+	SrcExt bool `json:"src-ext"`
+
+	// Дополнительные атрибуты добавляемые в блок "source".
+	// Обычно блок source содержит поля file, function, line
+	// (см. тип slog.Source), но имеется возможность добавить
+	// любые другие атрибуты.
+	// Пример: id="superService", ver="1.2.3", instanceId=1234.
+	//
+	// ВНИМАНИЕ: для сервисов ЦУГИ обязательным является атрибут
+	// id (строка), который должен однозначно идентифицировать
+	// приложение/сервис в пределах всей информационной системы и
+	// программного комплекса.
+	SrcFields *Fields `json:"src-fields"`
+
+	// Признак отключения "подкраски" журналов с помощью ANSI/Escape
+	// последовательностей, если Format="tinted"
+	ColorOff bool `json:"color-off"`
+
+	// Признак отключения вывода в журнал метки уровня журналирования
+	// (типа level="INFO"). Может использоваться, для имитации
+	// "традиционного" логгера без уровней логирования.
+	LevelOff bool `json:"level-off"`
+
+	// Дополнительный префикс для сообщений legacy логгера (log.Print())
+	Prefix string `json:"prefix"`
+
+	// Ключ дополнительного значения, добавляемого ко всем записям в журнале
+	AddKey string `json:"add-key"`
+
+	// Дополнительное значение, добавляемое ко всем записям в журнале
+	AddValue any `json:"add-value"`
+
+	// Настройка параметров ротации журналов, если вывод направлен в файл
+	Rotate RotateConf `json:"rotate"`
+}
+    Conf - структура конфигурации для настройки логгера
+
+type Fields map[string]any
+    Fields - это простая обертка для наполнения атрибутами записи в журнале на
+    основе карт (key/value)
+
+func (fields Fields) Args() []any
+    Args преобразует Fields в последовательность аргументов для вызова методов
+    Log, Info, Debug, With и т.п. Значения nil исключаются из вывода.
+
+func (fields Fields) Attrs() []slog.Attr
+    Attrs преобразует Fields в последовательность []slog.Attr для вызова
+    высокоэффективного slog метода LogAttrs. Значение nil и пустые строки
+    исключаются.
+
+func (f Fields) Fields() Fields
+    Fields реализует попутно интерфейс FieldsProvider. Данное решение позволяет
+    передавать Fields в качестве FieldsProvider.
+
+func (fields Fields) Value() slog.Value
+    Value преобразует Fields в групповое значение с помощью slog.GroupValue()
+
+type FieldsProvider interface {
+	Fields() Fields
+}
+    FieldsProvider - общий интерфейс для предоставления атрибутов в виде
+    key/value
+
+type HandleFunc func(context.Context, slog.Record) error
+    HandlerFunc - это тип основной функции Handle() интерфейса slog.Handler для
+    упаковки и отправки записи журнала в заданный канал/файл
+
+type IdHandler struct {
+	// Has unexported fields.
+}
+    IdHandler - это обертка заданного slog.Handler'а для возможности обогащения
+    журнала дополнительными атрибутами (goroutine, logId, logSum). Кроме того,
+    IdHandler поддерживает Middleware для метода Handle интерфейса slog.Handler.
+
+func NewIdHandler(
+	handler slog.Handler, opts *IdOptions, sum uint16,
+	mws ...Middleware,
+) *IdHandler
+    Создать новый Id-хендлер обертку для slog.Handler'а, который позволяет
+    добавлять в журнал дополнительные атрибуты "goroutine", "logId" (на основе
+    UUID) и "logSum" (при необходимости), а также позволяет оборачивать метод
+    Handle() заданого handler'а произвольной цепочной Middleware.
+
+        handler - оборачиваемый slog handler
+        opts - опции Id-хендлера или nil
+        sum - начальное значение контрольной суммы (обычно 0)
+        mws - цепочка Middleware для оборачивания метода Hanlde()
+
+func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
+    Метод Enabled() реализует интерфейс slog.Handler
+
+func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
+    Метод Handle() реализует интерфейс slog.Handler
+
+func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
+    Метод WithAttrs() реализует интерфейс slog.Handler
+
+func (h *IdHandler) WithGroup(name string) slog.Handler
+    Метод WithGroup() реализует интерфейс slog.Handler
+
+type IdOptions struct {
+	// Добавить в журнал идентификатор горутины ("goroutine")
+	GoId bool `json:"goId"`
+
+	// Добавлять UUID идентификатор к каждой записи в журнале ("logId")
+	LogId bool `json:"logId"`
+
+	// Добавить подсчёт контрольной суммы (КС)
+	AddSum bool `json:"addSum"`
+
+	// Вычислять контрольную сумму по всем атрибутам рекурсивно
+	SumFull bool `json:"sumFull"`
+
+	// Включить в расчет контрольной суммы метку времени
+	SumTime bool `json:"sumTime"`
+
+	// Подсчет контрольной суммы с учётом предыдущей записи
+	SumChain bool `json:"sumChain"`
+
+	// Не упаковать КС в последний байт UUID, а добавить ключ "LogSum"
+	SumAlone bool `json:"sumAlone"`
+}
+    Структура конфигурации для IdHandler'а
+
+type Logger struct {
+	// Logger - указатель на стандартный slog-логгер.
+	// Допустимо (и рекомендуется) использовать сигнатуры стандартного
+	// пакета "log/slog" при организации процесса логгирования в приложениях,
+	// потому именно данный указатель является основной целью функций (фабрик)
+	// инициализирующих структуру Logger.
+	*slog.Logger
+
+	// Level - структура для безопасного управления уровнем логирования.
+	// Для изменения уровня логирования в процессе
+	// выполнения программы может использоваться её метод Set().
+	// Метод Level() возвращает текущий уровень логирования.
+	Level *slog.LevelVar
+
+	// Writer - это обобщенный интерфейс писателя логов.
+	// Данный интерфейс имеет метод Rotate() который может
+	// использоваться для принудительной ротации логов в приложении,
+	// например, по сигналу SIGHUP.
+	// Метод IsRotatable() возвращает признак возможности ротации файла журнала.
+	// Интерфейс содержит так же стандартный метод Write(),
+	// который может использоваться для прямой записи в канал и/или
+	// в файл журнала.
+	// Пакет xlog имеет фабрику для данных интерфейсов NewWriter().
+	Writer
+}
+    Logger описывает полную структуру управления логгером.
+
+func Current() *Logger
+    Current возвращает текущий (глобальный) логгер
+
+func Default() *Logger
+    Default() создает логгер по умолчанию на основе первородного slog логгера
+    по умолчанию (без каких-либо опций, с выводом на stdout), но с возможностью
+    управления уровнем логирования.
+
+func FromSlog(logger *slog.Logger) *Logger
+    FromSlog создает X-logger из *slog.Logger. У результирующего "суррогатного"
+    логгера нет возможности изменять уровень логирования, но можно использовать
+    его "сахарные" методы типа Trace() или Noticef().
+
+func New(conf Conf, mws ...Middleware) *Logger
+    New - создаёт новый X-logger на основе заданной структуры конфигурации
+    Conf с возможностью вывода журнала в заданный канал (stdout/stderr) и/или с
+    записью журнала в заданный файл с возможностью ротации (при необходимости),
+    с формированием журнала в заданном формате (JSON/Text). Функция является
+    простой надстройкой над NewWriter() и NewEx().
+
+        conf - обобщенная конфигурация логгера
+        mws - обёртки (middleware) для метода Hanlde() интерфейса slog.Handler
+
+func NewEx(conf Conf, writer Writer, mws ...Middleware) *Logger
+    NewEx - создаёт новый X-logger на основе заданной структуры конфигурации
+    Conf с выдачей журнала через заданный Writer. Поля Pipe и File структуры
+    conf при это игнорируются, направления вывода журнала определяются только
+    заданным writer. Может быть задана произвольная цепочка Middleware.
+
+        conf - обобщенная конфигурация логгера
+        writer - заданный писатель логов (в т.ч. возможно с ротацией)
+        mws - обёртки (middleware) для метода Hanlde() интерфейса slog.Handler
+
+func NewWithWriter(conf Conf, writer io.Writer, mws ...Middleware) *Logger
+    NewWithWriter - создаёт новый X-logger на основе заданной структуры
+    конфигурации Conf с возможностью вывода журнала в заданный канал
+    (stdout/stderr) и/или с записью журнала в заданный файл с возможностью
+    ротации (при необходимости), с формированием журнала в заданном формате
+    (JSON/Text), а если указан writer, то с отправкой журналов в заданный
+    io.Writer. Функция является простой надстройкой над NewWriter() и NewEx().
+
+        conf - обобщенная конфигурация логгера
+        writer - заданный писатель логов
+        mws - обёртки (middleware) для метода Hanlde() интерфейса slog.Handler
+
+func With(args ...any) *Logger
+    With создает дочерний логгер с добавлением заданых атрибутов на основе
+    глобального логгера
+
+func WithAttrs(attrs []slog.Attr) *Logger
+    WithAttrs создает дочерний логгер c добавлением заданных атрибутов на основе
+    глобального логгера
+
+func WithFields(fields FieldsProvider) *Logger
+    WithFields создает дочерний логгер с добавлением заданных атрибутов на
+    основе глобального логгера.
+
+func WithGroup(name string) *Logger
+    WithGroup создает дочерний логгер с добавлением группы на основе глобального
+    логгера
+
+func WithMiddleware(mws ...Middleware) *Logger
+    WithMiddleware создает дочерний логгер c добавлением Middleware на основе
+    глобального логгера
+
+func (c *Logger) Alert(msg string, args ...any)
+    Alert записывает сообщение в журнал (LevelAlert)
+
+func (c *Logger) Alertf(format string, args ...any)
+    Alertf записывает сообщение в традиционный журнал (LevelAlert)
+
+func (c *Logger) Crit(msg string, args ...any)
+    Crit записывает сообщение в журнал (LevelCrit)
+
+func (c *Logger) Critf(format string, args ...any)
+    Critf записывает сообщение в традиционный журнал (LevelCrit)
+
+func (c *Logger) Debug(msg string, args ...any)
+    Debug записывает сообщение в журнал (LevelDebug)
+
+func (c *Logger) Debugf(format string, args ...any)
+    Debugf записывает сообщение в традиционный журнал (LevelDebug)
+
+func (c *Logger) Emerg(msg string, args ...any)
+    Emerg записывает сообщение в журнал (LevelEmerg)
+
+func (c *Logger) Emergf(format string, args ...any)
+    Emergf записывает сообщение в традиционный журнал (LevelEmerg)
+
+func (c *Logger) Error(msg string, args ...any)
+    Error записывает сообщение в журнал (LevelError)
+
+func (c *Logger) Errorf(format string, args ...any)
+    Errorf записывает сообщение в традиционный журнал (LevelError)
+
+func (c *Logger) Fatal(msg string, args ...any)
+    Fatal записывает сообщение в журнал (LevelFatal) и завершает приложение
+    путем вызова os.Exit(1)
+
+func (c *Logger) Fatalf(format string, args ...any)
+    Fatalf записывает сообщение в традиционный журнал (LevelFatal) и завершает
+    приложение путем вызова os.Exit(1)
+
+func (c *Logger) Flood(msg string, args ...any)
+    Flood записывает сообщение в журнал (LevelFlood)
+
+func (c *Logger) Floodf(format string, args ...any)
+    Floodf записывает сообщение в традиционный журнал (LevelFlood)
+
+func (c *Logger) GetLevel() slog.Level
+    GetLevel возвращает текущий уровень логирования - обёртка для вызова
+    c.Leveler.Level()
+
+func (c *Logger) GetLvl() string
+    GetLvl возвращает текущий уровень логирования в виде строки вида "info",
+    "debug" и т.п.
+
+func (c *Logger) Info(msg string, args ...any)
+    Info записывает сообщение в журнал (LevelInfo)
+
+func (c *Logger) Infof(format string, args ...any)
+    Infof записывает сообщение в традиционный журнал (LevelInfo)
+
+func (c *Logger) IsRotatable() bool
+    IsRotatable возвращает признак возможности ротации файла журнала
+
+func (c *Logger) Log(
+	ctx context.Context,
+	level slog.Level, msg string, args ...any) error
+    Log записывает сообщение в структурированный журнал с заданным уровнем
+    журналирования и заданным контекстом
+
+func (c *Logger) LogAttrs(
+	ctx context.Context,
+	level slog.Level, msg string, attrs ...slog.Attr) error
+    LogAttr записывает сообщение с атрибутами в структурированный журнал с
+    заданным уровнем журналирования и заданным контекстом
+
+func (c *Logger) Logf(level slog.Level, format string, args ...any)
+    Log записывает сообщение в традиционный журнал с заданным уровнем
+    журналирования
+
+func (c *Logger) Notice(msg string, args ...any)
+    Notice записывает сообщение в журнал (LevelNotice)
+
+func (c *Logger) Noticef(format string, args ...any)
+    Noticef записывает сообщение в традиционный журнал (LevelNotice)
+
+func (c *Logger) Panic(msg string)
+    Fatal записывает сообщение в журнал (LevelPanic) и завершает приложение
+    путем вызова panic()
+
+func (c *Logger) Rotate() error
+    Rotate производит ротацию файла журнала (если это возможно) - обёртка
+    для вызова c.Writer.Rotable()/c.Writer.Rotate(). К примеру, в реальных
+    приложениях возможна организации ротация логов по сигналу SIGHUP.
+
+func (c *Logger) SetDefault()
+    SetDefault устанавливает заданный логгер текущим
+
+func (c *Logger) SetDefaultLogs()
+    SetDefaultLogs устанавливает данный логгер текущим, в том числе log/slog
+    логгером по умолчанию
+
+func (c *Logger) SetLevel(level slog.Level)
+    SetLevel обновляет уровень логирования - обёртка для вызова
+    c.Leveler.Update()
+
+func (c *Logger) SetLvl(level string)
+    SetLvl обновляет уровень логирования на основе строки идентификатора типа
+    "trace", "error" и т.п.
+
+func (c *Logger) Slog() *slog.Logger
+    Slog возвращает текущий указатель *slog.Logger
+
+func (c *Logger) Trace(msg string, args ...any)
+    Trace записывает сообщение в журнал (LevelTrace)
+
+func (c *Logger) Tracef(format string, args ...any)
+    Tracef записывает сообщение в традиционный журнал (LevelTrace)
+
+func (c *Logger) Warn(msg string, args ...any)
+    Warn записывает сообщение в журнал (LevelWarn)
+
+func (c *Logger) Warnf(format string, args ...any)
+    Warnf записывает сообщение в традиционный журнал (LevelWarn)
+
+func (c *Logger) With(args ...any) *Logger
+    With создает дочерний логгер с добавлением заданных атрибутов. Метод
+    аналогичен методу With для *slog.Logger.
+
+func (c *Logger) WithAttrs(attrs []slog.Attr) *Logger
+    WithAttrs создает дочерний логгер c добавлением заданных атрибутов
+
+func (c *Logger) WithFields(fields ...FieldsProvider) *Logger
+    With создает дочерний логгер с добавлением заданных атрибутов
+
+func (c *Logger) WithGroup(name string) *Logger
+    WithGroup создает дочерний логгер с добавлением группы. Метод аналогичен
+    методу WithGroup для *slog.Logger.
+
+func (c *Logger) WithMiddleware(mws ...Middleware) *Logger
+    WithMiddleware создает дочерний логгер c добавлением Middleware
+
+type Middleware func(next HandleFunc) HandleFunc
+    Middleware - описывает тип функции для построения обёрток для slog.Handler'в
+    (т.н. middleware)
+
+func NewMiddleware(mwf MiddlewareFunc) Middleware
+    NewMiddleware создает новый Middlewre на основе заданного метода-обёртки с
+    использованием замыканий
+
+        mwf - метод обёртки типа MiddlewareFunc
+
+func NewMiddlewareForError(logErr *Logger) Middleware
+    Пример Middleware, который все сообщения с ошибками (с атрибутом "err")
+    дополнительно направляет в заданный логгер. Данная функция приведена скорее
+    для примера использования Middleware, чем для практического применения.
+
+func NewMiddlewareMulti(log *Logger) Middleware
+    Пример Middleware, который дублирует вывод записей в дополнительный логгер
+    (имитация режима "Multi Handler")
+
+        log - дополнительный логгер в который направляются сообщения
+
+func NewMiddlewareNoPasswd() Middleware
+    Пример middleware, который заменяет значения атрибутов passwd, password
+    на ********. Данная функция приведена скорее для примера использования
+    Middleware, чем для практического применения.
+
+func NewMiddlewareWithFields(fields FieldsProvider) Middleware
+    Пример Middleware, который добавляет (в начало) записи заданные
+    дополнительные поля. Пример не корректно работает с группами - все поля
+    добавляются в последнюю открытую группу. Данная функция приведена скорее для
+    примера использования Middleware, чем для практического применения.
+
+type MiddlewareFunc func(
+	ctx context.Context, r slog.Record,
+	next HandleFunc) error
+    MiddlewareFunc - описывает метод обёртку для построения Middleware
+
+    Функция может обрабатывать входные значение ctx и r, после чего может
+    вызывать следующий в цепочке Middleware или Handle.
+
+type MiddlewareHandler struct {
+	// Has unexported fields.
+}
+    Вспомогательная обёртка для создания Handler'ов с Middleware
+
+func NewMiddlewareHandler(handler slog.Handler, mws ...Middleware) *MiddlewareHandler
+    Создать обертку MiddlewareHandler'а с заданными middleware(s)
+
+func (h *MiddlewareHandler) Enabled(ctx context.Context, level slog.Level) bool
+    Enabled() требуется для интерфейса slog.Handler
+
+func (h *MiddlewareHandler) Handle(ctx context.Context, r slog.Record) error
+    Handle() требуется для интерфейса slog.Handler
+
+func (h *MiddlewareHandler) WithAttrs(attrs []slog.Attr) slog.Handler
+    WithAttrs() требуется для интерфейса slog.Handler
+
+func (h *MiddlewareHandler) WithGroup(name string) slog.Handler
+    WithGroup() требуется для интерфейса slog.Handler
+
+type MultiWriter []io.Writer
+    MultiWriter - это обёртка для io.Writer для направления журналов по
+    нескольким направлениям. Может использоваться, если необходимо отправлять
+    журналы по нескольким направлениям одновременно (например syslog + NATS).
+
+func NewMultiWriter() MultiWriter
+    NewMultiWriter cоздает "пустой" MutliWriter. Далее в MultiWriter могут быть
+    добавлены io.Writer'а с помощью метода Add.
+
+func (mw MultiWriter) Add(w io.Writer)
+    Add добавляет заданный io.Writer в MultiWriter
+
+func (mw MultiWriter) Write(data []byte) (int, error)
+    Write реализует интерфейс io.Writer для MultiWriter'а. Производится
+    последовательная запись данных data во все io.Writer'ы MultiWriter'а.
+    Ошибки не возвращаются.
+
+type Opt struct {
+	Level            string // -log-level
+	Pipe             string // -log-pipe
+	File             string // -log-file
+	FileMode         string // -log-file-mode
+	Format           string // -log-format
+	GoId             string // -log-goid
+	Id               string // -log-id
+	Sum              string // -log-sum
+	SumFull          string // -log-sum-full
+	SumChain         string // -log-sum-chain
+	SumAlone         string // -log-sum-alone
+	Time             string // -log-time
+	TimeLocal        string // -log-time-local
+	TimeMicro        string // -log-time-micro
+	TimeFormat       string // -log-time-format
+	Src              string // -log-src
+	SrcPkg           string // -log-src-pkg
+	SrcFunc          string // -log-src-func
+	SrcExt           string // -log-src-ext
+	Color            string // -log-color
+	LevelOff         string // -log-level-off
+	Rotate           string // -log-rotate
+	RotateMaxSize    string // -log-rotate-max-size
+	RotateMaxAge     string // -log-rotate-max-age
+	RotateMaxBackups string // -log-rotate-max-backups
+	RotateLocalTime  string // -log-rotate-local-time
+	RotateCompress   string // -log-rotate-compress
+}
+    Структура управления журналированием на основе опций командной строки.
+    Типовое использование:
+
+        opt := xlog.NewOpt()  // создать набор опций (*xlog.Opt)
+        conf := xlog.Conf{}   // подготовить структуру конфигурации логгера
+        xlog.Env(&conf)       // обогатить conf переменными окружения
+        flag.Parse()          // обогатить opt из опций командной строки
+        opt.UpdateConf(&conf) // обогатить conf опциями командной строки
+
+        log := xlog.New(conf) // создать логгер (*xlog.Logger)
+        logger := log.Logger  // получить указатель на *slog.Logger
+
+        log.Notice("Привет, X-logger", "version", "1.0.0")
+        mylog := logger.With("app", "helloworld")
+        mylog.Info("application started")
+
+func NewOpt(prefixOpt ...string) *Opt
+    NewOpt создаёт набор опций командной строки с параметрами для X-logger'а.
+    После создания опций Opt можно использовать стандартный вызов flag.Parse()
+    для заполнения полей структуры. Булевы переменные обрабатываются так же как
+    и переменные окружения.
+
+        prefixOpt - опциональный префикс (по умолчанию "log-")
+
+    Приложения могут включить в свой usage-вывод следующий текст:
+
+        -log-level <level>              - log level (flood/trace/debug/info/notice/warm/error/crit)
+        -log-pipe <pipe>                - log pipe (stdout/stderr/null)
+        -log-file <file>                - log file path
+        -log-file-mode <perm>           - log file mode (0640, 0600, 0644)
+        -log-format <format>            - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+        -log-goid <on/off>              - force on/off goroutine id for each record (goroutine)
+        -log-id <on/off>                - force on/off id (UUID) for each record (logId)
+        -log-sum <on/off>               - force on/off check sum for each record
+        -log-sum-full <on/off>          - force on/off calculate full sum for earch record
+        -log-sum-chain <on/off>         - force on/off check sum chain
+        -log-sum-alone <on/off>         - force on/off add check sum as alone atribute (logSum)
+        -log-time <on/off>              - force on/off timestamp
+        -log-time-local <on/off>        - use local time (UTC by default)
+        -log-time-micro <on/off>        - force on/off microseconds in timestamp
+        -log-time-format <fmt>          - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+        -log-src <on/off>               - force on/off log source file name and line number
+        -log-src-pkg <on/off>           - force on/off log source directory/file name and line number
+        -log-src-func <on/off>          - force on/off log function name
+        -log-src-ext <on/off>           - force enable/disable show ".go" extension of source file name
+        -log-color <on/off>             - force enable/disable tinted colors (ANSI/Escape)
+        -log-level-off <true/false>     - force disable/enable level output
+        -log-rotate <on/off>            - force on/off log rotate
+        -log-rotate-max-size <mb>       - rotate max size (begabytes)
+        -log-rotate-max-age <days>      - rotate max age (days)
+        -log-rotate-max-backups <num>   - rotate max backup files
+        -log-rotate-local-time <yes/no> - use localtime (default UTC)
+        -log-rotate-compress <on/off>   - on/off compress (gzip)
+
+func (opt *Opt) UpdateConf(conf *Conf)
+    UpdateConf обогащает структуру конфигурации логгера опциями командной
+    строки. Если соответствующие опции командной строки не заданы, то поля
+    структуры конфигурации conf не модифицируются.
+
+type RotateConf struct {
+	// Включить ротацию логов.
+	// По умолчанию (если задан false) ротаци отключена.
+	Enable bool `json:"enable"`
+
+	// Максимальный размер файла журнала в мегабайтах до его ротации.
+	// По умолчанию (если задан 0) - 10 мегабайт.
+	MaxSize int `json:"max-size"`
+
+	// Максимальное количество дней для хранения старых файлов журнала зависит от
+	// временной метки, закодированной в их имени. Обратите внимание, что день
+	// определяется как 24 часы и могут не совсем соответствовать календарным
+	// дням из-за перехода на летнее время, високосных секунд и т.д.
+	// По умолчанию (если задано 0), то  старые файлы журналов после ротации
+	// не удаляются в зависимости от возраста.
+	//
+	// На практике рекомендуется задать значение около 10 дней.
+	MaxAge int `json:"max-age"`
+
+	// Максимальное количество сохраняемых старых файлов журналов.
+	// По умолчанию (если задано 0), то сохраняются все старые файлы
+	// журналов (хотя MaxAge все равно может привести к их удалению).
+	//
+	// На практике рекомендуется задач ограничение, например в 100.
+	MaxBackups int `json:"max-backups"`
+
+	// Местное время определяет, является ли время, используемое для
+	// форматирования временных меток в файлах резервных копий, местным
+	// временем компьютера. По умолчанию (если задано false), используется
+	// время UTC.
+	LocalTime bool `json:"local-time"`
+
+	// Compress определяет, следует ли сжимать ротируемый файлы журнала
+	// с помощью gzip. По умолчанию (если задано false) сжатие не выполняется.
+	Compress bool `json:"compress"`
+}
+    Параметры ротации файлов журналов (унаследовано от lumberjack). См.
+    https://github.com/natefinch/lumberjack Структура встроена в структуру
+    конфигурации Conf.
+
+type TintHandler struct {
+	// Has unexported fields.
+}
+    Структура данных TintHandler, соответствующего интерфейсу
+    slog.Handler. TintHandler - это минималистский slog.Handler с
+    подсветкой на основе исходников с "github.com/lmittmann/tint"
+    (https://github.com/lmittmann/tint/blob/main/handler.go).
+
+    Особенности исходного проекта:
+      - MIT License
+      - отсутствие зависимостей (только slog)
+      - компактный выходной формат схож с zerolog.ConsoleWriter и
+        slog.TextHandler
+      - "тонирование" меток и ключей атрибутов
+      - подсветка ошибок
+      - всю подсветку на основе ANSII символов можно отключить
+      - поддержка `ReplaceAtt` как у slog.TextHandler/slog.JSONHandler
+
+    Что изменено в рамках xlog:
+      - упрощена подкраска ошибок
+      - добавлен вывод имени пакета/функции (по опциям: sourcePkg/source/Func)
+      - есть возможность отключить метку уровня (noLevel)
+      - добавлена возможность исключения вывода расширения файла ".go"
+      - добавлена возможность вывода метки времени в UTC
+      - добавлена возможность вывода вложенных структур, в т.ч. по указателям
+        (см. функцию String())
+      - несколько улучшено представление чисел с плавающей точкой в журнале (как
+        в JSON)
+      - время в атрибутах выводится в формате time.RFC3339Nano (а не просто как
+        t.String())
+
+func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler
+    Создать новый Tinted хендлер, соответствующий slog.Handler'у
+
+func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
+    Метод Enabled() реализует интерфейс slog.Handler
+
+func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
+    Метод Handle() реализует интерфейс slog.Handler
+
+func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
+    Метод WithAttrs() реализует интерфейс slog.Handler
+
+func (h *TintHandler) WithGroup(name string) slog.Handler
+    Метод WithGroup() реализует интерфейс slog.Handler
+
+type TintOptions struct {
+	// Управление уровнем журналирования
+	// (по умолчанию DefaultLevel=slog.LevelInfo).
+	// Сообщения ниже заданного уровня не выводятся в журнал.
+	Level slog.Leveler
+
+	// Добавить ссылки на исходный код (файл:строка)
+	AddSource bool
+
+	// Добавить имя пакета к имени файла исходного текста (пакет/файл:строка)
+	SourcePkg bool
+
+	// Добавить имя функций/методов
+	SourceFunc bool
+
+	// Удалить расширение ".go" из имени файла
+	NoExt bool
+
+	// Отключить вывод метки уровня журналирования
+	NoLevel bool
+
+	// Отключить подсветку и исключить вывод ANSI/Escape символов
+	NoColor bool
+
+	// Выводить метку времени в UTC
+	TimeUTC bool
+
+	// Формат метки времени
+	TimeFormat string
+
+	// Функция "хук" для подмены атрибутов перед формированием
+	// записей в журнале.
+	// См. https://pkg.go.dev/log/slog#HandlerOptions for details.
+	ReplaceAttr func(groups []string, attr slog.Attr) slog.Attr
+}
+    Структура конфигурации для создания TintHandler'а
+
+type Writer interface {
+	IsRotatable() bool // проверить возможность ротации
+	Rotate() error     // выполнить ротацию журнала (если она возможна)
+	Close() error      // закрыть файл журнала
+	io.Writer          // интерфейс со стандартным методом Wite([]byte) (int, error)
+}
+    Обобщенный интерфейс писателя логов (с ротацией или без, с дублированием
+    журнала на stdout/stderr или без, с выдачей в кастомный io.Writer или без).
+
+func NewWriter(
+	pipeName, fileName, mode string, rotate *RotateConf, writer io.Writer,
+) Writer
+    NewWriter создаёт писатель логов с интерфейсом Writer на основе заданных
+    параметров логирования.
+
+        pipeName - имя канала ("stdout", 'stderr", "nil" или пустая строка)
+        fileName - имя файла журнала или пустая строка
+        mode - режим доступа к файлу или пустая строка (например "0644" или "0660")
+        rotate - параметры ротации файла журнала или nil
+        writer - кастомный io.Writer или nil
+
+    Возвращаемый Writer осуществляет вывод логов по нескольким направлениям в
+    зависимости от заданных параметров (от нуля до трех направлений). Возможны
+    следующие направления:
+
+     1. Канал (pipe): stdout или stderr
+     2. Файл журнала (file) с ротацией или без
+     3. Кастомный io.Writer
+
+    Данная фабрика может возвращать 12 типов различных реализаций интерфейса
+    Writer: от писателя в "/dev/null" до писателя в три направления.
+

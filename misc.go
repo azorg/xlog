@@ -12,16 +12,16 @@ import (
 	"strings"
 )
 
-// Remove ".go" extension from source file name
-func RemoveGoExt(file string) string {
+// removeGoExt обрезает расширение ".go" из имени файла
+func removeGoExt(file string) string {
 	if n := len(file); n > 3 && file[n-3:] == ".go" {
 		return file[:n-3]
 	}
 	return file
 }
 
-// Crop function name
-func CropFuncName(function string) string {
+// cropFuncName укорачивает специальным образом имя функции
+func cropFuncName(function string) string {
 	_, f := filepath.Split(function)
 	parts := strings.Split(f, ".")
 	if len(parts) == 0 {
@@ -33,23 +33,24 @@ func CropFuncName(function string) string {
 	return strings.Join(parts[1:], ".") // FIXME
 }
 
-// Return function name
-func GetFuncName(skip int) string {
+// getFuncName возвращает имя текущей функции
+func getFuncName(skip int) string {
 	pc, _, _, _ := runtime.Caller(skip)
 	function := runtime.FuncForPC(pc).Name()
-	return CropFuncName(function)
+	return cropFuncName(function)
 }
 
-// Convert file mode string (oct like "0640") to fs.FileMode
-func FileMode(mode string) fs.FileMode {
+// fileMode преобразует права доступа к файлу в восьмеричной Unix нотации
+// (например "0644") к типу fs.FileMode
+func fileMode(mode string) fs.FileMode {
 	if mode == "" {
-		mode = FILE_MODE
+		return FileModeDefault
 	}
 	perm, err := strconv.ParseInt(mode, 8, 10)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: bad logfile mode='%s'; set mode=0%03o\n",
-			mode, DEFAULT_FILE_MODE)
-		return DEFAULT_FILE_MODE
+			mode, FileModeOnError)
+		return FileModeOnError
 	}
 	return fs.FileMode(perm & 0777)
 }

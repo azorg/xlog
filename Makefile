@@ -1,77 +1,94 @@
-# File: "Makefile"
+PRJ = "github.com/azorg/xlog"
 
-PRJ="github.com/azorg/xlog"
+# Version, git hash
+MAJOR := 2
+MINOR := 0
+BUILD := 0
+VERSION := $(MAJOR).$(MINOR).$(BUILD)
+GIT_HASH := `git rev-parse HEAD | head -c 7`
+BUILD_TIME := `date '+%Y.%m.%d_%H:%M'`
 
-GIT_MESSAGE = "auto commit"
+GIT_MESSAGE = "fix: смотри ChangeLog"
 
-# go source files, ignore vendor directory
-SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.GitHash=$(GIT_HASH) -X=main.BuildTime=$(BUILD_TIME)"
+GCFLAGS= 
 
-# go packages
-PKGS = $(PRJ)
+# Private repository (xlog)
+#GIT_REPO := github.com/azorg
+#XLOG := $(GIT_REPO)/xlog
+#export GOPRIVATE=$(XLOG),$(XLOG)/signal
 
-.PHONY: all help distclean clean commit tidy vendor fmt vet doc test
+.PHONY: all fmt simplify vet test clean distclean tidy vendor doc commit
 
-all: fmt vet doc test
+all: go.mod tidy fmt simplify vet doc xlogscan #test
 
-help:
-	@echo "make fmt       - format Go sources"
-	@echo "make test      - run test"
-	@echo "make distclean - full clean (go.mod, go.sum)"
+fmt:
+	go fmt
+
+simplify:
+	gofmt -l -w -s *.go
+
+vet:
+	go vet
+
+test:
+	go test
 
 clean:
-	rm -rf logs
+	rm -rf ./logs
+	rm -f ./xlogscan
+	@#rm -f README.*
 
-distclean:
-	@rm -f go.mod
-	@rm -f go.sum
+#prepare-git:
+#	@echo ">>> prepare private ssh access"
+#	@git config --global url."git@$(GIT_REPO):".insteadOf "https://$(GIT_REPO)/"
+
+distclean: clean
+	rm -f go.mod
+	rm -f go.sum
 	@#sudo rm -rf go/pkg
-	@rm -rf vendor
-	@go clean -modcache
-	
-commit: clean fmt
-	git add .
-	git commit -am $(GIT_MESSAGE)
-	git push
+	rm -rf vendor
+	go clean -modcache
 
 go.mod:
+	@echo ">>> create go.mod"
 	@go mod init $(PRJ)
 	@touch go.mod
 
-tidy: go.mod
-	@go mod tidy
-
-go.sum: go.mod Makefile #tidy
-	@#go get golang.org/x/exp/slog@v0.0.0-20240904232852-e7e105dedf7e # experimental slog (go <1.21)
+go.sum: go.mod Makefile tidy
+	@echo ">>> create go.sum"
+	@#go get golang.org/x/exp/slog@v0.0.0-20240904232852-e7e105dedf7e # experimental slog (go <=1.20)
 	@go get gopkg.in/natefinch/lumberjack.v2 # Lumberjack as log rotate
-	@go get github.com/google/uuid # Google UUID
+	@go get github.com/gofrs/uuid # UUID (v7)
+	@go get github.com/sigurn/crc16 # CRC16
+	@#go get github.com/sigurn/crc8 # CRC8
 	@touch go.sum
 
+tidy: go.mod
+	@echo ">>> automatic update go.sum by tidy"
+	@go mod tidy # automatic update go.sum
+
 vendor: go.sum
+	@echo ">>> create vendor"
 	@go mod vendor
 
-fmt: go.mod go.sum
-	@go fmt
+doc: README.txt README.md
 
-simplify:
-	@gofmt -l -w -s $(SRC)
+README.txt: *.go
+	go doc -all > README.txt
 
-vet:
-	@#go vet
-	@go vet $(PKGS)
-
-test: go.mod go.sum
-	@go test
-
-doc: README-RU.txt README-RU.md
-
-README-RU.txt: *.go
-	go doc -all > README-RU.txt
-
-README-RU.md: *.go ~/go/bin/gomarkdoc
-	~/go/bin/gomarkdoc -o README-RU.md
+README.md: *.go ~/go/bin/gomarkdoc
+	~/go/bin/gomarkdoc -o README.md
 
 ~/go/bin/gomarkdoc:
 	go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
 
-# EOF: "Makefile"
+commit: doc
+	git add .
+	git commit -am $(GIT_MESSAGE)
+	git push
+
+xlogscan: *.go cmd/xlogscan/*.go
+	@echo ">>> build $@"
+	@go build $(LDFLAGS) $(GCFLAGS) -o . $(PRJ)/cmd/xlogscan/
+

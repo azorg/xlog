@@ -1,0 +1,9 @@
+2025.03.14-17
+ * none -> None
+
+2024.12.21
+ * add SIGHUP channel
+
+2024.05.27
+ * add port for windows (simple plug)
+

@@ -2,92 +2,230 @@
 
 package xlog
 
-// Logger configure structure
+// Conf - структура конфигурации для настройки логгера
 type Conf struct {
-	Pipe     string `json:"pipe"`      // log pipe ("stdout", "stderr" or "null" / "")
-	File     string `json:"file"`      // log file path or ""
-	FileMode string `json:"file-mode"` // log file mode
-	Level    string `json:"level"`     // log level (trace/debug/info/warn/error/fatal/silent)
-	Slog     bool   `json:"slog"`      // use slog instead standard log (slog.TextHandler)
-	JSON     bool   `json:"json"`      // use JSON log (slog.JSONHandler)
-	Tint     bool   `json:"tint"`      // use tinted (colorized) log (xlog.TintHandler)
-	Time     bool   `json:"time"`      // add timestamp
-	TimeUS   bool   `json:"time-us"`   // use timestamp in microseconds
-	TimeTint string `json:"time-tint"` // tinted log time format (like time.Kitchen, time.DateTime)
-	Src      bool   `json:"src"   `    // log file name and line number
-	SrcLong  bool   `json:"src-long"`  // log long file path (directory + file name)
-	SrcFunc  bool   `json:"src-func"`  // add function name to log
-	NoExt    bool   `json:"no-ext"`    // remove ".go" extension from file name
-	NoLevel  bool   `json:"no-level"`  // don't print log level tag to log (~level="INFO")
-	NoColor  bool   `json:"no-color"`  // disable tinted colors (only if Tint=true)
-	Prefix   string `json:"preifix"`   // add prefix to standard log (log=false)
-	AddKey   string `json:"add-key"`   // add key to structured log (Slog=true)
-	AddValue string `json:"add-value"` // add value to structured log (Slog=true
+	// Заданный исходный уровень журналирования.
+	// Задается или строкой (trace/debug/info/warn/error/crit/fatal/...),
+	// или строкой содержащей целое десятичное число в нотации `slog.Level`
+	// (см. константы типа LogLevelTrace/LogLevelInfo/...).
+	// Доступ к полю Level структуры Logger позволяет изменять текущий уровень
+	// логирования в процессе выполнения программы.
+	// Пустая строка интерпретируется как уровень "info".
+	//
+	//  flood  = slog.Level(-12) - чрезвычайно избыточный уровень журналирования
+	//  trace  = slog.Level(-8)  - уровень трассировки всех вызовов и переходов (syslog)
+	//  debug  = slog.LevelDebug - уровень вывода отладочный сообщений (опытная эксплуатация)
+	//  info   = slog.LevelInfo  - уровень вывода только информационных сообщений (эксплуатация)
+	//  notice = slog.Level(2)   - дополнительный уровень важных уведомлений (syslog)
+	//  warn   = slog.LevelWarn  - уровень предупреждений
+	//  error  = slog.LevelError - уровень стандартных ошибок
+	//  crit   = slog.Level(10)  - уровень критических ошибок
+	//  alert  = slog.Level(12)  - уровень серьезных ошибок (syslog)
+	//  emerg  = slog.Level(14)  - уровень аварии (syslog)
+	//  fatal  = slog.Level(16)  - уровень вывода чрезвычайных ошибок с завершением программы
+	//  panic  = slog.Level(18)  - уровень вывода чрезвычайных сообщений перед паникой
+	//  silent = slog.Level(20)  - полная блокировка вывода каких-либо сообщений в журнал
+	Level string `json:"level"`
 
-	// Log rotate options
-	Rotate RotateOpt `json:"rotate"`
+	// Заданный выходной поток ("stdout", "stderr", "null" или пустая строка).
+	// Если поток не задан (пустая строка) и не задан файл журнала (пустая
+	// строка), то по умолчанию используется "stdout" (действие по умолчанию).
+	// Отключить полностью формирование журнала можно только установкой
+	// Pipe="null" и File="".
+	Pipe string `json:"pipe"`
+
+	// Заданный выходной файл журнала (пустая строка, если не задан).
+	// Если задан File, а Pipe="", то журналирование производится только
+	// в файл. Если явно задать Pipe (stdout или stderr) и File, то
+	// журналирование будет производиться в двух направлениях.
+	// К примеру, поток stdout может обрабатывать systemd/journald,
+	// а для журнала в файле может применяться заданная политика хранения
+	// и ротации.
+	File string `json:"file"`
+
+	// Права доступа к файлу журнала (строка в восьмеричной Unix нотации).
+	// Если FileMode - пустая строка, то устанавливаются права 0640
+	// (см. константу FileModeDefault).
+	// Если, к примеру, необходимо ограничить права доступа к файлу журнала
+	// всем кроме владельца, то необходимо задать "0600".
+	// Если требуется сделать логи доступные для чтения всем, то допустимо
+	// установить значение "0644".
+	// В случае ошибки преобразования данной строки (неверные символы),
+	// устанавливаются самые "строгие" права доступа 0600
+	// (см. константу FileModeOnError).
+	FileMode string `json:"file-mode"`
+
+	// Формат журнала ("json", "logfmt", "tinted", "default").
+	// По умолчанию используется формат "default".
+	// Вместо "json" допускается псевдоним "prod".
+	// Вместо "logfmt" допускаются псевдонимы "slog" и "text".
+	// Вместо "tinted" допускаются псевдонимы "tint" и "human".
+	// Вместо "default" допускается псевдоним "std".
+	// Для формата JSON используется slog.JSONHandler.
+	// Для формата Logfmt - slog.TextHandler.
+	// Для Tinted - кастомный TintHandler.
+	// Для Default - slog.defaultHandler "из коробки Go".
+	// Форматы JSON и Logfmt - это промышленные стандарты для журналов.
+	// Формат Tinted - предназначен для стендовой отработки, удобен для
+	// анализа человеку (есть возможность изменить формат метки времени,
+	// включить ANSI/Escape подкраску).
+	// Формат Default сохранен для совместимости с примитивными приложениями,
+	// которые используют log/slog без каких-либо настроек.
+	// Регистр строки формата не имеет значение.
+	Format string `json:"format"`
+
+	// Добавлять в каждую запись в журнале идентификатор горутины с ключом "goroutine"
+	GoId bool `json:"go-id"`
+
+	// Обогадить журнал уникальным UUID идентификатором каждую запись.
+	// К каждому сообщению в журнале добавляется UUIDv7
+	// идентификатор с ключом "logId". В UUID идентификаторе младшие биты могут
+	// быть перезаписаны контрольной суммой.
+	IdOn bool `json:"id-on"`
+
+	// Добавить в журнал контрольную сумму для каждой записи.
+	// Контрольная сумма помещается в младшие биты UUID идентификатора или
+	// в шестнадцатеричном формате добавляется в журнал с ключом "logSum".
+	SumOn bool `json:"sum-on"`
+
+	// Вычислять контрольную сумму по ВСЕМ атрибутам рекурсивно.
+	// При включении данной опции используется более сложный алгоритм
+	// вычисления контрольной суммы.
+	SumFull bool `json:"sum-full"`
+
+	// Вычислять контрольную сумму с использованием начального значения
+	// контрольной суммы предыдущей записи в журнале.
+	// Данная опция позволяет отслеживать систематические потери или
+	// подмену записей в журнале.
+	SumChain bool `json:"sum-chain"`
+
+	// Не упаковать контрольную сумму (КС) в младшие биты UUID
+	// идентификатора записи (что делается по умолчанию).
+	// При упаковке КС в UUID есть небольшая вероятность нарушения
+	// монотонности возрастания идентификаторов от записи к записи.
+	// С данной опцией КС записывается в журнал как отдельный атрибут с
+	// ключом "logSum" в шестнадцатеричном формате.
+	SumAlone bool `json:"sum-alone"`
+
+	// Признак отключения вывода метки времени (timestamp) в журнал.
+	// В некоторых случаях метка времени не требуется. К примеру
+	// при сохранении записей в журнале systemd/journald к ним метка
+	// времени добавляется автоматически и этого достаточно.
+	TimeOff bool `json:"time-off"`
+
+	// Признак использования локального времени в метке времени
+	// (по умолчанию используется UTC)
+	TimeLocal bool `json:"time-local"`
+
+	// Признак использования метки времени с микросекундами.
+	// По умолчанию метка времени для форматов Tinted/JSON/Logfmt
+	// указывается с миллисекундами. Для формата Default доли секунд
+	// не используются. Данная опция "унаследована" еще от legacy
+	// логгера из пакета "log".
+	TimeMicro bool `json:"time-micro"`
+
+	// Формат метки времени для TintHandler'а (если Format="tinted").
+	// Допускаются значения типа "Kitchen", "DateTime", "space" и другие,
+	// или строка в стандартной Go-нотация для формата времени вида
+	// "2006-01-02_15.04.05.999".
+	// Подробнее см. функцию TimeFormat(), которая используется для обработки
+	// данного параметра конфигурации.
+	// Регистр строки не имеет значение.
+	TimeFormat string `json:"time-format"`
+
+	// Признак для включения в журнал информации с ссылками на исходные тексты
+	// в месте вызова функции журналирования (файл:номер_строки).
+	//
+	// ВНИМАНИЕ: для сервисов ЦУГИ в продуктовой среде данное значение
+	// должно быть ОБЯЗАТЕЛЬНО задано как true для возможности обогащения всех
+	// записей журнала идентификатором сервиса (поле id, см. ниже SrcFields).
+	Src bool `json:"src"`
+
+	// Признак добавления к имении файла с исходным текстом каталога (пакета)
+	// (пакет/файл:номер_строки)
+	SrcPkg bool `json:"src-pkg"`
+
+	// Признак добавления в журнал имен функций (методов) из контекста которых
+	// осуществляется вызов функций журналирования
+	// (пакет/файл:функция():номер_строки)
+	SrcFunc bool `json:"src-func"`
+
+	// Признак вывода расширения ".go" в именах файлов исходных текстов.
+	// По умолчанию расширение упраздняется для краткости.
+	SrcExt bool `json:"src-ext"`
+
+	// Дополнительные атрибуты добавляемые в блок "source".
+	// Обычно блок source содержит поля file, function, line
+	// (см. тип slog.Source), но имеется возможность добавить
+	// любые другие атрибуты.
+	// Пример: id="superService", ver="1.2.3", instanceId=1234.
+	//
+	// ВНИМАНИЕ: для сервисов ЦУГИ обязательным является атрибут
+	// id (строка), который должен однозначно идентифицировать
+	// приложение/сервис в пределах всей информационной системы и
+	// программного комплекса.
+	SrcFields *Fields `json:"src-fields"`
+
+	// Признак отключения "подкраски" журналов с помощью ANSI/Escape
+	// последовательностей, если Format="tinted"
+	ColorOff bool `json:"color-off"`
+
+	// Признак отключения вывода в журнал метки уровня журналирования
+	// (типа level="INFO"). Может использоваться, для имитации
+	// "традиционного" логгера без уровней логирования.
+	LevelOff bool `json:"level-off"`
+
+	// Дополнительный префикс для сообщений legacy логгера (log.Print())
+	Prefix string `json:"prefix"`
+
+	// Ключ дополнительного значения, добавляемого ко всем записям в журнале
+	AddKey string `json:"add-key"`
+
+	// Дополнительное значение, добавляемое ко всем записям в журнале
+	AddValue any `json:"add-value"`
+
+	// Настройка параметров ротации журналов, если вывод направлен в файл
+	Rotate RotateConf `json:"rotate"`
 }
 
-// Log rotate options (delivered from lumberjack)
-type RotateOpt struct {
-	// Enable log rotation
+// Параметры ротации файлов журналов (унаследовано от lumberjack).
+// См. https://github.com/natefinch/lumberjack
+// Структура встроена в структуру конфигурации Conf.
+type RotateConf struct {
+	// Включить ротацию логов.
+	// По умолчанию (если задан false) ротаци отключена.
 	Enable bool `json:"enable"`
 
-	// Maximum size in megabytes of the log file before it gets
-	// rotated. It defaults to 100 megabytes.
+	// Максимальный размер файла журнала в мегабайтах до его ротации.
+	// По умолчанию (если задан 0) - 10 мегабайт.
 	MaxSize int `json:"max-size"`
 
-	// Maximum number of days to retain old log files based on the
-	// timestamp encoded in their filename. Note that a day is defined as 24
-	// hours and may not exactly correspond to calendar days due to daylight
-	// savings, leap seconds, etc. The default is not to remove old log files
-	// based on age.
+	// Максимальное количество дней для хранения старых файлов журнала зависит от
+	// временной метки, закодированной в их имени. Обратите внимание, что день
+	// определяется как 24 часы и могут не совсем соответствовать календарным
+	// дням из-за перехода на летнее время, високосных секунд и т.д.
+	// По умолчанию (если задано 0), то  старые файлы журналов после ротации
+	// не удаляются в зависимости от возраста.
+	//
+	// На практике рекомендуется задать значение около 10 дней.
 	MaxAge int `json:"max-age"`
 
-	// Maximum number of old log files to retain. The default/ is to retain
-	// all old log files (though MaxAge may still cause them to get deleted)
+	// Максимальное количество сохраняемых старых файлов журналов.
+	// По умолчанию (если задано 0), то сохраняются все старые файлы
+	// журналов (хотя MaxAge все равно может привести к их удалению).
+	//
+	// На практике рекомендуется задач ограничение, например в 100.
 	MaxBackups int `json:"max-backups"`
 
-	// LocalTime determines if the time used for formatting the timestamps in
-	// backup files is the computer's local time.  The default is to use UTC
-	// time.
+	// Местное время определяет, является ли время, используемое для
+	// форматирования временных меток в файлах резервных копий, местным
+	// временем компьютера. По умолчанию (если задано false), используется
+	// время UTC.
 	LocalTime bool `json:"local-time"`
 
-	// Compress determines if the rotated log files should be compressed
-	// using gzip. The default is not to perform compression.
+	// Compress определяет, следует ли сжимать ротируемый файлы журнала
+	// с помощью gzip. По умолчанию (если задано false) сжатие не выполняется.
 	Compress bool `json:"compress"`
-}
-
-// Create default logger structure
-func NewConf() Conf {
-	return Conf{
-		File:     FILE,
-		FileMode: FILE_MODE,
-		Level:    LEVEL,
-		Slog:     SLOG,
-		JSON:     JSON,
-		Tint:     TINT,
-		Time:     TIME,
-		TimeUS:   TIME_US,
-		TimeTint: TIME_TINT,
-		Src:      SRC,
-		SrcLong:  SRC_LONG,
-		SrcFunc:  SRC_FUNC,
-		NoExt:    NO_EXT,
-		NoLevel:  NO_LEVEL,
-		NoColor:  NO_COLOR,
-		Prefix:   PREFIX,
-		AddKey:   ADD_KEY,
-		AddValue: ADD_VALUE,
-		Rotate: RotateOpt{
-			Enable:     ROTATE_ENABLE,
-			MaxSize:    ROTATE_MAX_SIZE,
-			MaxAge:     ROTATE_MAX_AGE,
-			MaxBackups: ROTATE_MAX_BACKUPS,
-			LocalTime:  ROTATE_LOCAL_TIME,
-			Compress:   ROTATE_COMPRESS,
-		},
-	}
 }
 
 // EOF: "conf.go"

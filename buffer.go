@@ -1,58 +1,59 @@
 // File: "buffer.go"
-// Code based on https://github.com/lmittmann/tint/blob/main/buffer.go
+// Код на основе https://github.com/lmittmann/tint/blob/main/buffer.go
 
 package xlog
 
 import "sync"
 
-const BUFFER_DEFAULT_CAP = 1 << 10 // 1K
+const (
+	bufferDefaultCap = 1 * 1024  // 1 KB
+	bufferMaxSize    = 16 * 1024 // 16 KB
+)
 
-const BUFFER_MAX_SIZE = 16 << 10 // 16K
-
-type Buffer []byte
+type buffer []byte
 
 var bufPool = sync.Pool{
 	New: func() any {
-		b := make(Buffer, 0, BUFFER_DEFAULT_CAP)
-		return (*Buffer)(&b)
+		b := make(buffer, 0, bufferDefaultCap)
+		return (*buffer)(&b)
 	},
 }
 
-func NewBuffer() *Buffer {
-	return bufPool.Get().(*Buffer)
+func newBuffer() *buffer {
+	return bufPool.Get().(*buffer)
 }
 
-func (b *Buffer) Free() {
+func (b *buffer) Free() {
 	// To reduce peak allocation, return only smaller buffers to the pool
-	if cap(*b) <= BUFFER_MAX_SIZE {
+	if cap(*b) <= bufferMaxSize {
 		*b = (*b)[:0]
 		bufPool.Put(b)
 	}
 }
 
-func (b *Buffer) Write(bytes []byte) int {
+func (b *buffer) Write(bytes []byte) int {
 	*b = append(*b, bytes...)
 	return len(bytes)
 }
 
-func (b *Buffer) WriteByte(char byte) error {
+func (b *buffer) WriteByte(char byte) error {
 	*b = append(*b, char)
 	return nil
 }
 
-func (b *Buffer) WriteString(str string) int {
+func (b *buffer) WriteString(str string) int {
 	*b = append(*b, str...)
 	return len(str)
 }
 
-func (b *Buffer) WriteStringIf(ok bool, str string) int {
+func (b *buffer) WriteStringIf(ok bool, str string) int {
 	if !ok {
 		return 0
 	}
 	return b.WriteString(str)
 }
 
-func (b *Buffer) String() string {
+func (b *buffer) String() string {
 	return string(*b)
 }
 
