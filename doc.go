@@ -1,7 +1,7 @@
 // File: "doc.go"
 
 /*
-# X-logger
+# X Logger
 
 xlog - пакет реализует средства настройки *slog.Logger из
 стандартного пакета "log/slog".
