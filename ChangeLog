@@ -1,6 +1,7 @@
 2025.09.07: v2.0.0
  * big update/upgrade (перенос идей из проприетарного пакета clog)
  * add signal subpackage
+ * по умолчанию установлен формат "tinted"
 
 2025.02.13: v1.4.6
  * add LOG_PIPE env variable

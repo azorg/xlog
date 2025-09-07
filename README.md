@@ -1440,7 +1440,7 @@ type Conf struct {
     FileMode string `json:"file-mode"`
 
     // Формат журнала ("json", "logfmt", "tinted", "default").
-    // По умолчанию используется формат "default".
+    // По умолчанию используется формат "tinted" (!).
     // Вместо "json" допускается псевдоним "prod".
     // Вместо "logfmt" допускаются псевдонимы "slog" и "text".
     // Вместо "tinted" допускаются псевдонимы "tint" и "human".
