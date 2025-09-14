@@ -2256,7 +2256,7 @@ type Middleware func(next HandleFunc) HandleFunc
 func NewMiddleware(mwf MiddlewareFunc) Middleware
 ```
 
-NewMiddleware создает новый Middlewre на основе заданного метода\-обёртки с использованием замыканий
+NewMiddleware создает новый Middleware на основе заданного метода\-обёртки с использованием замыканий
 
 ```
 mwf - метод обёртки типа MiddlewareFunc

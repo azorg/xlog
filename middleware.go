@@ -33,7 +33,7 @@ type MiddlewareHandler struct {
 // Убедиться, что *MiddlewareHandler соответствует интерфейсу slog.Handler
 var _ slog.Handler = (*MiddlewareHandler)(nil)
 
-// NewMiddleware создает новый Middlewre на основе заданного метода-обёртки
+// NewMiddleware создает новый Middleware на основе заданного метода-обёртки
 // с использованием замыканий
 //
 //	mwf - метод обёртки типа MiddlewareFunc
