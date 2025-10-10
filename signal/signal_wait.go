@@ -5,7 +5,7 @@ package signal
 import (
 	"fmt"
 
-	"github.com/azorg/xlog"
+	"github.com/azorg/xlog/v2"
 )
 
 // Debug wait

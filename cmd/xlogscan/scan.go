@@ -8,7 +8,7 @@ import (
   "time"
   "fmt"
   
-	"github.com/azorg/xlog"
+	"github.com/azorg/xlog/v2"
 )
 
 // Сканировать файл журнала с целью проверки контрольных сумм

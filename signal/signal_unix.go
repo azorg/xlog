@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/azorg/xlog"
+	"github.com/azorg/xlog/v2"
 )
 
 // Setup Ctrl+C | Ctrl+Z | Ctrl+\ | SIGTERM | SIGHUP channels

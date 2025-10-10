@@ -5,7 +5,7 @@ package signal
 import (
 	"testing"
 
-	"github.com/azorg/xlog"
+	"github.com/azorg/xlog/v2"
 )
 
 // Создать набор опций (*xlog.Opt)

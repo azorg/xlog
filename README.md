@@ -3,7 +3,7 @@
 # xlog
 
 ```go
-import "github.com/azorg/xlog"
+import "github.com/azorg/xlog/v2"
 ```
 
 ### X Logger

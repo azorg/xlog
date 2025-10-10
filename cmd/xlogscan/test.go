@@ -9,8 +9,7 @@ import (
   "log/slog"
 	"context"
 	
-  //"github.com/gofrs/uuid"
-	"github.com/azorg/xlog"
+	"github.com/azorg/xlog/v2"
 )
 
 type valuer struct {}

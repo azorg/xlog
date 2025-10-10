@@ -6,8 +6,8 @@ import (
   "flag"
   "os"
 	
-	"github.com/azorg/xlog"
-	"github.com/azorg/xlog/signal"
+	"github.com/azorg/xlog/v2"
+	"github.com/azorg/xlog/v2/signal"
 )
 
 // Опции командной строки

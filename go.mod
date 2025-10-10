@@ -1,6 +1,6 @@
-module github.com/azorg/xlog
+module github.com/azorg/xlog/v2
 
-go 1.23.8
+go 1.24.7
 
 require (
 	github.com/gofrs/uuid v4.4.0+incompatible
