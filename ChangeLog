@@ -1,3 +1,12 @@
+2025.10.12 v2.0.4
+ * небольшой рефакторинг кода RateLimiter'а
+ * добавлен параметр FlushPeriodMs в RateLimitConf
+ * для диагностики добавлены атрибуты delayed и flushed в дополнении к
+ repeated
+ * в RateLimiter встроена "ленивая" горутина для своевременного сброса сообщений в журнал
+ * добавил переменную окружения LOG_RATE_LIMIT_FLUSH_PERIOD_MS
+ * добавил флаг -log-rate-limit-flush-period-ms
+
 2025.09.07: v2.0.0
  * big update/upgrade (перенос идей из проприетарного пакета clog)
  * add signal subpackage

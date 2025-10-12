@@ -15,15 +15,23 @@ import (
 // NewHandler создаёт новый *slog.Handler на основе заданной структуры
 // конфигурации conf с выдачей журнала через заданный writer.
 // Возвращаемый хендлер в соответствии с конфигурацией будет формировать
-// требуемые дополнительные атрибуты (goroutine, logId, logSum).
+// требуемые дополнительные атрибуты (goroutine, logId, logSum, repeated).
 // Заодно возвращается указатель на slog.LevelVar для возможности
 // безопасного управления уровнем логирования в будущем.
 //
 //	conf - параметры конфигурации логгера
 //	writer - писатель журнала
-//	mws - обёртки для метода Hanlde() интерфейса slog.Handler
-func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (
+//	mws - дополнительные обёртки для метода Hanlde() интерфейса slog.Handler
+func NewHandler(
+	conf Conf, writer io.Writer, mws ...Middleware) (
 	handler slog.Handler, _ *slog.LevelVar) {
+
+	// Если не отключен Rate Limiter, то обогадить перечень middleware
+	if !conf.RateLimit.Disable {
+		ms := make([]Middleware, 0, len(mws)+1)
+		ms = append(ms, NewMiddlewareRateLimit(conf.RateLimit))
+		mws = append(ms, mws...)
+	}
 
 	format := logFormat(conf.Format)
 	if format == logFmtDefault {
@@ -146,7 +154,6 @@ func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (
 					if !conf.SrcExt { // remove ".go" extension
 						src.File = removeGoExt(src.File)
 					}
-					//src.Function = getFuncName(7) // skip=7 (some magic)
 					src.Function = cropFuncName(src.Function)
 					if conf.SrcFunc { // add function name (not for JSON)
 						if src.Function != "" {
@@ -194,9 +201,8 @@ func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (
 	if format != logFmtJSON && conf.Src &&
 		conf.SrcFields != nil /*&& len(conf.SrcFields.Fields()) != 0*/ {
 		// Для текстовых форматов обогатить вывод conf.SrcFields
-		mw := NewMiddlewareWithFields(conf.SrcFields)
 		ms := make([]Middleware, 0, len(mws)+1)
-		ms = append(ms, mw)
+		ms = append(ms, NewMiddlewareWithFields(conf.SrcFields))
 		mws = append(ms, mws...)
 	}
 

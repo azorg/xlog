@@ -134,6 +134,12 @@ conf := xlog.Conf{
     "id":   "xservice", // идентификатор сервиса
     "host": "xservice.example.com",
   },
+  RateLimit: RateLimitConf{
+    Disable:       false, // не отключать Rate Limiter
+    MaxNum:        100,   // максимальное число однотипных сообщений [шт]
+    IntervalMs:    1000,  // за заданный период времени [мс]
+		FlushPeriodMs: 3000,  // период сброса задержанных сообщений [мс]
+   },
   Rotate: xlog.RotateConf{
     Enable:     true,
     MaxSize:    5,     // MB
@@ -226,6 +232,7 @@ logXY.Debug("vector", "z", 3)
 4. Ознакомьтесь с конструкторами для структуры Logger
 5. Ознакомьтесь с методами структуры Logger
 6. Ознакомиться с устройством Middleware
+7. Ознакомиться с устройством Rate Limiter'а
 
 В пакете есть функции глобального логгера эквивалентные методам структуры Logger \(например Infof\(\) или Fatal\(\)\)
 
@@ -370,6 +377,7 @@ logXY.Debug("vector", "z", 3)
   - [func NewMiddlewareForError\(logErr \*Logger\) Middleware](<#NewMiddlewareForError>)
   - [func NewMiddlewareMulti\(log \*Logger\) Middleware](<#NewMiddlewareMulti>)
   - [func NewMiddlewareNoPasswd\(\) Middleware](<#NewMiddlewareNoPasswd>)
+  - [func NewMiddlewareRateLimit\(conf RateLimitConf\) Middleware](<#NewMiddlewareRateLimit>)
   - [func NewMiddlewareWithFields\(fields FieldsProvider\) Middleware](<#NewMiddlewareWithFields>)
 - [type MiddlewareFunc](<#MiddlewareFunc>)
 - [type MiddlewareHandler](<#MiddlewareHandler>)
@@ -385,6 +393,7 @@ logXY.Debug("vector", "z", 3)
 - [type Opt](<#Opt>)
   - [func NewOpt\(prefixOpt ...string\) \*Opt](<#NewOpt>)
   - [func \(opt \*Opt\) UpdateConf\(conf \*Conf\)](<#Opt.UpdateConf>)
+- [type RateLimitConf](<#RateLimitConf>)
 - [type RotateConf](<#RotateConf>)
 - [type TintHandler](<#TintHandler>)
   - [func NewTintHandler\(w io.Writer, opts \*TintOptions\) \*TintHandler](<#NewTintHandler>)
@@ -462,7 +471,7 @@ const (
 )
 ```
 
-<a name="GoKey"></a>Дополнительные атрибуты для каждой записи в журнале
+<a name="GoKey"></a>Дополнительные атрибуты для каждой записи в журнале, добавляемые с помощью IdHandler
 
 ```go
 const (
@@ -524,6 +533,38 @@ const (
     LvlFatal  = "fatal"
     LvlPanic  = "panic"
     LvlSilent = "silent"
+)
+```
+
+<a name="DEFAULT_RATE_LIMIT_MAX_NUM"></a>Параметры ограничителя \(Rate Limiter'а\) по умолчанию
+
+```go
+const (
+    DEFAULT_RATE_LIMIT_MAX_NUM     = 100  // максимальное число однотипных сообщений [шт]
+    DEFAULT_RATE_LIMIT_INTERVAL_MS = 1000 // за заданный период времени [мс]
+
+    // Период проверки наличия готовых сгруппированных сообщений [мс]
+    DEFAULT_RATE_LIMIT_FLUSH_PERIOD_MS = 3000
+)
+```
+
+<a name="RepeatedKey"></a>Дополнительные атрибуты для записей в журнале, сгруппрованных с помощью Rate Limiter'а
+
+```go
+const (
+    // Ключ для числа сообщений объединенных в одно в случае срабатывания
+    // ограничений RateLimiter'а.
+    // Передается значение больше 1.
+    RepeatedKey = "repeated"
+
+    // Ключ для булевого атрибута, передается, если сообщение было задержано
+    // но не было объединения атрибутов с другими однотипными сообщениями.
+    DelayedKey = "delayed"
+
+    // Ключ для булевого атрибута, который свидетельствует о том,
+    // что выброс задержанных сообщений в журнал был в
+    // соответствии с заданным значением FlushPeriodMs
+    FlushedKey = "flushed"
 )
 ```
 
@@ -596,6 +637,12 @@ const ErrKey = "err"
 
 ## Variables
 
+<a name="ErrNilHandler"></a>Ошибка: не передан хендлер \(nil\)
+
+```go
+var ErrNilHandler = errors.New("handler is nil")
+```
+
 <a name="ErrNotRotatable"></a>Ошибка: "ротация файла журнала не предусмотрена конфигурацией"
 
 ```go
@@ -621,7 +668,7 @@ func Alertf(format string, args ...any)
 Alertf записывает сообщение в традиционный журнал по умолчанию \(LevelAlert\)
 
 <a name="Checksum"></a>
-## func [Checksum](<https://github.com/azorg/xlog/blob/main/checksum.go#L62-L63>)
+## func [Checksum](<https://github.com/azorg/xlog/blob/main/checksum.go#L63-L64>)
 
 ```go
 func Checksum(sum uint16, full, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -640,7 +687,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumAttr"></a>
-## func [ChecksumAttr](<https://github.com/azorg/xlog/blob/main/checksum.go#L248>)
+## func [ChecksumAttr](<https://github.com/azorg/xlog/blob/main/checksum.go#L249>)
 
 ```go
 func ChecksumAttr(key string, value any) uint16
@@ -649,7 +696,7 @@ func ChecksumAttr(key string, value any) uint16
 ChecksumAttr вычисляет контрольную сумму записи для одного произвольного атрибута key/value. Контрольная сумма вычисляется рекурсивно для всех вложенных структур с использованием рефлексии. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде.
 
 <a name="ChecksumAttrSlog"></a>
-## func [ChecksumAttrSlog](<https://github.com/azorg/xlog/blob/main/checksum.go#L189>)
+## func [ChecksumAttrSlog](<https://github.com/azorg/xlog/blob/main/checksum.go#L190>)
 
 ```go
 func ChecksumAttrSlog(key string, value slog.Value) uint16
@@ -658,7 +705,7 @@ func ChecksumAttrSlog(key string, value slog.Value) uint16
 ChecksumAttrSlog \- вычисляет контрольную сумму записи для одного атрибута slog key/value. Анализируется тип slog значения и если тип, не стандартный \(см. slogg.Kind\) применяется рефлексия \(таким образом рассчитываем немного поднять производительность\). Контрольная сумма вычисляется рекурсивно для всех вложенных структур. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде. Функция принимает key и slog.Value. Функция корректно обрабатывает slog группы.
 
 <a name="ChecksumFull"></a>
-## func [ChecksumFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L150-L151>)
+## func [ChecksumFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L151-L152>)
 
 ```go
 func ChecksumFull(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -686,7 +733,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumSimple"></a>
-## func [ChecksumSimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L87-L88>)
+## func [ChecksumSimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L88-L89>)
 
 ```go
 func ChecksumSimple(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -1010,18 +1057,18 @@ func Logf(level slog.Level, format string, args ...any)
 Log записывает сообщение в традиционный журнал по умолчанию с заданным уровнем журналирования
 
 <a name="NewHandler"></a>
-## func [NewHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L25-L26>)
+## func [NewHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L25-L27>)
 
 ```go
 func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (handler slog.Handler, _ *slog.LevelVar)
 ```
 
-NewHandler создаёт новый \*slog.Handler на основе заданной структуры конфигурации conf с выдачей журнала через заданный writer. Возвращаемый хендлер в соответствии с конфигурацией будет формировать требуемые дополнительные атрибуты \(goroutine, logId, logSum\). Заодно возвращается указатель на slog.LevelVar для возможности безопасного управления уровнем логирования в будущем.
+NewHandler создаёт новый \*slog.Handler на основе заданной структуры конфигурации conf с выдачей журнала через заданный writer. Возвращаемый хендлер в соответствии с конфигурацией будет формировать требуемые дополнительные атрибуты \(goroutine, logId, logSum, repeated\). Заодно возвращается указатель на slog.LevelVar для возможности безопасного управления уровнем логирования в будущем.
 
 ```
 conf - параметры конфигурации логгера
 writer - писатель журнала
-mws - обёртки для метода Hanlde() интерфейса slog.Handler
+mws - дополнительные обёртки для метода Hanlde() интерфейса slog.Handler
 ```
 
 <a name="NewLog"></a>
@@ -1043,7 +1090,7 @@ func NewLogWriter(ctx context.Context, logger *slog.Logger, level slog.Level) io
 NewLogWiter создает io.Writer на основе заданного slog логгера, в который может быть перенаправлен поток байт с заданным уровнем логирования. Записываемые в заданный io.Wtiter будут направляться в заданный slog.Logger в виде сообщений \(атрибуты использоваться не будут\). Функция может использоваться для построения legacy логгеров на основе пакета "log" с перенаправлением журнала в структурированный журнал slog.
 
 <a name="NewStdHandler"></a>
-## func [NewStdHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L235>)
+## func [NewStdHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L241>)
 
 ```go
 func NewStdHandler(conf Conf, mws ...Middleware) (slog.Handler, *slog.LevelVar)
@@ -1310,7 +1357,7 @@ func Warnf(format string, args ...any)
 Warnf записывает сообщение в традиционный журнал по умолчанию \(LevelWarn\)
 
 <a name="ChecksumRes"></a>
-## type [ChecksumRes](<https://github.com/azorg/xlog/blob/main/checksum.go#L35-L45>)
+## type [ChecksumRes](<https://github.com/azorg/xlog/blob/main/checksum.go#L36-L46>)
 
 ChecksumRes \- это результат проверки контрольной суммы JSON записи. Пользователь может сверить поля LogSum и Sum. Заполняется по результатам выполнения функции ChecksumVerify\(\).
 
@@ -1329,7 +1376,7 @@ type ChecksumRes struct {
 ```
 
 <a name="ChecksumVerify"></a>
-### func [ChecksumVerify](<https://github.com/azorg/xlog/blob/main/checksum.go#L373>)
+### func [ChecksumVerify](<https://github.com/azorg/xlog/blob/main/checksum.go#L374>)
 
 ```go
 func ChecksumVerify(full bool, rec map[string]any) (ChecksumRes, error)
@@ -1343,7 +1390,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifyFull"></a>
-### func [ChecksumVerifyFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L525>)
+### func [ChecksumVerifyFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L526>)
 
 ```go
 func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error)
@@ -1358,7 +1405,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifySimple"></a>
-### func [ChecksumVerifySimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L393>)
+### func [ChecksumVerifySimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L394>)
 
 ```go
 func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error)
@@ -1373,7 +1420,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumRes.SourceToString"></a>
-### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/xlog/blob/main/checksum.go#L633>)
+### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/xlog/blob/main/checksum.go#L634>)
 
 ```go
 func (res ChecksumRes) SourceToString() string
@@ -1382,7 +1429,7 @@ func (res ChecksumRes) SourceToString() string
 SourceToString \- преобразуем map/JSON представление ссылки на исходные тексты \(file/function/line\) в строку вида "file:function():line". Функция может быть полезна для визуализации поля Source структуры ChecksumRes.
 
 <a name="Conf"></a>
-## type [Conf](<https://github.com/azorg/xlog/blob/main/conf.go#L6-L189>)
+## type [Conf](<https://github.com/azorg/xlog/blob/main/conf.go#L6-L193>)
 
 Conf \- структура конфигурации для настройки логгера
 
@@ -1568,6 +1615,10 @@ type Conf struct {
     // Дополнительное значение, добавляемое ко всем записям в журнале
     AddValue any `json:"add-value"`
 
+    // Настройка ограничителя вывода в журнал большого числа сходных сообщений
+    // за единицу времени, т.н. Rate Limiter.
+    RateLimit RateLimitConf `json:"rateLimit"`
+
     // Настройка параметров ротации журналов, если вывод направлен в файл
     Rotate RotateConf `json:"rotate"`
 }
@@ -1639,7 +1690,7 @@ type HandleFunc func(context.Context, slog.Record) error
 ```
 
 <a name="IdHandler"></a>
-## type [IdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L65-L75>)
+## type [IdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L66-L76>)
 
 IdHandler \- это обертка заданного slog.Handler'а для возможности обогащения журнала дополнительными атрибутами \(goroutine, logId, logSum\). Кроме того, IdHandler поддерживает Middleware для метода Handle интерфейса slog.Handler.
 
@@ -1650,7 +1701,7 @@ type IdHandler struct {
 ```
 
 <a name="NewIdHandler"></a>
-### func [NewIdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L90-L93>)
+### func [NewIdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L91-L94>)
 
 ```go
 func NewIdHandler(handler slog.Handler, opts *IdOptions, sum uint16, mws ...Middleware) *IdHandler
@@ -1666,7 +1717,7 @@ mws - цепочка Middleware для оборачивания метода Han
 ```
 
 <a name="IdHandler.Enabled"></a>
-### func \(\*IdHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/idhandler.go#L115>)
+### func \(\*IdHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/idhandler.go#L116>)
 
 ```go
 func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
@@ -1675,7 +1726,7 @@ func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.Handle"></a>
-### func \(\*IdHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/idhandler.go#L215>)
+### func \(\*IdHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/idhandler.go#L216>)
 
 ```go
 func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
@@ -1684,7 +1735,7 @@ func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithAttrs"></a>
-### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/idhandler.go#L281>)
+### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/idhandler.go#L282>)
 
 ```go
 func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -1693,7 +1744,7 @@ func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithGroup"></a>
-### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/idhandler.go#L341>)
+### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/idhandler.go#L342>)
 
 ```go
 func (h *IdHandler) WithGroup(name string) slog.Handler
@@ -1702,7 +1753,7 @@ func (h *IdHandler) WithGroup(name string) slog.Handler
 Метод WithGroup\(\) реализует интерфейс slog.Handler
 
 <a name="IdOptions"></a>
-## type [IdOptions](<https://github.com/azorg/xlog/blob/main/idhandler.go#L32-L53>)
+## type [IdOptions](<https://github.com/azorg/xlog/blob/main/idhandler.go#L33-L54>)
 
 Структура конфигурации для IdHandler'а
 
@@ -2293,6 +2344,21 @@ func NewMiddlewareNoPasswd() Middleware
 
 Пример middleware, который заменяет значения атрибутов passwd, password на \*\*\*\*\*\*\*\*. Данная функция приведена скорее для примера использования Middleware, чем для практического применения.
 
+<a name="NewMiddlewareRateLimit"></a>
+### func [NewMiddlewareRateLimit](<https://github.com/azorg/xlog/blob/main/ratelimit.go#L307>)
+
+```go
+func NewMiddlewareRateLimit(conf RateLimitConf) Middleware
+```
+
+NewMiddlewareRateLimit возвращает Middleware для реализации ограничителя большого числа повторяющихся в журнале сообщений т.н. RateLimiter'а.
+
+Определение повторов сообщений производится по уровню логированию \(level\) и тексту сообщения \(msg\).
+
+```
+conf - конфигурация RateLimeter'а
+```
+
 <a name="NewMiddlewareWithFields"></a>
 ### func [NewMiddlewareWithFields](<https://github.com/azorg/xlog/blob/main/middleware.go#L108>)
 
@@ -2408,7 +2474,7 @@ func (mw MultiWriter) Write(data []byte) (int, error)
 Write реализует интерфейс io.Writer для MultiWriter'а. Производится последовательная запись данных data во все io.Writer'ы MultiWriter'а. Ошибки не возвращаются.
 
 <a name="Opt"></a>
-## type [Opt](<https://github.com/azorg/xlog/blob/main/flag.go#L25-L53>)
+## type [Opt](<https://github.com/azorg/xlog/blob/main/flag.go#L25-L57>)
 
 Структура управления журналированием на основе опций командной строки. Типовое использование:
 
@@ -2422,51 +2488,55 @@ opt.UpdateConf(&conf) // обогатить conf опциями командно
 log := xlog.New(conf) // создать логгер (*xlog.Logger)
 logger := log.Logger  // получить указатель на *slog.Logger
 
-log.Notice("Привет, X-logger", "version", "1.0.0")
+log.Notice("Привет, Логгер", "version", "1.0.0")
 mylog := logger.With("app", "helloworld")
 mylog.Info("application started")
 ```
 
 ```go
 type Opt struct {
-    Level            string // -log-level
-    Pipe             string // -log-pipe
-    File             string // -log-file
-    FileMode         string // -log-file-mode
-    Format           string // -log-format
-    GoId             string // -log-goid
-    Id               string // -log-id
-    Sum              string // -log-sum
-    SumFull          string // -log-sum-full
-    SumChain         string // -log-sum-chain
-    SumAlone         string // -log-sum-alone
-    Time             string // -log-time
-    TimeLocal        string // -log-time-local
-    TimeMicro        string // -log-time-micro
-    TimeFormat       string // -log-time-format
-    Src              string // -log-src
-    SrcPkg           string // -log-src-pkg
-    SrcFunc          string // -log-src-func
-    SrcExt           string // -log-src-ext
-    Color            string // -log-color
-    LevelOff         string // -log-level-off
-    Rotate           string // -log-rotate
-    RotateMaxSize    string // -log-rotate-max-size
-    RotateMaxAge     string // -log-rotate-max-age
-    RotateMaxBackups string // -log-rotate-max-backups
-    RotateLocalTime  string // -log-rotate-local-time
-    RotateCompress   string // -log-rotate-compress
+    Level                  string // -log-level
+    Pipe                   string // -log-pipe
+    File                   string // -log-file
+    FileMode               string // -log-file-mode
+    Format                 string // -log-format
+    GoId                   string // -log-goid
+    Id                     string // -log-id
+    Sum                    string // -log-sum
+    SumFull                string // -log-sum-full
+    SumChain               string // -log-sum-chain
+    SumAlone               string // -log-sum-alone
+    Time                   string // -log-time
+    TimeLocal              string // -log-time-local
+    TimeMicro              string // -log-time-micro
+    TimeFormat             string // -log-time-format
+    Src                    string // -log-src
+    SrcPkg                 string // -log-src-pkg
+    SrcFunc                string // -log-src-func
+    SrcExt                 string // -log-src-ext
+    Color                  string // -log-color
+    LevelOff               string // -log-level-off
+    RateLimit              string // -log-rate-limit
+    RateLimitMaxNum        string // -log-rate-limit-max-num
+    RateLimitIntervalMs    string // -log-rate-limit-interval-ms
+    RateLimitFlushPeriodMs string // -log-rate-limit-flush-period-ms
+    Rotate                 string // -log-rotate
+    RotateMaxSize          string // -log-rotate-max-size
+    RotateMaxAge           string // -log-rotate-max-age
+    RotateMaxBackups       string // -log-rotate-max-backups
+    RotateLocalTime        string // -log-rotate-local-time
+    RotateCompress         string // -log-rotate-compress
 }
 ```
 
 <a name="NewOpt"></a>
-### func [NewOpt](<https://github.com/azorg/xlog/blob/main/flag.go#L91>)
+### func [NewOpt](<https://github.com/azorg/xlog/blob/main/flag.go#L99>)
 
 ```go
 func NewOpt(prefixOpt ...string) *Opt
 ```
 
-NewOpt создаёт набор опций командной строки с параметрами для X\-logger'а. После создания опций Opt можно использовать стандартный вызов flag.Parse\(\) для заполнения полей структуры. Булевы переменные обрабатываются так же как и переменные окружения.
+NewOpt создаёт набор опций командной строки с параметрами логгера. После создания опций Opt можно использовать стандартный вызов flag.Parse\(\) для заполнения полей структуры. Булевы переменные обрабатываются так же как и переменные окружения.
 
 ```
 prefixOpt - опциональный префикс (по умолчанию "log-")
@@ -2475,37 +2545,41 @@ prefixOpt - опциональный префикс (по умолчанию "lo
 Приложения могут включить в свой usage\-вывод следующий текст:
 
 ```
--log-level <level>              - log level (flood/trace/debug/info/notice/warm/error/crit)
--log-pipe <pipe>                - log pipe (stdout/stderr/null)
--log-file <file>                - log file path
--log-file-mode <perm>           - log file mode (0640, 0600, 0644)
--log-format <format>            - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
--log-goid <on/off>              - force on/off goroutine id for each record (goroutine)
--log-id <on/off>                - force on/off id (UUID) for each record (logId)
--log-sum <on/off>               - force on/off check sum for each record
--log-sum-full <on/off>          - force on/off calculate full sum for earch record
--log-sum-chain <on/off>         - force on/off check sum chain
--log-sum-alone <on/off>         - force on/off add check sum as alone atribute (logSum)
--log-time <on/off>              - force on/off timestamp
--log-time-local <on/off>        - use local time (UTC by default)
--log-time-micro <on/off>        - force on/off microseconds in timestamp
--log-time-format <fmt>          - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
--log-src <on/off>               - force on/off log source file name and line number
--log-src-pkg <on/off>           - force on/off log source directory/file name and line number
--log-src-func <on/off>          - force on/off log function name
--log-src-ext <on/off>           - force enable/disable show ".go" extension of source file name
--log-color <on/off>             - force enable/disable tinted colors (ANSI/Escape)
--log-level-off <true/false>     - force disable/enable level output
--log-rotate <on/off>            - force on/off log rotate
--log-rotate-max-size <mb>       - rotate max size (begabytes)
--log-rotate-max-age <days>      - rotate max age (days)
--log-rotate-max-backups <num>   - rotate max backup files
--log-rotate-local-time <yes/no> - use localtime (default UTC)
--log-rotate-compress <on/off>   - on/off compress (gzip)
+-log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
+-log-pipe <pipe>                     - log pipe (stdout/stderr/null)
+-log-file <file>                     - log file path
+-log-file-mode <perm>                - log file mode (0640, 0600, 0644)
+-log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+-log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
+-log-id <on/off>                     - force on/off id (UUID) for each record (logId)
+-log-sum <on/off>                    - force on/off check sum for each record
+-log-sum-full <on/off>               - force on/off calculate full sum for earch record
+-log-sum-chain <on/off>              - force on/off check sum chain
+-log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
+-log-time <on/off>                   - force on/off timestamp
+-log-time-local <on/off>             - use local time (UTC by default)
+-log-time-micro <on/off>             - force on/off microseconds in timestamp
+-log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+-log-src <on/off>                    - force on/off log source file name and line number
+-log-src-pkg <on/off>                - force on/off log source directory/file name and line number
+-log-src-func <on/off>               - force on/off log function name
+-log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+-log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
+-log-level-off <true/false>          - force disable/enable level output
+-log-rate-limit <on/off>             - force enable/disable rate limiter
+-log-rate-limit-max-num <int>        - maximal number of rate limit messages
+-log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
+-log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
+-log-rotate <on/off>                 - force on/off log rotate
+-log-rotate-max-size <mb>            - rotate max size (begabytes)
+-log-rotate-max-age <days>           - rotate max age (days)
+-log-rotate-max-backups <num>        - rotate max backup files
+-log-rotate-local-time <yes/no>      - use localtime (default UTC)
+-log-rotate-compress <on/off>        - on/off compress (gzip)
 ```
 
 <a name="Opt.UpdateConf"></a>
-### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/xlog/blob/main/flag.go#L132>)
+### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/xlog/blob/main/flag.go#L144>)
 
 ```go
 func (opt *Opt) UpdateConf(conf *Conf)
@@ -2513,8 +2587,53 @@ func (opt *Opt) UpdateConf(conf *Conf)
 
 UpdateConf обогащает структуру конфигурации логгера опциями командной строки. Если соответствующие опции командной строки не заданы, то поля структуры конфигурации conf не модифицируются.
 
+<a name="RateLimitConf"></a>
+## type [RateLimitConf](<https://github.com/azorg/xlog/blob/main/conf.go#L220-L248>)
+
+Настройка ограничителя вывода в журнал большого числа сходных сообщений за единицу времени, т.н. Rate Limiter.
+
+Для параметров MaxNum и IntervalMs при активации функции ограничителя по умолчанию используются значения 100 и 1000 соответственно, что соответствует ограничению однотипных сообщений на уровне 100 шт/сек.
+
+Однотипными сообщениями считаются сообщения с одинаковым уровнем логирования \(level\) и одинаковым сообщением \(msg\).
+
+При превышении заданного лимита однотипные сообщение "группируются" путем объединения всех заданных атрибутов общий key/value список \(последние значения переписывают более ранние\) и добавляется дополнительный атрибут \`repeated\` целого типа, который указывает сколько сообщений было объедено в одно. В качестве метки времени сообщения передается время последнего сообщения.
+
+Данный Rate Limiter не ограничивает сообщения с разными строками сообщений. Другими словами, при использовании сахарных методов типа Infof/Errorf логгера, если у сообщений будет меняться основная строка, то такие сообщения не будут считаться однотипными. В целом этот эффект может использоваться и тогда, когда требуется обойти работу ограничителя для особо важной последовательности событий \(в этом случае в текст сообщения нужно добавить изменяющуюся уникальную часть\).
+
+```go
+type RateLimitConf struct {
+    // Деактивировать Rate Limiter (по умолчанию активирован)
+    Disable bool `json:"disable"`
+
+    // Максимальное число сообщение с однотипным level/msg допустимое
+    // за заданное время.
+    // Нулевое значение по умолчанию соответствует 100 шт сообщений.
+    // Чем большее число задано, тем больше оперативной памяти потребуется
+    // для работы ограничителя при группировке сообщений.
+    MaxNum int `json:"maxNum"`
+
+    // Временной интервал (размер временного скользящего окна) в течении
+    // которого однотипные сообщение до MaxNum штук не группируются,
+    // задается в миллисекундах.
+    // Нулевое значение по умолчанию принимается за интервал в 1000 мс.
+    IntervalMs int `json:"intervalMs"`
+
+    // Период проверки и выброса в журнал сгруппированных сообщений,
+    // необходимый для того, чтобы сгруппированные сообщения своевременно
+    // попадали в журнал в условиях, когда других сообщений нет,
+    // задается в миллисекундах.
+    //
+    // Нулевое значение по умолчанию принимается за интервал в 5000 мс.
+    //
+    // При задании отрицательного значения таймер проверки не создается
+    // и сгруппированные сообщения попадают в журнал в момент формирования
+    // новых записей (сгруппированные выдаются перед).
+    FlushPeriodMs int `json:"flushPeriodMs"`
+}
+```
+
 <a name="RotateConf"></a>
-## type [RotateConf](<https://github.com/azorg/xlog/blob/main/conf.go#L194-L229>)
+## type [RotateConf](<https://github.com/azorg/xlog/blob/main/conf.go#L253-L288>)
 
 Параметры ротации файлов журналов \(унаследовано от lumberjack\). См. https://github.com/natefinch/lumberjack Структура встроена в структуру конфигурации Conf.
 
@@ -2558,7 +2677,7 @@ type RotateConf struct {
 ```
 
 <a name="TintHandler"></a>
-## type [TintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L89-L108>)
+## type [TintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L88-L107>)
 
 Структура данных TintHandler, соответствующего интерфейсу slog.Handler. TintHandler \- это минималистский slog.Handler с подсветкой на основе исходников с "github.com/lmittmann/tint" \(https://github.com/lmittmann/tint/blob/main/handler.go\).
 
@@ -2572,7 +2691,7 @@ type RotateConf struct {
 - всю подсветку на основе ANSII символов можно отключить
 - поддержка \`ReplaceAtt\` как у slog.TextHandler/slog.JSONHandler
 
-Что изменено в рамках xlog:
+Что изменено в рамках "Clear Logger":
 
 - упрощена подкраска ошибок
 - добавлен вывод имени пакета/функции \(по опциям: sourcePkg/source/Func\)
@@ -2590,7 +2709,7 @@ type TintHandler struct {
 ```
 
 <a name="NewTintHandler"></a>
-### func [NewTintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L114>)
+### func [NewTintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L113>)
 
 ```go
 func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler
@@ -2599,7 +2718,7 @@ func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler
 Создать новый Tinted хендлер, соответствующий slog.Handler'у
 
 <a name="TintHandler.Enabled"></a>
-### func \(\*TintHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/tint.go#L165>)
+### func \(\*TintHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/tint.go#L164>)
 
 ```go
 func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
@@ -2608,7 +2727,7 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.Handle"></a>
-### func \(\*TintHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/tint.go#L275>)
+### func \(\*TintHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/tint.go#L270>)
 
 ```go
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
@@ -2617,7 +2736,7 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithAttrs"></a>
-### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/tint.go#L292>)
+### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/tint.go#L287>)
 
 ```go
 func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -2626,7 +2745,7 @@ func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithGroup"></a>
-### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/tint.go#L310>)
+### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/tint.go#L305>)
 
 ```go
 func (h *TintHandler) WithGroup(name string) slog.Handler
@@ -2635,7 +2754,7 @@ func (h *TintHandler) WithGroup(name string) slog.Handler
 Метод WithGroup\(\) реализует интерфейс slog.Handler
 
 <a name="TintOptions"></a>
-## type [TintOptions](<https://github.com/azorg/xlog/blob/main/tint.go#L29-L63>)
+## type [TintOptions](<https://github.com/azorg/xlog/blob/main/tint.go#L28-L62>)
 
 Структура конфигурации для создания TintHandler'а
 

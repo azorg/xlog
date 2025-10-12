@@ -1,4 +1,4 @@
-package xlog // import "github.com/azorg/xlog"
+package xlog // import "github.com/azorg/xlog/v2"
 
 # X Logger
 
@@ -182,6 +182,12 @@ middleware, создаваемая с помощью функции NewMiddlewar
         "id":   "xservice", // идентификатор сервиса
         "host": "xservice.example.com",
       },
+      RateLimit: RateLimitConf{
+        Disable:       false, // не отключать Rate Limiter
+        MaxNum:        100,   // максимальное число однотипных сообщений [шт]
+        IntervalMs:    1000,  // за заданный период времени [мс]
+    		FlushPeriodMs: 3000,  // период сброса задержанных сообщений [мс]
+       },
       Rotate: xlog.RotateConf{
         Enable:     true,
         MaxSize:    5,     // MB
@@ -279,6 +285,7 @@ ChecksumVerify.
  4. Ознакомьтесь с конструкторами для структуры Logger
  5. Ознакомьтесь с методами структуры Logger
  6. Ознакомиться с устройством Middleware
+ 7. Ознакомиться с устройством Rate Limiter'а
 
 В пакете есть функции глобального логгера эквивалентные методам структуры Logger
 (например Infof() или Fatal())
@@ -345,7 +352,8 @@ const (
 	// Ключ контрольной суммы в журнале (если SumAlone=true)
 	SumKey = "logSum"
 )
-    Дополнительные атрибуты для каждой записи в журнале
+    Дополнительные атрибуты для каждой записи в журнале, добавляемые с помощью
+    IdHandler
 
 const (
 	LevelFlood  = slog.Level(-12) // FLOOD  (-12)
@@ -389,6 +397,33 @@ const (
 )
     Строковые идентификаторы уровней логирования для представления в структуре
     конфигурации
+
+const (
+	DEFAULT_RATE_LIMIT_MAX_NUM     = 100  // максимальное число однотипных сообщений [шт]
+	DEFAULT_RATE_LIMIT_INTERVAL_MS = 1000 // за заданный период времени [мс]
+
+	// Период проверки наличия готовых сгруппированных сообщений [мс]
+	DEFAULT_RATE_LIMIT_FLUSH_PERIOD_MS = 3000
+)
+    Параметры ограничителя (Rate Limiter'а) по умолчанию
+
+const (
+	// Ключ для числа сообщений объединенных в одно в случае срабатывания
+	// ограничений RateLimiter'а.
+	// Передается значение больше 1.
+	RepeatedKey = "repeated"
+
+	// Ключ для булевого атрибута, передается, если сообщение было задержано
+	// но не было объединения атрибутов с другими однотипными сообщениями.
+	DelayedKey = "delayed"
+
+	// Ключ для булевого атрибута, который свидетельствует о том,
+	// что выброс задержанных сообщений в журнал был в
+	// соответствии с заданным значением FlushPeriodMs
+	FlushedKey = "flushed"
+)
+    Дополнительные атрибуты для записей в журнале, сгруппрованных с помощью Rate
+    Limiter'а
 
 const (
 	// Метка времени как у стандартного логгера в Go
@@ -444,6 +479,9 @@ const ErrKey = "err"
 
 
 VARIABLES
+
+var ErrNilHandler = errors.New("handler is nil")
+    Ошибка: не передан хендлер (nil)
 
 var ErrNotRotatable = errors.New("logger is not rotatable")
     Ошибка: "ротация файла журнала не предусмотрена конфигурацией"
@@ -692,18 +730,19 @@ func Logf(level slog.Level, format string, args ...any)
     Log записывает сообщение в традиционный журнал по умолчанию с заданным
     уровнем журналирования
 
-func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (
+func NewHandler(
+	conf Conf, writer io.Writer, mws ...Middleware) (
 	handler slog.Handler, _ *slog.LevelVar)
     NewHandler создаёт новый *slog.Handler на основе заданной структуры
     конфигурации conf с выдачей журнала через заданный writer. Возвращаемый
     хендлер в соответствии с конфигурацией будет формировать требуемые
-    дополнительные атрибуты (goroutine, logId, logSum). Заодно возвращается
-    указатель на slog.LevelVar для возможности безопасного управления уровнем
-    логирования в будущем.
+    дополнительные атрибуты (goroutine, logId, logSum, repeated). Заодно
+    возвращается указатель на slog.LevelVar для возможности безопасного
+    управления уровнем логирования в будущем.
 
         conf - параметры конфигурации логгера
         writer - писатель журнала
-        mws - обёртки для метода Hanlde() интерфейса slog.Handler
+        mws - дополнительные обёртки для метода Hanlde() интерфейса slog.Handler
 
 func NewLog(conf Conf) *log.Logger
     NewLog создает стандартный (legacy) логгер и настраивает его с учётом
@@ -1110,6 +1149,10 @@ type Conf struct {
 	// Дополнительное значение, добавляемое ко всем записям в журнале
 	AddValue any `json:"add-value"`
 
+	// Настройка ограничителя вывода в журнал большого числа сходных сообщений
+	// за единицу времени, т.н. Rate Limiter.
+	RateLimit RateLimitConf `json:"rateLimit"`
+
 	// Настройка параметров ротации журналов, если вывод направлен в файл
 	Rotate RotateConf `json:"rotate"`
 }
@@ -1459,6 +1502,15 @@ func NewMiddlewareNoPasswd() Middleware
     на ********. Данная функция приведена скорее для примера использования
     Middleware, чем для практического применения.
 
+func NewMiddlewareRateLimit(conf RateLimitConf) Middleware
+    NewMiddlewareRateLimit возвращает Middleware для реализации ограничителя
+    большого числа повторяющихся в журнале сообщений т.н. RateLimiter'а.
+
+    Определение повторов сообщений производится по уровню логированию (level) и
+    тексту сообщения (msg).
+
+        conf - конфигурация RateLimeter'а
+
 func NewMiddlewareWithFields(fields FieldsProvider) Middleware
     Пример Middleware, который добавляет (в начало) записи заданные
     дополнительные поля. Пример не корректно работает с группами - все поля
@@ -1511,33 +1563,37 @@ func (mw MultiWriter) Write(data []byte) (int, error)
     Ошибки не возвращаются.
 
 type Opt struct {
-	Level            string // -log-level
-	Pipe             string // -log-pipe
-	File             string // -log-file
-	FileMode         string // -log-file-mode
-	Format           string // -log-format
-	GoId             string // -log-goid
-	Id               string // -log-id
-	Sum              string // -log-sum
-	SumFull          string // -log-sum-full
-	SumChain         string // -log-sum-chain
-	SumAlone         string // -log-sum-alone
-	Time             string // -log-time
-	TimeLocal        string // -log-time-local
-	TimeMicro        string // -log-time-micro
-	TimeFormat       string // -log-time-format
-	Src              string // -log-src
-	SrcPkg           string // -log-src-pkg
-	SrcFunc          string // -log-src-func
-	SrcExt           string // -log-src-ext
-	Color            string // -log-color
-	LevelOff         string // -log-level-off
-	Rotate           string // -log-rotate
-	RotateMaxSize    string // -log-rotate-max-size
-	RotateMaxAge     string // -log-rotate-max-age
-	RotateMaxBackups string // -log-rotate-max-backups
-	RotateLocalTime  string // -log-rotate-local-time
-	RotateCompress   string // -log-rotate-compress
+	Level                  string // -log-level
+	Pipe                   string // -log-pipe
+	File                   string // -log-file
+	FileMode               string // -log-file-mode
+	Format                 string // -log-format
+	GoId                   string // -log-goid
+	Id                     string // -log-id
+	Sum                    string // -log-sum
+	SumFull                string // -log-sum-full
+	SumChain               string // -log-sum-chain
+	SumAlone               string // -log-sum-alone
+	Time                   string // -log-time
+	TimeLocal              string // -log-time-local
+	TimeMicro              string // -log-time-micro
+	TimeFormat             string // -log-time-format
+	Src                    string // -log-src
+	SrcPkg                 string // -log-src-pkg
+	SrcFunc                string // -log-src-func
+	SrcExt                 string // -log-src-ext
+	Color                  string // -log-color
+	LevelOff               string // -log-level-off
+	RateLimit              string // -log-rate-limit
+	RateLimitMaxNum        string // -log-rate-limit-max-num
+	RateLimitIntervalMs    string // -log-rate-limit-interval-ms
+	RateLimitFlushPeriodMs string // -log-rate-limit-flush-period-ms
+	Rotate                 string // -log-rotate
+	RotateMaxSize          string // -log-rotate-max-size
+	RotateMaxAge           string // -log-rotate-max-age
+	RotateMaxBackups       string // -log-rotate-max-backups
+	RotateLocalTime        string // -log-rotate-local-time
+	RotateCompress         string // -log-rotate-compress
 }
     Структура управления журналированием на основе опций командной строки.
     Типовое использование:
@@ -1551,52 +1607,110 @@ type Opt struct {
         log := xlog.New(conf) // создать логгер (*xlog.Logger)
         logger := log.Logger  // получить указатель на *slog.Logger
 
-        log.Notice("Привет, X-logger", "version", "1.0.0")
+        log.Notice("Привет, Логгер", "version", "1.0.0")
         mylog := logger.With("app", "helloworld")
         mylog.Info("application started")
 
 func NewOpt(prefixOpt ...string) *Opt
-    NewOpt создаёт набор опций командной строки с параметрами для X-logger'а.
-    После создания опций Opt можно использовать стандартный вызов flag.Parse()
-    для заполнения полей структуры. Булевы переменные обрабатываются так же как
-    и переменные окружения.
+    NewOpt создаёт набор опций командной строки с параметрами логгера. После
+    создания опций Opt можно использовать стандартный вызов flag.Parse() для
+    заполнения полей структуры. Булевы переменные обрабатываются так же как и
+    переменные окружения.
 
         prefixOpt - опциональный префикс (по умолчанию "log-")
 
     Приложения могут включить в свой usage-вывод следующий текст:
 
-        -log-level <level>              - log level (flood/trace/debug/info/notice/warm/error/crit)
-        -log-pipe <pipe>                - log pipe (stdout/stderr/null)
-        -log-file <file>                - log file path
-        -log-file-mode <perm>           - log file mode (0640, 0600, 0644)
-        -log-format <format>            - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
-        -log-goid <on/off>              - force on/off goroutine id for each record (goroutine)
-        -log-id <on/off>                - force on/off id (UUID) for each record (logId)
-        -log-sum <on/off>               - force on/off check sum for each record
-        -log-sum-full <on/off>          - force on/off calculate full sum for earch record
-        -log-sum-chain <on/off>         - force on/off check sum chain
-        -log-sum-alone <on/off>         - force on/off add check sum as alone atribute (logSum)
-        -log-time <on/off>              - force on/off timestamp
-        -log-time-local <on/off>        - use local time (UTC by default)
-        -log-time-micro <on/off>        - force on/off microseconds in timestamp
-        -log-time-format <fmt>          - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
-        -log-src <on/off>               - force on/off log source file name and line number
-        -log-src-pkg <on/off>           - force on/off log source directory/file name and line number
-        -log-src-func <on/off>          - force on/off log function name
-        -log-src-ext <on/off>           - force enable/disable show ".go" extension of source file name
-        -log-color <on/off>             - force enable/disable tinted colors (ANSI/Escape)
-        -log-level-off <true/false>     - force disable/enable level output
-        -log-rotate <on/off>            - force on/off log rotate
-        -log-rotate-max-size <mb>       - rotate max size (begabytes)
-        -log-rotate-max-age <days>      - rotate max age (days)
-        -log-rotate-max-backups <num>   - rotate max backup files
-        -log-rotate-local-time <yes/no> - use localtime (default UTC)
-        -log-rotate-compress <on/off>   - on/off compress (gzip)
+        -log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
+        -log-pipe <pipe>                     - log pipe (stdout/stderr/null)
+        -log-file <file>                     - log file path
+        -log-file-mode <perm>                - log file mode (0640, 0600, 0644)
+        -log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+        -log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
+        -log-id <on/off>                     - force on/off id (UUID) for each record (logId)
+        -log-sum <on/off>                    - force on/off check sum for each record
+        -log-sum-full <on/off>               - force on/off calculate full sum for earch record
+        -log-sum-chain <on/off>              - force on/off check sum chain
+        -log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
+        -log-time <on/off>                   - force on/off timestamp
+        -log-time-local <on/off>             - use local time (UTC by default)
+        -log-time-micro <on/off>             - force on/off microseconds in timestamp
+        -log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+        -log-src <on/off>                    - force on/off log source file name and line number
+        -log-src-pkg <on/off>                - force on/off log source directory/file name and line number
+        -log-src-func <on/off>               - force on/off log function name
+        -log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+        -log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
+        -log-level-off <true/false>          - force disable/enable level output
+        -log-rate-limit <on/off>             - force enable/disable rate limiter
+        -log-rate-limit-max-num <int>        - maximal number of rate limit messages
+        -log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
+        -log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
+        -log-rotate <on/off>                 - force on/off log rotate
+        -log-rotate-max-size <mb>            - rotate max size (begabytes)
+        -log-rotate-max-age <days>           - rotate max age (days)
+        -log-rotate-max-backups <num>        - rotate max backup files
+        -log-rotate-local-time <yes/no>      - use localtime (default UTC)
+        -log-rotate-compress <on/off>        - on/off compress (gzip)
 
 func (opt *Opt) UpdateConf(conf *Conf)
     UpdateConf обогащает структуру конфигурации логгера опциями командной
     строки. Если соответствующие опции командной строки не заданы, то поля
     структуры конфигурации conf не модифицируются.
+
+type RateLimitConf struct {
+	// Деактивировать Rate Limiter (по умолчанию активирован)
+	Disable bool `json:"disable"`
+
+	// Максимальное число сообщение с однотипным level/msg допустимое
+	// за заданное время.
+	// Нулевое значение по умолчанию соответствует 100 шт сообщений.
+	// Чем большее число задано, тем больше оперативной памяти потребуется
+	// для работы ограничителя при группировке сообщений.
+	MaxNum int `json:"maxNum"`
+
+	// Временной интервал (размер временного скользящего окна) в течении
+	// которого однотипные сообщение до MaxNum штук не группируются,
+	// задается в миллисекундах.
+	// Нулевое значение по умолчанию принимается за интервал в 1000 мс.
+	IntervalMs int `json:"intervalMs"`
+
+	// Период проверки и выброса в журнал сгруппированных сообщений,
+	// необходимый для того, чтобы сгруппированные сообщения своевременно
+	// попадали в журнал в условиях, когда других сообщений нет,
+	// задается в миллисекундах.
+	//
+	// Нулевое значение по умолчанию принимается за интервал в 5000 мс.
+	//
+	// При задании отрицательного значения таймер проверки не создается
+	// и сгруппированные сообщения попадают в журнал в момент формирования
+	// новых записей (сгруппированные выдаются перед).
+	FlushPeriodMs int `json:"flushPeriodMs"`
+}
+    Настройка ограничителя вывода в журнал большого числа сходных сообщений за
+    единицу времени, т.н. Rate Limiter.
+
+    Для параметров MaxNum и IntervalMs при активации функции ограничителя по
+    умолчанию используются значения 100 и 1000 соответственно, что соответствует
+    ограничению однотипных сообщений на уровне 100 шт/сек.
+
+    Однотипными сообщениями считаются сообщения с одинаковым уровнем логирования
+    (level) и одинаковым сообщением (msg).
+
+    При превышении заданного лимита однотипные сообщение "группируются" путем
+    объединения всех заданных атрибутов общий key/value список (последние
+    значения переписывают более ранние) и добавляется дополнительный атрибут
+    `repeated` целого типа, который указывает сколько сообщений было объедено
+    в одно. В качестве метки времени сообщения передается время последнего
+    сообщения.
+
+    Данный Rate Limiter не ограничивает сообщения с разными строками сообщений.
+    Другими словами, при использовании сахарных методов типа Infof/Errorf
+    логгера, если у сообщений будет меняться основная строка, то такие сообщения
+    не будут считаться однотипными. В целом этот эффект может использоваться
+    и тогда, когда требуется обойти работу ограничителя для особо важной
+    последовательности событий (в этом случае в текст сообщения нужно добавить
+    изменяющуюся уникальную часть).
 
 type RotateConf struct {
 	// Включить ротацию логов.
@@ -1656,7 +1770,7 @@ type TintHandler struct {
       - всю подсветку на основе ANSII символов можно отключить
       - поддержка `ReplaceAtt` как у slog.TextHandler/slog.JSONHandler
 
-    Что изменено в рамках xlog:
+    Что изменено в рамках "Clear Logger":
       - упрощена подкраска ошибок
       - добавлен вывод имени пакета/функции (по опциям: sourcePkg/source/Func)
       - есть возможность отключить метку уровня (noLevel)

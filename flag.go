@@ -19,40 +19,44 @@ const DefaultFlagPrefix = "log-"
 //	log := xlog.New(conf) // создать логгер (*xlog.Logger)
 //	logger := log.Logger  // получить указатель на *slog.Logger
 //
-//	log.Notice("Привет, X-logger", "version", "1.0.0")
+//	log.Notice("Привет, Логгер", "version", "1.0.0")
 //	mylog := logger.With("app", "helloworld")
 //	mylog.Info("application started")
 type Opt struct {
-	Level            string // -log-level
-	Pipe             string // -log-pipe
-	File             string // -log-file
-	FileMode         string // -log-file-mode
-	Format           string // -log-format
-	GoId             string // -log-goid
-	Id               string // -log-id
-	Sum              string // -log-sum
-	SumFull          string // -log-sum-full
-	SumChain         string // -log-sum-chain
-	SumAlone         string // -log-sum-alone
-	Time             string // -log-time
-	TimeLocal        string // -log-time-local
-	TimeMicro        string // -log-time-micro
-	TimeFormat       string // -log-time-format
-	Src              string // -log-src
-	SrcPkg           string // -log-src-pkg
-	SrcFunc          string // -log-src-func
-	SrcExt           string // -log-src-ext
-	Color            string // -log-color
-	LevelOff         string // -log-level-off
-	Rotate           string // -log-rotate
-	RotateMaxSize    string // -log-rotate-max-size
-	RotateMaxAge     string // -log-rotate-max-age
-	RotateMaxBackups string // -log-rotate-max-backups
-	RotateLocalTime  string // -log-rotate-local-time
-	RotateCompress   string // -log-rotate-compress
+	Level                  string // -log-level
+	Pipe                   string // -log-pipe
+	File                   string // -log-file
+	FileMode               string // -log-file-mode
+	Format                 string // -log-format
+	GoId                   string // -log-goid
+	Id                     string // -log-id
+	Sum                    string // -log-sum
+	SumFull                string // -log-sum-full
+	SumChain               string // -log-sum-chain
+	SumAlone               string // -log-sum-alone
+	Time                   string // -log-time
+	TimeLocal              string // -log-time-local
+	TimeMicro              string // -log-time-micro
+	TimeFormat             string // -log-time-format
+	Src                    string // -log-src
+	SrcPkg                 string // -log-src-pkg
+	SrcFunc                string // -log-src-func
+	SrcExt                 string // -log-src-ext
+	Color                  string // -log-color
+	LevelOff               string // -log-level-off
+	RateLimit              string // -log-rate-limit
+	RateLimitMaxNum        string // -log-rate-limit-max-num
+	RateLimitIntervalMs    string // -log-rate-limit-interval-ms
+	RateLimitFlushPeriodMs string // -log-rate-limit-flush-period-ms
+	Rotate                 string // -log-rotate
+	RotateMaxSize          string // -log-rotate-max-size
+	RotateMaxAge           string // -log-rotate-max-age
+	RotateMaxBackups       string // -log-rotate-max-backups
+	RotateLocalTime        string // -log-rotate-local-time
+	RotateCompress         string // -log-rotate-compress
 }
 
-// NewOpt создаёт набор опций командной строки с параметрами для X-logger'а.
+// NewOpt создаёт набор опций командной строки с параметрами логгера.
 // После создания опций Opt можно использовать стандартный вызов flag.Parse()
 // для заполнения полей структуры. Булевы переменные обрабатываются так же
 // как и переменные окружения.
@@ -61,33 +65,37 @@ type Opt struct {
 //
 // Приложения могут включить в свой usage-вывод следующий текст:
 //
-//	-log-level <level>              - log level (flood/trace/debug/info/notice/warm/error/crit)
-//	-log-pipe <pipe>                - log pipe (stdout/stderr/null)
-//	-log-file <file>                - log file path
-//	-log-file-mode <perm>           - log file mode (0640, 0600, 0644)
-//	-log-format <format>            - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
-//	-log-goid <on/off>              - force on/off goroutine id for each record (goroutine)
-//	-log-id <on/off>                - force on/off id (UUID) for each record (logId)
-//	-log-sum <on/off>               - force on/off check sum for each record
-//	-log-sum-full <on/off>          - force on/off calculate full sum for earch record
-//	-log-sum-chain <on/off>         - force on/off check sum chain
-//	-log-sum-alone <on/off>         - force on/off add check sum as alone atribute (logSum)
-//	-log-time <on/off>              - force on/off timestamp
-//	-log-time-local <on/off>        - use local time (UTC by default)
-//	-log-time-micro <on/off>        - force on/off microseconds in timestamp
-//	-log-time-format <fmt>          - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
-//	-log-src <on/off>               - force on/off log source file name and line number
-//	-log-src-pkg <on/off>           - force on/off log source directory/file name and line number
-//	-log-src-func <on/off>          - force on/off log function name
-//	-log-src-ext <on/off>           - force enable/disable show ".go" extension of source file name
-//	-log-color <on/off>             - force enable/disable tinted colors (ANSI/Escape)
-//	-log-level-off <true/false>     - force disable/enable level output
-//	-log-rotate <on/off>            - force on/off log rotate
-//	-log-rotate-max-size <mb>       - rotate max size (begabytes)
-//	-log-rotate-max-age <days>      - rotate max age (days)
-//	-log-rotate-max-backups <num>   - rotate max backup files
-//	-log-rotate-local-time <yes/no> - use localtime (default UTC)
-//	-log-rotate-compress <on/off>   - on/off compress (gzip)
+//	-log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
+//	-log-pipe <pipe>                     - log pipe (stdout/stderr/null)
+//	-log-file <file>                     - log file path
+//	-log-file-mode <perm>                - log file mode (0640, 0600, 0644)
+//	-log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+//	-log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
+//	-log-id <on/off>                     - force on/off id (UUID) for each record (logId)
+//	-log-sum <on/off>                    - force on/off check sum for each record
+//	-log-sum-full <on/off>               - force on/off calculate full sum for earch record
+//	-log-sum-chain <on/off>              - force on/off check sum chain
+//	-log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
+//	-log-time <on/off>                   - force on/off timestamp
+//	-log-time-local <on/off>             - use local time (UTC by default)
+//	-log-time-micro <on/off>             - force on/off microseconds in timestamp
+//	-log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+//	-log-src <on/off>                    - force on/off log source file name and line number
+//	-log-src-pkg <on/off>                - force on/off log source directory/file name and line number
+//	-log-src-func <on/off>               - force on/off log function name
+//	-log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+//	-log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
+//	-log-level-off <true/false>          - force disable/enable level output
+//	-log-rate-limit <on/off>             - force enable/disable rate limiter
+//	-log-rate-limit-max-num <int>        - maximal number of rate limit messages
+//	-log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
+//	-log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
+//	-log-rotate <on/off>                 - force on/off log rotate
+//	-log-rotate-max-size <mb>            - rotate max size (begabytes)
+//	-log-rotate-max-age <days>           - rotate max age (days)
+//	-log-rotate-max-backups <num>        - rotate max backup files
+//	-log-rotate-local-time <yes/no>      - use localtime (default UTC)
+//	-log-rotate-compress <on/off>        - on/off compress (gzip)
 func NewOpt(prefixOpt ...string) *Opt {
 	prefix := DefaultFlagPrefix
 	if len(prefixOpt) != 0 {
@@ -116,6 +124,10 @@ func NewOpt(prefixOpt ...string) *Opt {
 	flag.StringVar(&opt.SrcExt, prefix+"src-ext", "", "force enable/disable show '.go' extension of source file name")
 	flag.StringVar(&opt.Color, prefix+"color", "", "force enable/disable tinted colors")
 	flag.StringVar(&opt.LevelOff, prefix+"level-off", "", "force disable/enable level output")
+	flag.StringVar(&opt.RateLimit, prefix+"rate-limit", "", "force enable/disable rate limiter")
+	flag.StringVar(&opt.RateLimitMaxNum, prefix+"rate-limit-max-num", "", "maximal number of rate limit messages")
+	flag.StringVar(&opt.RateLimitIntervalMs, prefix+"rate-limit-interval-ms", "", "rate limiter interval [ms]")
+	flag.StringVar(&opt.RateLimitFlushPeriodMs, prefix+"rate-limit-flush-period-ms", "", "rate limiter flush period [ms]")
 	flag.StringVar(&opt.Rotate, prefix+"rotate", "", "force enable/disable log rotate")
 	flag.StringVar(&opt.RotateMaxSize, prefix+"rotate-max-size", "", "rotate max size (begabytes)")
 	flag.StringVar(&opt.RotateMaxAge, prefix+"rotate-max-age", "", "rotate max age (days)")
@@ -198,6 +210,18 @@ func (opt *Opt) UpdateConf(conf *Conf) {
 	}
 	if opt.LevelOff != "" {
 		conf.LevelOff = StringToBool(opt.LevelOff)
+	}
+	if opt.RateLimit != "" {
+		conf.RateLimit.Disable = !StringToBool(opt.RateLimit)
+	}
+	if opt.RateLimitMaxNum != "" {
+		conf.RateLimit.MaxNum = StringToInt(opt.RateLimitMaxNum)
+	}
+	if opt.RateLimitIntervalMs != "" {
+		conf.RateLimit.IntervalMs = StringToInt(opt.RateLimitIntervalMs)
+	}
+	if opt.RateLimitFlushPeriodMs != "" {
+		conf.RateLimit.FlushPeriodMs = StringToInt(opt.RateLimitFlushPeriodMs)
 	}
 	if opt.Rotate != "" {
 		conf.Rotate.Enable = StringToBool(opt.Rotate)

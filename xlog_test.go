@@ -73,7 +73,7 @@ func TestSimple(t *testing.T) {
 	// Обогадить conf опциями командной строки
 	opt.UpdateConf(&conf)
 
-	// Настроить все глобальные логгеры однотипно
+	// Настроить все глобальные логеры однотипно
 	Setup(conf)
 
 	// Обновить уровень логирования глобального логгера
@@ -99,7 +99,7 @@ func TestLevels(t *testing.T) {
 	}
 }
 
-// Проверить вывод логгера по умолчанию,
+// Проверить вывод "Clear Logger'а" по умолчанию,
 // но с обработкой переменных окружения
 func TestFullDefaultEnv(t *testing.T) {
 	// Структура конфигурации по умолчанию
@@ -121,18 +121,18 @@ func TestFullDefaultEnv(t *testing.T) {
 	// Обогадить conf опциями командной строки
 	opt.UpdateConf(&conf)
 
-	// Настроить все глобальные логгеры однотипно
+	// Настроить все глобальные логеры однотипно
 	Setup(conf)
 
-	slog.Info("slog.Info() - default X-logger", "someInt", 42)
+	slog.Info("slog.Info() - default Clear Logger", "someInt", 42)
 	level := LevelFromString(conf.Level)
 	WithGroup("conf").Notice("log level from Conf structure", "level", LevelToString(level))
-	slog.Info("full X-logger configuration", "conf", conf)
+	slog.Info("full Clear Logger configuration", "conf", conf)
 	slog.Info("error message", "err1", errors.New("some error"))
 
 	for _, lvl := range lvls {
 		level := LevelFromString(lvl)
-		Log(context.Background(), level, "default X-logger", "level", LevelToString(level))
+		Log(context.Background(), level, "default Clear Logger", "level", LevelToString(level))
 	}
 
 	log.Print("log.Print()")
@@ -149,11 +149,11 @@ func TestYetAnother(t *testing.T) {
 	// Обгадить conf опциями командной строки
 	opt.UpdateConf(&conf)
 
-	// Создать logger (*xlog.Logger)
+	// Создать X-Logger (*xlog.Logger)
 	logger := New(conf)
 	slogger := logger.Logger
 
-	logger.Notice("Привет, X-Log",
+	logger.Notice("Привет, Clear Log",
 		"version", "1.0.0", "logLevel", logger.GetLvl())
 	mylog := slogger.With("app", "helloworld")
 	mylog.Info("application started")
@@ -178,7 +178,7 @@ func TestRotate(t *testing.T) {
 	conf.Src = true      // add source file:line to log
 	conf.SrcPkg = false  // add package name
 	conf.SrcFunc = true  // add function mame to log
-	conf.SrcExt = false  // remove ".go" extension
+	conf.SrcExt = true   // don't remove ".go" extension
 	conf.ColorOff = true // color OFF
 	//conf.Time = true
 	conf.TimeFormat = "dateTimeMilli" // add custom timestamp
@@ -256,7 +256,7 @@ func TestMate(t *testing.T) {
 	// Обогатить conf опциями командной строки
 	opt.UpdateConf(&conf)
 
-	// Создать logger (*xlog.Logger)
+	// Создать Logger (*xlog.Logger)
 	log := New(conf)
 	log = log.With("system", logSystem)
 
@@ -315,7 +315,7 @@ func TestGroup(t *testing.T) {
 	// Обогатить conf опциями командной строки
 	opt.UpdateConf(&conf)
 
-	// Создать logger (*xlog.Logger)
+	// Создать Logger (*xlog.Logger)
 	log := New(conf)
 
 	log.Info("root", "pi", 3.14)
@@ -338,7 +338,7 @@ func TestMiddleware(t *testing.T) {
 	// Создать логгер для ошибок с выводом "os.Stderr"
 	conf := Conf{Pipe: "stderr", Level: "debug", Format: "tint", ColorOff: false,
 		Src: false, SrcPkg: false, SrcFunc: true, SrcFields: &srcFields,
-		GoId: true, IdOn: true, SumOn: true, SumAlone: true,
+		GoId: true, IdOn: false, SumOn: true, SumAlone: true,
 		AddKey: "errorLog", AddValue: true}
 	//Env(&conf)            // обогатить структуру конфигурации переменными окружения
 	//opt.UpdateConf(&conf) // обогатить conf опциями командной строки
@@ -529,6 +529,61 @@ func TestMultiHandler(t *testing.T) {
 	log.Debug("Hello, Multi Handler!", "cnt", 1) // попадет в JSON файл и на stdout
 	log.Trace("Hello, Multi Handler!", "cnt", 2) // попадет только на stdout
 	log.Flood("Hello, Multi Handler!", "cnt", 3) // будет пропущено
+}
+
+// Проверка "Rate Limiter'а"
+func TestRateLimit(t *testing.T) {
+
+	// Настройки журнала
+	conf := Conf{
+		Level:     "debug",
+		Pipe:      "stderr",
+		Format:    "tint",
+		ColorOff:  false,
+		GoId:      false,
+		IdOn:      false,
+		SumOn:     false,
+		SumFull:   false,
+		SumAlone:  false,
+		TimeLocal: true, // UTC off
+		Src:       true,
+		SrcPkg:    false,
+		SrcFunc:   false,
+		SrcFields: &Fields{
+			"id": "rl-tst", // идентификатор сервиса
+		},
+		RateLimit: RateLimitConf{
+			Disable:       false,
+			MaxNum:        10,
+			IntervalMs:    1000,
+			FlushPeriodMs: 2000,
+		},
+		Rotate: RotateConf{
+			Enable:     false,
+			MaxSize:    5,     // MB
+			MaxAge:     7,     // days
+			MaxBackups: 100,   // number
+			LocalTime:  false, // UTC
+			Compress:   true,
+		},
+	}
+
+	// Создать логгер (хендлер) для вывода в файл
+	log := New(conf)
+
+	log.Notice("test rate limiter start")
+
+	for i := 0; i < 11; i++ {
+		log.Info("repeated message", "i", i, fmt.Sprintf("cnt%d", i), i)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	time.Sleep(5000 * time.Millisecond)
+
+	//i := 99
+	//log.Info("repeated message", "i", i, fmt.Sprintf("cnt%d", i), i)
+
+	log.Notice("test rate limiter finish")
 }
 
 // EOF: "xlog_test.go"

@@ -3,7 +3,7 @@ PRJ = "github.com/azorg/xlog/v2"
 # Version, git hash
 MAJOR := 2
 MINOR := 0
-BUILD := 3
+BUILD := 4
 VERSION := $(MAJOR).$(MINOR).$(BUILD)
 GIT_HASH := `git rev-parse HEAD | head -c 7`
 BUILD_TIME := `date '+%Y.%m.%d_%H:%M'`

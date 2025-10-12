@@ -12,7 +12,6 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -76,7 +75,7 @@ type TintOptions struct {
 //   - всю подсветку на основе ANSII символов можно отключить
 //   - поддержка `ReplaceAtt` как у slog.TextHandler/slog.JSONHandler
 //
-// Что изменено в рамках xlog:
+// Что изменено в рамках "Clear Logger":
 //   - упрощена подкраска ошибок
 //   - добавлен вывод имени пакета/функции (по опциям: sourcePkg/source/Func)
 //   - есть возможность отключить метку уровня (noLevel)
@@ -203,22 +202,18 @@ func (h *TintHandler) format(r slog.Record) []byte {
 
 	// Добавить ссылку на исходный текст
 	if h.addSource {
-		fs := runtime.CallersFrames([]uintptr{r.PC})
-		f, _ := fs.Next()
-		if f.File != "" {
-			src := &slog.Source{
-				Function: f.Function,
-				File:     f.File,
-				Line:     f.Line,
-			}
-			if !h.sourcePkg {
-				src.File = path.Base(src.File) // only file name
+		if src := getSource(r.PC); src != nil {
+			if h.sourcePkg { // only package directory + file name
+				dir, file := filepath.Split(src.File)
+				src.File = filepath.Join(filepath.Base(dir), file)
+			} else { // only file name
+				src.File = path.Base(src.File)
 			}
 			if h.noExt { // remove ".go" extension
 				src.File = removeGoExt(src.File)
 			}
 			if h.sourceFunc { // add function name
-				funcName := getFuncName(5) // skip=5 (some magic)
+				funcName := cropFuncName(src.Function)
 				if funcName != "" {
 					src.File += ":" + funcName + "()"
 				}
@@ -359,15 +354,14 @@ func (h *TintHandler) appendLevel(buf *buffer, level slog.Level) {
 	}
 }
 
-// appensSource добавляет ссылку на исходный текст в буфер
+// appensSource добавляет ссылку на исходный текст в буфер (файл:строка)
 func (h *TintHandler) appendSource(buf *buffer, src *slog.Source) {
 	if !h.noColor {
 		buf.WriteString(ansiSource)
 		defer buf.WriteString(ansiReset)
 	}
 
-	dir, file := filepath.Split(src.File)
-	buf.WriteString(filepath.Join(filepath.Base(dir), file))
+	buf.WriteString(src.File)
 	buf.WriteByte(':')
 	buf.WriteString(strconv.Itoa(src.Line))
 }
@@ -473,7 +467,7 @@ func (h *TintHandler) appendValue(buf *buffer, v slog.Value, quote bool) {
 			// Оригинальный код:
 			//appendString(buf, fmt.Sprintf("%+v", cv), quote, !h.noColor)
 
-			// Модернизированный код для форматирования структур
+			// Модернизированный код "Clear Logger" для форматирования структур
 			appendString(buf, Sprint(cv), quote, !h.noColor)
 		} // switch
 	}

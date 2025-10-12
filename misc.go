@@ -5,11 +5,13 @@ package xlog
 import (
 	"fmt"
 	"io/fs"
+	"log/slog" // go>=1.21
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	// FIXME: "golang.org/x/exp/slog" // экспериментальный пакет для go=1.20 только
 )
 
 // removeGoExt обрезает расширение ".go" из имени файла
@@ -33,12 +35,26 @@ func cropFuncName(function string) string {
 	return strings.Join(parts[1:], ".") // FIXME
 }
 
-// getFuncName возвращает имя текущей функции
-func getFuncName(skip int) string {
-	pc, _, _, _ := runtime.Caller(skip)
-	function := runtime.FuncForPC(pc).Name()
-	return cropFuncName(function)
+// getSource формирует slog.Source на основе поля PC в slog.Record
+func getSource(pc uintptr) *slog.Source {
+	fs := runtime.CallersFrames([]uintptr{pc})
+	f, _ := fs.Next()
+	if f.Func == nil {
+		return nil
+	}
+	return &slog.Source{
+		Function: f.Function,
+		File:     f.File,
+		Line:     f.Line,
+	}
 }
+
+// getFuncName возвращает имя текущей функции
+//func getFuncName(skip int) string {
+//	pc, _, _, _ := runtime.Caller(skip)
+//	function := runtime.FuncForPC(pc).Name()
+//	return cropFuncName(function)
+//}
 
 // fileMode преобразует права доступа к файлу в восьмеричной Unix нотации
 // (например "0644") к типу fs.FileMode
