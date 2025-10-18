@@ -21,6 +21,13 @@ func Sprint(val any) string {
 	return sprint("", val)
 }
 
+// Типы данных соответсвующему данному интерфейсу
+// выводятся с помощью метода String() без рефлексии
+// с помощью функции Sprint() при использовании TintHandler
+type Stringer interface {
+	String() string
+}
+
 // Sprint - преобразует структуру данных в строку в формате
 // близком к стандартному формату "%+v", но с обработкой
 // указателей и вложенных структур.
@@ -29,6 +36,11 @@ func Sprint(val any) string {
 //
 //	prefix - префикс "&", если данная структура была доступна по указателю
 func sprint(prefix string, val any) string {
+	stringer, ok := val.(Stringer)
+	if ok {
+		return stringer.String()
+	}
+
 	switch v := val.(type) {
 	case error:
 		return v.Error()

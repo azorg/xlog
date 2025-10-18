@@ -1,3 +1,8 @@
+2025.10.18 v2.0.5
+ * для того, чтобы к примеру net.TCPAddr выводился с помощью метода String()
+ стандартной библиотеки, а не выводился как структура в TintHandler
+ поправил код Sprint() опять (см. интерфейс Stringer и его использование)
+
 2025.10.12 v2.0.4
  * небольшой рефакторинг кода RateLimiter'а
  * добавлен параметр FlushPeriodMs в RateLimitConf
@@ -132,7 +137,7 @@
  * add "flag.go"
 
 2023.11.22-23:
- * add "buffer.go" from "github.com/lmittmann/tint" sources 
+ * add "buffer.go" from "github.com/lmittmann/tint" sources
  * add "tint.go" based on "github.com/lmittmann/tint" sources (experimental)
  * update "level.go" (xlog.Level implements slog.Lever intrerface now)
  * add "color.go"

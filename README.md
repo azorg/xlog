@@ -395,6 +395,7 @@ logXY.Debug("vector", "z", 3)
   - [func \(opt \*Opt\) UpdateConf\(conf \*Conf\)](<#Opt.UpdateConf>)
 - [type RateLimitConf](<#RateLimitConf>)
 - [type RotateConf](<#RotateConf>)
+- [type Stringer](<#Stringer>)
 - [type TintHandler](<#TintHandler>)
   - [func NewTintHandler\(w io.Writer, opts \*TintOptions\) \*TintHandler](<#NewTintHandler>)
   - [func \(h \*TintHandler\) Enabled\(\_ context.Context, level slog.Level\) bool](<#TintHandler.Enabled>)
@@ -2676,6 +2677,17 @@ type RotateConf struct {
 }
 ```
 
+<a name="Stringer"></a>
+## type [Stringer](<https://github.com/azorg/xlog/blob/main/sprint.go#L27-L29>)
+
+Типы данных соответсвующему данному интерфейсу выводятся с помощью метода String\(\) без рефлексии с помощью функции Sprint\(\) при использовании TintHandler
+
+```go
+type Stringer interface {
+    String() string
+}
+```
+
 <a name="TintHandler"></a>
 ## type [TintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L88-L107>)
 
@@ -2691,14 +2703,14 @@ type RotateConf struct {
 - всю подсветку на основе ANSII символов можно отключить
 - поддержка \`ReplaceAtt\` как у slog.TextHandler/slog.JSONHandler
 
-Что изменено в рамках "Clear Logger":
+Что изменено в рамках данного проекта:
 
 - упрощена подкраска ошибок
 - добавлен вывод имени пакета/функции \(по опциям: sourcePkg/source/Func\)
 - есть возможность отключить метку уровня \(noLevel\)
 - добавлена возможность исключения вывода расширения файла ".go"
 - добавлена возможность вывода метки времени в UTC
-- добавлена возможность вывода вложенных структур, в т.ч. по указателям \(см. функцию String\(\)\)
+- добавлена возможность вывода вложенных структур, в т.ч. по указателям \(см. функцию Sprint\(\)\)
 - несколько улучшено представление чисел с плавающей точкой в журнале \(как в JSON\)
 - время в атрибутах выводится в формате time.RFC3339Nano \(а не просто как t.String\(\)\)
 

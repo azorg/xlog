@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog" // go>=1.21
+	"net"
 	"testing"
 	"time"
 	// FIXME: "golang.org/x/exp/slog" // экспериментальный пакет для go=1.20 только
@@ -99,7 +100,7 @@ func TestLevels(t *testing.T) {
 	}
 }
 
-// Проверить вывод "Clear Logger'а" по умолчанию,
+// Проверить вывод Logger'а по умолчанию,
 // но с обработкой переменных окружения
 func TestFullDefaultEnv(t *testing.T) {
 	// Структура конфигурации по умолчанию
@@ -124,15 +125,15 @@ func TestFullDefaultEnv(t *testing.T) {
 	// Настроить все глобальные логеры однотипно
 	Setup(conf)
 
-	slog.Info("slog.Info() - default Clear Logger", "someInt", 42)
+	slog.Info("slog.Info() - default logger", "someInt", 42)
 	level := LevelFromString(conf.Level)
 	WithGroup("conf").Notice("log level from Conf structure", "level", LevelToString(level))
-	slog.Info("full Clear Logger configuration", "conf", conf)
+	slog.Info("full logger configuration", "conf", conf)
 	slog.Info("error message", "err1", errors.New("some error"))
 
 	for _, lvl := range lvls {
 		level := LevelFromString(lvl)
-		Log(context.Background(), level, "default Clear Logger", "level", LevelToString(level))
+		Log(context.Background(), level, "default logger", "level", LevelToString(level))
 	}
 
 	log.Print("log.Print()")
@@ -153,7 +154,7 @@ func TestYetAnother(t *testing.T) {
 	logger := New(conf)
 	slogger := logger.Logger
 
-	logger.Notice("Привет, Clear Log",
+	logger.Notice("Привет, Logger",
 		"version", "1.0.0", "logLevel", logger.GetLvl())
 	mylog := slogger.With("app", "helloworld")
 	mylog.Info("application started")
@@ -584,6 +585,34 @@ func TestRateLimit(t *testing.T) {
 	//log.Info("repeated message", "i", i, fmt.Sprintf("cnt%d", i), i)
 
 	log.Notice("test rate limiter finish")
+}
+
+func TestToString(t *testing.T) {
+	fmt.Println("\n>>> Test convert net.TCPAddr to string")
+	conf := Conf{
+		Level:     "debug",
+		Pipe:      "stderr",
+		Format:    "tint",
+		ColorOff:  false,
+		GoId:      false,
+		IdOn:      false,
+		SumOn:     false,
+		SumFull:   false,
+		SumAlone:  false,
+		TimeLocal: true, // UTC off
+		Src:       true,
+		SrcPkg:    false,
+		SrcFunc:   false,
+	}
+	Env(&conf)
+	log := New(conf)
+
+	addr := &net.TCPAddr{
+		IP:   net.ParseIP("192.168.1.2"),
+		Port: 8443,
+		Zone: "eth1",
+	}
+	log.Info("parse TCPAddr", "addr", addr)
 }
 
 // EOF: "xlog_test.go"
