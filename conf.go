@@ -186,7 +186,7 @@ type Conf struct {
 
 	// Настройка ограничителя вывода в журнал большого числа сходных сообщений
 	// за единицу времени, т.н. Rate Limiter.
-	RateLimit RateLimitConf `json:"rateLimit"`
+	RateLimit RateLimitConf `json:"rate-limit"`
 
 	// Настройка параметров ротации журналов, если вывод направлен в файл
 	Rotate RotateConf `json:"rotate"`
