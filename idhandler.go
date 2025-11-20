@@ -56,7 +56,7 @@ type IdOptions struct {
 // Структура безопасного хранения контрольной суммы
 type idSum struct {
 	val uint16     // значение CRC16
-	mx  sync.Mutex // мьютекс для безопасного совместного доступа к val
+	mu  sync.Mutex // мьютекс для безопасного совместного доступа к val
 }
 
 // IdHandler - это обертка заданного slog.Handler'а для возможности
@@ -71,7 +71,7 @@ type IdHandler struct {
 	valuers []slog.Attr   // корневые атрибуты содержащие slog.LogValuer'ы
 	groups  []string      // цепочка открытых групп
 	attrs   [][]slog.Attr // атрибуты открытых групп
-	mx      sync.Mutex    // мьютекс для безопасного совместного доступа к groups/attrs
+	mu      sync.Mutex    // мьютекс для безопасного совместного доступа
 	mws     []Middleware  // обёртки для метода Handle
 }
 
@@ -114,6 +114,8 @@ func NewIdHandler(
 
 // Метод Enabled() реализует интерфейс slog.Handler
 func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	return h.handler.Enabled(ctx, level)
 }
 
@@ -216,12 +218,12 @@ func (h *IdHandler) middleware(ctx context.Context, r slog.Record) error {
 func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error {
 	if h.opts.SumChain {
 		// Захватить мьютек доступа к общей контрольной суммы до завершения вывода
-		h.sum.mx.Lock()
-		defer h.sum.mx.Unlock()
+		h.sum.mu.Lock()
+		defer h.sum.mu.Unlock()
 	}
 
-	h.mx.Lock()
-	defer h.mx.Unlock()
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	if len(h.groups) == 0 && len(h.valuers) == 0 {
 		// Нет открытых групп, нет slog.LogValuer'ов.
@@ -280,8 +282,8 @@ func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error {
 
 // Метод WithAttrs() реализует интерфейс slog.Handler
 func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	h.mx.Lock()
-	defer h.mx.Unlock()
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	// valuers - признак того, что в списке атрибутов найдено
 	// значение с "отложенным" вычислением (slog.LogValuer или FieldsProvider)
@@ -344,8 +346,8 @@ func (h *IdHandler) WithGroup(name string) slog.Handler {
 		return h
 	}
 
-	h.mx.Lock()
-	defer h.mx.Unlock()
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	// Открыть новую группу (добавить пустой слайс атрибутов)
 	return &IdHandler{

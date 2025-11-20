@@ -168,10 +168,9 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool {
 }
 
 // Подготовить текстовый буфер для записи в журнал
-func (h *TintHandler) format(r slog.Record) []byte {
-	// Сформировать буфер "sync pool"
+func (h *TintHandler) format(r slog.Record) *buffer {
+	// Взять буфер из sync.Pool
 	buf := newBuffer()
-	defer buf.Free()
 
 	rep := h.replaceAttr
 
@@ -250,7 +249,7 @@ func (h *TintHandler) format(r slog.Record) []byte {
 		return true
 	})
 
-	return *buf
+	return buf
 }
 
 // Форматировать slog запись в строку (только для экспериментов).
@@ -258,14 +257,15 @@ func (h *TintHandler) format(r slog.Record) []byte {
 // FIXME: Удалить данный артефакт.
 func (h *TintHandler) formatToString(r slog.Record) string {
 	buf := h.format(r)
+	defer buf.Free()
 
-	size := len(buf)
+	size := len(*buf)
 	if size == 0 {
 		return ""
 	}
 
 	// Исключить последний пробел
-	return string(buf[:size-1])
+	return string((*buf)[:size-1])
 }
 
 // Метод Handle() реализует интерфейс slog.Handler
@@ -274,15 +274,17 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error {
 	defer h.mu.Unlock()
 
 	buf := h.format(r)
-	if len(buf) == 0 {
+	defer buf.Free()
+
+	if len(*buf) == 0 {
 		return nil
 	}
 
 	// Заменить последний пробел на символ перевода строки
-	buf[len(buf)-1] = newLineChar
+	(*buf)[len(*buf)-1] = newLineChar
 
 	// Произвести запись буфера в выходной канал/файл
-	_, err := h.w.Write(buf)
+	_, err := h.w.Write(*buf)
 	return err
 }
 
