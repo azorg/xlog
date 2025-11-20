@@ -3,16 +3,16 @@
 package xlog
 
 import (
-  "fmt"
-  "reflect"
-  "time"
+	"fmt"
+	"reflect"
+	"time"
 )
 
 // Типы данных соответствующему данному интерфейсу
 // выводятся с помощью метода String() без рефлексии
 // с помощью функции Sprint() при использовании TintHandler
 type Stringer interface {
-  String() string
+	String() string
 }
 
 // Sprint - преобразует структуру данных в строку в формате
@@ -24,10 +24,10 @@ type Stringer interface {
 // Если интерфейс имеет метод String, то для преобразования к строке
 // используется он.
 //
-//  val - значение произвольного типа, включая структуры, указатели
-//  на структуры, ошибки и карты.
+//	val - значение произвольного типа, включая структуры, указатели
+//	на структуры, ошибки и карты.
 func Sprint(val any) string {
-  return sprint("", val)
+	return sprint("", val)
 }
 
 // Sprint - преобразует структуру данных в строку в формате
@@ -38,56 +38,56 @@ func Sprint(val any) string {
 // Если интерфейс имеет метод String, то для преобразования к строке
 // используется он.
 //
-//  prefix - префикс "&", если данная структура была доступна по указателю
+//	prefix - префикс "&", если данная структура была доступна по указателю
 func sprint(prefix string, val any) string {
-  stringer, ok := val.(Stringer)
-  if ok {
-    return stringer.String()
-  }
+	stringer, ok := val.(Stringer)
+	if ok {
+		return stringer.String()
+	}
 
-  switch v := val.(type) {
-  case error:
-    return v.Error()
+	switch v := val.(type) {
+	case error:
+		return v.Error()
 
-  case time.Time:
-    return v.Format(RFC3339Micro)
+	case time.Time:
+		return v.Format(RFC3339Micro)
 
-  case time.Duration:
-    return fmt.Sprintf("%v", v)
-  }
+	case time.Duration:
+		return fmt.Sprintf("%v", v)
+	}
 
-  v := reflect.ValueOf(val)
-  switch v.Kind() {
-  case reflect.Pointer, reflect.Interface:
-    if v.IsZero() {
-      return "<nil>"
-    }
-    elem := v.Elem()
-    return sprint("&", elem.Interface())
+	v := reflect.ValueOf(val)
+	switch v.Kind() {
+	case reflect.Pointer, reflect.Interface:
+		if v.IsZero() {
+			return "<nil>"
+		}
+		elem := v.Elem()
+		return sprint("&", elem.Interface())
 
-  case reflect.Struct:
-    buf := newBuffer()
-    defer buf.Free()
-    buf.WriteString(prefix + "{")
-    delim := ""
-    for i := 0; i < v.NumField(); i++ {
-      field := v.Type().Field(i)
-      name := field.Name
-      if UseJSONTags {
-        if tag := field.Tag.Get("json"); tag != "" {
-          name = tag
-        }
-      }
-      value := sprint("", v.Field(i).Interface())
-      buf.WriteString(delim + name + ":" + value)
-      delim = " "
-    } // for
-    buf.WriteString("}")
-    return buf.String()
+	case reflect.Struct:
+		buf := newBuffer()
+		defer buf.Free()
+		buf.WriteString(prefix + "{")
+		delim := ""
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Type().Field(i)
+			name := field.Name
+			if UseJSONTags {
+				if tag := field.Tag.Get("json"); tag != "" {
+					name = tag
+				}
+			}
+			value := sprint("", v.Field(i).Interface())
+			buf.WriteString(delim + name + ":" + value)
+			delim = " "
+		} // for
+		buf.WriteString("}")
+		return buf.String()
 
-  default:
-    return fmt.Sprintf("%+v", val)
-  }
+	default:
+		return fmt.Sprintf("%+v", val)
+	}
 }
 
 // EOF: "sprint.go"

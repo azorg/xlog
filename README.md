@@ -1209,13 +1209,13 @@ fields - интерфейс для получения дополнительны
 ```
 
 <a name="Sprint"></a>
-## func [Sprint](<https://github.com/azorg/xlog/blob/main/sprint.go#L20>)
+## func [Sprint](<https://github.com/azorg/xlog/blob/main/sprint.go#L29>)
 
 ```go
 func Sprint(val any) string
 ```
 
-Sprint \- преобразует структуру данных в строку в формате близком к стандартному формату "%\+v", но с обработкой указателей и вложенных структур. Используется рефлексия. Опционально могут поддерживаться JSON теги \(если UseJSONTags=true\) Функция используется для отображения структур данных в TintHandler'е.
+Sprint \- преобразует структуру данных в строку в формате близком к стандартному формату "%\+v", но с обработкой указателей и вложенных структур. Используется рефлексия. Опционально могут поддерживаться JSON теги \(если UseJSONTags=true\) Функция используется для отображения структур данных в TintHandler'е. Если интерфейс имеет метод String, то для преобразования к строке используется он.
 
 ```
 val - значение произвольного типа, включая структуры, указатели
@@ -2678,9 +2678,9 @@ type RotateConf struct {
 ```
 
 <a name="Stringer"></a>
-## type [Stringer](<https://github.com/azorg/xlog/blob/main/sprint.go#L27-L29>)
+## type [Stringer](<https://github.com/azorg/xlog/blob/main/sprint.go#L14-L16>)
 
-Типы данных соответсвующему данному интерфейсу выводятся с помощью метода String\(\) без рефлексии с помощью функции Sprint\(\) при использовании TintHandler
+Типы данных соответствующему данному интерфейсу выводятся с помощью метода String\(\) без рефлексии с помощью функции Sprint\(\) при использовании TintHandler
 
 ```go
 type Stringer interface {
@@ -2739,7 +2739,7 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.Handle"></a>
-### func \(\*TintHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/tint.go#L270>)
+### func \(\*TintHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/tint.go#L272>)
 
 ```go
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
@@ -2748,7 +2748,7 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithAttrs"></a>
-### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/tint.go#L287>)
+### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/tint.go#L290>)
 
 ```go
 func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -2757,7 +2757,7 @@ func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithGroup"></a>
-### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/tint.go#L305>)
+### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/tint.go#L311>)
 
 ```go
 func (h *TintHandler) WithGroup(name string) slog.Handler
