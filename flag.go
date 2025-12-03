@@ -88,6 +88,7 @@ type Opt struct {
 //	-log-src-pkg <on/off>                - force on/off log source directory/file name and line number
 //	-log-src-func <on/off>               - force on/off log function name
 //	-log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+//  -log-source                          - force log source info (package/file/function)
 //	-log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
 //	-log-level-off <true/false>          - force disable/enable level output
 //	-log-rate-limit <on/off>             - force enable/disable rate limiter

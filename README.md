@@ -3,7 +3,7 @@
 # xlog
 
 ```go
-import "cnet/pkg/xlog"
+import "."
 ```
 
 ### X Logger
@@ -654,7 +654,7 @@ var ErrNotRotatable = errors.New("logger is not rotatable")
 ```
 
 <a name="Alert"></a>
-## func [Alert](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L133>)
+## func [Alert](<https://github.com/azorg/xlog/blob/main/sugar.go#L133>)
 
 ```go
 func Alert(msg string, args ...any)
@@ -663,7 +663,7 @@ func Alert(msg string, args ...any)
 Alert записывает сообщение в журнал по умолчанию \(LevelAlert\)
 
 <a name="Alertf"></a>
-## func [Alertf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L273>)
+## func [Alertf](<https://github.com/azorg/xlog/blob/main/sugar.go#L273>)
 
 ```go
 func Alertf(format string, args ...any)
@@ -672,7 +672,7 @@ func Alertf(format string, args ...any)
 Alertf записывает сообщение в традиционный журнал по умолчанию \(LevelAlert\)
 
 <a name="Checksum"></a>
-## func [Checksum](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L64-L65>)
+## func [Checksum](<https://github.com/azorg/xlog/blob/main/checksum.go#L64-L65>)
 
 ```go
 func Checksum(sum uint16, full, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -691,7 +691,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumAttr"></a>
-## func [ChecksumAttr](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L252>)
+## func [ChecksumAttr](<https://github.com/azorg/xlog/blob/main/checksum.go#L252>)
 
 ```go
 func ChecksumAttr(key string, value any) uint16
@@ -700,7 +700,7 @@ func ChecksumAttr(key string, value any) uint16
 ChecksumAttr вычисляет контрольную сумму записи для одного произвольного атрибута key/value. Контрольная сумма вычисляется рекурсивно для всех вложенных структур с использованием рефлексии. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде.
 
 <a name="ChecksumAttrSlog"></a>
-## func [ChecksumAttrSlog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L193>)
+## func [ChecksumAttrSlog](<https://github.com/azorg/xlog/blob/main/checksum.go#L193>)
 
 ```go
 func ChecksumAttrSlog(key string, value slog.Value) uint16
@@ -709,7 +709,7 @@ func ChecksumAttrSlog(key string, value slog.Value) uint16
 ChecksumAttrSlog \- вычисляет контрольную сумму записи для одного атрибута slog key/value. Анализируется тип slog значения и если тип, не стандартный \(см. slogg.Kind\) применяется рефлексия \(таким образом рассчитываем немного поднять производительность\). Контрольная сумма вычисляется рекурсивно для всех вложенных структур. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде. Функция принимает key и slog.Value. Функция корректно обрабатывает slog группы.
 
 <a name="ChecksumFull"></a>
-## func [ChecksumFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L153-L154>)
+## func [ChecksumFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L153-L154>)
 
 ```go
 func ChecksumFull(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -737,7 +737,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumSimple"></a>
-## func [ChecksumSimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L89-L90>)
+## func [ChecksumSimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L89-L90>)
 
 ```go
 func ChecksumSimple(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -761,7 +761,7 @@ logId - UUID записи
 ```
 
 <a name="Crit"></a>
-## func [Crit](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L123>)
+## func [Crit](<https://github.com/azorg/xlog/blob/main/sugar.go#L123>)
 
 ```go
 func Crit(msg string, args ...any)
@@ -770,7 +770,7 @@ func Crit(msg string, args ...any)
 Crit записывает сообщение в журнал по умолчанию \(LevelCrit\)
 
 <a name="Critf"></a>
-## func [Critf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L263>)
+## func [Critf](<https://github.com/azorg/xlog/blob/main/sugar.go#L263>)
 
 ```go
 func Critf(format string, args ...any)
@@ -779,7 +779,7 @@ func Critf(format string, args ...any)
 Critf записывает сообщение в традиционный журнал по умолчанию \(LevelCrit\)
 
 <a name="Debug"></a>
-## func [Debug](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L73>)
+## func [Debug](<https://github.com/azorg/xlog/blob/main/sugar.go#L73>)
 
 ```go
 func Debug(msg string, args ...any)
@@ -788,7 +788,7 @@ func Debug(msg string, args ...any)
 Debug записывает сообщение в журнал по умолчанию \(LevelDebug\)
 
 <a name="Debugf"></a>
-## func [Debugf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L213>)
+## func [Debugf](<https://github.com/azorg/xlog/blob/main/sugar.go#L213>)
 
 ```go
 func Debugf(format string, args ...any)
@@ -797,7 +797,7 @@ func Debugf(format string, args ...any)
 Debugf записывает сообщение в традиционный журнал по умолчанию \(LevelDebug\)
 
 <a name="Emerg"></a>
-## func [Emerg](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L143>)
+## func [Emerg](<https://github.com/azorg/xlog/blob/main/sugar.go#L143>)
 
 ```go
 func Emerg(msg string, args ...any)
@@ -806,7 +806,7 @@ func Emerg(msg string, args ...any)
 Emerg записывает сообщение в журнал по умолчанию \(LevelEmerg\)
 
 <a name="Emergf"></a>
-## func [Emergf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L283>)
+## func [Emergf](<https://github.com/azorg/xlog/blob/main/sugar.go#L283>)
 
 ```go
 func Emergf(format string, args ...any)
@@ -815,7 +815,7 @@ func Emergf(format string, args ...any)
 Emergf записывает сообщение в традиционный журнал по умолчанию \(LevelEmerg\)
 
 <a name="Env"></a>
-## func [Env](<https://github.com/azorg/cnet/blob/main/pkg/xlog/env.go#L95>)
+## func [Env](<https://github.com/azorg/xlog/blob/main/env.go#L95>)
 
 ```go
 func Env(conf *Conf, prefixOpt ...string)
@@ -872,7 +872,7 @@ xlog.Env(&conf)       // обогатить структуру конфигур�
 ```
 
 <a name="Err"></a>
-## func [Err](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L305>)
+## func [Err](<https://github.com/azorg/xlog/blob/main/sugar.go#L305>)
 
 ```go
 func Err(err error) slog.Attr
@@ -881,7 +881,7 @@ func Err(err error) slog.Attr
 Err возвращает slog.Attr с ключом "err" если err \!= nil или возвращает "пустой" атрибут, если err == nil. Таким образом можно логировать сообщения и исключать не информативные записи типа "err=nil".
 
 <a name="Error"></a>
-## func [Error](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L113>)
+## func [Error](<https://github.com/azorg/xlog/blob/main/sugar.go#L113>)
 
 ```go
 func Error(msg string, args ...any)
@@ -890,7 +890,7 @@ func Error(msg string, args ...any)
 Error записывает сообщение в журнал по умолчанию \(LevelError\)
 
 <a name="Errorf"></a>
-## func [Errorf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L253>)
+## func [Errorf](<https://github.com/azorg/xlog/blob/main/sugar.go#L253>)
 
 ```go
 func Errorf(format string, args ...any)
@@ -899,7 +899,7 @@ func Errorf(format string, args ...any)
 Errorf записывает сообщение в традиционный журнал по умолчанию \(LevelError\)
 
 <a name="Fatal"></a>
-## func [Fatal](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L156>)
+## func [Fatal](<https://github.com/azorg/xlog/blob/main/sugar.go#L156>)
 
 ```go
 func Fatal(msg string, args ...any)
@@ -908,7 +908,7 @@ func Fatal(msg string, args ...any)
 Fatal записывает сообщение в журнал по умолчанию \(LevelFatal\) и завершает приложение путем вызова os.Exit\(1\)
 
 <a name="Fatalf"></a>
-## func [Fatalf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L296>)
+## func [Fatalf](<https://github.com/azorg/xlog/blob/main/sugar.go#L296>)
 
 ```go
 func Fatalf(format string, args ...any)
@@ -917,7 +917,7 @@ func Fatalf(format string, args ...any)
 Fatalf записывает сообщение в традиционный журнал по умолчанию \(LevelFatal\) и завершает приложение путем вызова os.Exit\(1\)
 
 <a name="Flood"></a>
-## func [Flood](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L53>)
+## func [Flood](<https://github.com/azorg/xlog/blob/main/sugar.go#L53>)
 
 ```go
 func Flood(msg string, args ...any)
@@ -926,7 +926,7 @@ func Flood(msg string, args ...any)
 Flood записывает сообщение в журнал по умолчанию \(LevelFlood\)
 
 <a name="Floodf"></a>
-## func [Floodf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L193>)
+## func [Floodf](<https://github.com/azorg/xlog/blob/main/sugar.go#L193>)
 
 ```go
 func Floodf(format string, args ...any)
@@ -935,7 +935,7 @@ func Floodf(format string, args ...any)
 Floodf записывает сообщение в традиционный журнал по умолчанию \(LevelFlood\)
 
 <a name="GetLevel"></a>
-## func [GetLevel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L49>)
+## func [GetLevel](<https://github.com/azorg/xlog/blob/main/logger.go#L49>)
 
 ```go
 func GetLevel() slog.Level
@@ -944,7 +944,7 @@ func GetLevel() slog.Level
 GetLevel возвращает текущий уровень логирования для глобального логгера
 
 <a name="GetLvl"></a>
-## func [GetLvl](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L64>)
+## func [GetLvl](<https://github.com/azorg/xlog/blob/main/logger.go#L64>)
 
 ```go
 func GetLvl() string
@@ -953,7 +953,7 @@ func GetLvl() string
 GetLvl возвращает текущий уровень логирования глобального логгера в виде строки вида "info", "debug" и т.п.
 
 <a name="Info"></a>
-## func [Info](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L83>)
+## func [Info](<https://github.com/azorg/xlog/blob/main/sugar.go#L83>)
 
 ```go
 func Info(msg string, args ...any)
@@ -962,7 +962,7 @@ func Info(msg string, args ...any)
 Info записывает сообщение в журнал по умолчанию \(LevelInfo\)
 
 <a name="Infof"></a>
-## func [Infof](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L223>)
+## func [Infof](<https://github.com/azorg/xlog/blob/main/sugar.go#L223>)
 
 ```go
 func Infof(format string, args ...any)
@@ -971,7 +971,7 @@ func Infof(format string, args ...any)
 Infof записывает сообщение в традиционный журнал по умолчанию \(LevelInfo\)
 
 <a name="Int"></a>
-## func [Int](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L325>)
+## func [Int](<https://github.com/azorg/xlog/blob/main/sugar.go#L325>)
 
 ```go
 func Int(key string, value int) slog.Attr
@@ -980,7 +980,7 @@ func Int(key string, value int) slog.Attr
 Int возвращает slog.Attr, если key \!= "" и value \!= 0 или иначе возвращает "пустой" атрибут. Данная обёртка позволяет исключить из журнала нулевые значения.
 
 <a name="IsRotatable"></a>
-## func [IsRotatable](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L98>)
+## func [IsRotatable](<https://github.com/azorg/xlog/blob/main/logger.go#L98>)
 
 ```go
 func IsRotatable() bool
@@ -989,7 +989,7 @@ func IsRotatable() bool
 IsRotatable возвращает признак возможности ротации файла журнала для лобального логгера
 
 <a name="LevelFromLabel"></a>
-## func [LevelFromLabel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/level.go#L246>)
+## func [LevelFromLabel](<https://github.com/azorg/xlog/blob/main/level.go#L246>)
 
 ```go
 func LevelFromLabel(label string) slog.Level
@@ -998,7 +998,7 @@ func LevelFromLabel(label string) slog.Level
 LevelFromLabel преобразует метку уровня логирования \(INFO, WARN, ...\) в численное значение. Функция может быть востребована для парсинга логов. Входное значением может быть вида "ERROR\+2", принятого в slog.
 
 <a name="LevelFromString"></a>
-## func [LevelFromString](<https://github.com/azorg/cnet/blob/main/pkg/xlog/level.go#L218>)
+## func [LevelFromString](<https://github.com/azorg/xlog/blob/main/level.go#L218>)
 
 ```go
 func LevelFromString(level string) slog.Level
@@ -1007,7 +1007,7 @@ func LevelFromString(level string) slog.Level
 LevelFromString преобразует строку идентификатор уровня логирования \("debug", "info", "0" и др.\), используемый в структуре конфигурации к slog.Level. Функция не чувствительна в регистру. Уровень логирования может быть задан как строкой, так и десятичным целым числом.
 
 <a name="LevelToColorLabel"></a>
-## func [LevelToColorLabel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/level.go#L177>)
+## func [LevelToColorLabel](<https://github.com/azorg/xlog/blob/main/level.go#L177>)
 
 ```go
 func LevelToColorLabel(level slog.Level) string
@@ -1016,7 +1016,7 @@ func LevelToColorLabel(level slog.Level) string
 LevelToColorLabel преобразует уровень логирования к строке/метке для представления в журнале с применением Escape/Ansi символов подсветки. Используется в TintHandler'е, если в структуре конфигурации Conf заданы Format="tinted" и Color=true. Поддерживаются дополнительные уровни \(FLOOD, EMERG, ALERT и др.\).
 
 <a name="LevelToLabel"></a>
-## func [LevelToLabel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/level.go#L135>)
+## func [LevelToLabel](<https://github.com/azorg/xlog/blob/main/level.go#L135>)
 
 ```go
 func LevelToLabel(level slog.Level) string
@@ -1025,7 +1025,7 @@ func LevelToLabel(level slog.Level) string
 LevelToLabel преобразует уровень логирования к строке/метке для представления в журнале \("INFO", "ERROR" и др.\) в стиле slog, подобно одноименному методам String\(\) типов slog.Level/slog.LevelVar. Поддерживаются дополнительные уровни \(TRACE, NOTICE, CRIT и др.\).
 
 <a name="LevelToString"></a>
-## func [LevelToString](<https://github.com/azorg/cnet/blob/main/pkg/xlog/level.go#L235>)
+## func [LevelToString](<https://github.com/azorg/xlog/blob/main/level.go#L235>)
 
 ```go
 func LevelToString(level slog.Level) string
@@ -1034,7 +1034,7 @@ func LevelToString(level slog.Level) string
 LevelToString преобразовывает численное значение уровня логгирования slog.Level к представлению виде строки в структуре конфигурации. Если задан не известный уровень, то возвращается его десятичное представление.
 
 <a name="Log"></a>
-## func [Log](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L41-L43>)
+## func [Log](<https://github.com/azorg/xlog/blob/main/sugar.go#L41-L43>)
 
 ```go
 func Log(ctx context.Context, level slog.Level, msg string, args ...any) error
@@ -1043,7 +1043,7 @@ func Log(ctx context.Context, level slog.Level, msg string, args ...any) error
 Log записывает сообщение в структурированный журнал по умолчанию с заданным уровнем журналирования и заданным контекстом
 
 <a name="LogAttrs"></a>
-## func [LogAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L25-L27>)
+## func [LogAttrs](<https://github.com/azorg/xlog/blob/main/sugar.go#L25-L27>)
 
 ```go
 func LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.Attr) error
@@ -1052,7 +1052,7 @@ func LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.A
 LogAttr записывает сообщение с атрибутами в структурированный журнал по умолчанию с заданным уровнем журналирования и заданным контекстом
 
 <a name="Logf"></a>
-## func [Logf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L183>)
+## func [Logf](<https://github.com/azorg/xlog/blob/main/sugar.go#L183>)
 
 ```go
 func Logf(level slog.Level, format string, args ...any)
@@ -1061,7 +1061,7 @@ func Logf(level slog.Level, format string, args ...any)
 Log записывает сообщение в традиционный журнал по умолчанию с заданным уровнем журналирования
 
 <a name="NewHandler"></a>
-## func [NewHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/handler.go#L25-L27>)
+## func [NewHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L25-L27>)
 
 ```go
 func NewHandler(conf Conf, writer io.Writer, mws ...Middleware) (handler slog.Handler, _ *slog.LevelVar)
@@ -1076,7 +1076,7 @@ mws - дополнительные обёртки для метода Hanlde() �
 ```
 
 <a name="NewLog"></a>
-## func [NewLog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/new.go#L15>)
+## func [NewLog](<https://github.com/azorg/xlog/blob/main/new.go#L15>)
 
 ```go
 func NewLog(conf Conf) *log.Logger
@@ -1085,7 +1085,7 @@ func NewLog(conf Conf) *log.Logger
 NewLog создает стандартный \(legacy\) логгер и настраивает его с учётом унифицированной структуры конфигурации Conf для X\-logger
 
 <a name="NewLogWriter"></a>
-## func [NewLogWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logwriter.go#L30-L32>)
+## func [NewLogWriter](<https://github.com/azorg/xlog/blob/main/logwriter.go#L30-L32>)
 
 ```go
 func NewLogWriter(ctx context.Context, logger *slog.Logger, level slog.Level) io.Writer
@@ -1094,7 +1094,7 @@ func NewLogWriter(ctx context.Context, logger *slog.Logger, level slog.Level) io
 NewLogWiter создает io.Writer на основе заданного slog логгера, в который может быть перенаправлен поток байт с заданным уровнем логирования. Записываемые в заданный io.Wtiter будут направляться в заданный slog.Logger в виде сообщений \(атрибуты использоваться не будут\). Функция может использоваться для построения legacy логгеров на основе пакета "log" с перенаправлением журнала в структурированный журнал slog.
 
 <a name="NewStdHandler"></a>
-## func [NewStdHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/handler.go#L241>)
+## func [NewStdHandler](<https://github.com/azorg/xlog/blob/main/handler.go#L241>)
 
 ```go
 func NewStdHandler(conf Conf, mws ...Middleware) (slog.Handler, *slog.LevelVar)
@@ -1108,7 +1108,7 @@ mws - обёртки для метода Hanlde() интерфейса slog.Hand
 ```
 
 <a name="Notice"></a>
-## func [Notice](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L93>)
+## func [Notice](<https://github.com/azorg/xlog/blob/main/sugar.go#L93>)
 
 ```go
 func Notice(msg string, args ...any)
@@ -1117,7 +1117,7 @@ func Notice(msg string, args ...any)
 Notice записывает сообщение в журнал по умолчанию \(LevelNotice\)
 
 <a name="Noticef"></a>
-## func [Noticef](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L233>)
+## func [Noticef](<https://github.com/azorg/xlog/blob/main/sugar.go#L233>)
 
 ```go
 func Noticef(format string, args ...any)
@@ -1126,7 +1126,7 @@ func Noticef(format string, args ...any)
 Noticef записывает сообщение в традиционный журнал по умолчанию \(LevelNotice\)
 
 <a name="Panic"></a>
-## func [Panic](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L170>)
+## func [Panic](<https://github.com/azorg/xlog/blob/main/sugar.go#L170>)
 
 ```go
 func Panic(msg string)
@@ -1135,7 +1135,7 @@ func Panic(msg string)
 Panic записывает сообщение в журнал по умолчанию \(LevelPanic\) и завершает приложение путем вызова panic\(\)
 
 <a name="Rotate"></a>
-## func [Rotate](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L89>)
+## func [Rotate](<https://github.com/azorg/xlog/blob/main/logger.go#L89>)
 
 ```go
 func Rotate() error
@@ -1144,7 +1144,7 @@ func Rotate() error
 Rotate производит ротацию файла журнала \(если это возможно\) для глобального логгера. К примеру, в реальных приложениях возможна организации ротация логов по сигналу SIGHUP.
 
 <a name="SetLevel"></a>
-## func [SetLevel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L56>)
+## func [SetLevel](<https://github.com/azorg/xlog/blob/main/logger.go#L56>)
 
 ```go
 func SetLevel(level slog.Level)
@@ -1153,7 +1153,7 @@ func SetLevel(level slog.Level)
 SetLevel обновляет уровень логирования для глобального логгера
 
 <a name="SetLvl"></a>
-## func [SetLvl](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L72>)
+## func [SetLvl](<https://github.com/azorg/xlog/blob/main/logger.go#L72>)
 
 ```go
 func SetLvl(level string)
@@ -1162,7 +1162,7 @@ func SetLvl(level string)
 SetLvl обновляет уровень логирования глобального логгера на основе строки идентификатора типа "trace", "error" и т.п.
 
 <a name="Setup"></a>
-## func [Setup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/setup.go#L51>)
+## func [Setup](<https://github.com/azorg/xlog/blob/main/setup.go#L51>)
 
 ```go
 func Setup(conf Conf)
@@ -1171,7 +1171,7 @@ func Setup(conf Conf)
 Setup \- мега функция, которая настраивает все глобальные логгеры в соответствии с заданной структурой конфигурации Conf. Функция потоко не безопасная\!
 
 <a name="SetupLog"></a>
-## func [SetupLog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/setup.go#L43>)
+## func [SetupLog](<https://github.com/azorg/xlog/blob/main/setup.go#L43>)
 
 ```go
 func SetupLog(logger *log.Logger, conf Conf)
@@ -1180,7 +1180,7 @@ func SetupLog(logger *log.Logger, conf Conf)
 SetupLog производит настройку стандартного \*log.Logger на основе унифицированной структуры конфигурации Conf для "Client Logger" с направлением вывода в файл с ротацией \(если предусмотрено конфигурацией\). Функция вызывает последовательно NewWriter\(\) и SetupLogWithWriter\(\).
 
 <a name="SetupLogWithWriter"></a>
-## func [SetupLogWithWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/setup.go#L15>)
+## func [SetupLogWithWriter](<https://github.com/azorg/xlog/blob/main/setup.go#L15>)
 
 ```go
 func SetupLogWithWriter(logger *log.Logger, conf Conf, writer io.Writer)
@@ -1189,7 +1189,7 @@ func SetupLogWithWriter(logger *log.Logger, conf Conf, writer io.Writer)
 SetupLogWithWriter производит настройку стандартного \*log.Logger на основе унифицированной структуры конфигурации Conf для "Client Logger" с направлением вывода в заданный io.Writer вместо заданного файла
 
 <a name="Slog"></a>
-## func [Slog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L42>)
+## func [Slog](<https://github.com/azorg/xlog/blob/main/logger.go#L42>)
 
 ```go
 func Slog() *slog.Logger
@@ -1198,7 +1198,7 @@ func Slog() *slog.Logger
 Slog возвращает указатель \*slog.Logger из текущего \(глобального\) логгера
 
 <a name="SlogWithFields"></a>
-## func [SlogWithFields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L104>)
+## func [SlogWithFields](<https://github.com/azorg/xlog/blob/main/logger.go#L104>)
 
 ```go
 func SlogWithFields(log *slog.Logger, fields ...FieldsProvider) *slog.Logger
@@ -1212,7 +1212,7 @@ fields - интерфейс для получения дополнительны
 ```
 
 <a name="Sprint"></a>
-## func [Sprint](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sprint.go#L29>)
+## func [Sprint](<https://github.com/azorg/xlog/blob/main/sprint.go#L29>)
 
 ```go
 func Sprint(val any) string
@@ -1226,7 +1226,7 @@ val - значение произвольного типа, включая ст�
 ```
 
 <a name="String"></a>
-## func [String](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L315>)
+## func [String](<https://github.com/azorg/xlog/blob/main/sugar.go#L315>)
 
 ```go
 func String(key, value string) slog.Attr
@@ -1235,7 +1235,7 @@ func String(key, value string) slog.Attr
 String возвращает slog.Attr, если key \!= "" и value \!= "" или иначе возвращает "пустой" атрибут. Данная обёртка позволяет исключить из журнала пустые строки.
 
 <a name="StringToBool"></a>
-## func [StringToBool](<https://github.com/azorg/cnet/blob/main/pkg/xlog/env.go#L22>)
+## func [StringToBool](<https://github.com/azorg/xlog/blob/main/env.go#L22>)
 
 ```go
 func StringToBool(s string) bool
@@ -1251,7 +1251,7 @@ false: "false", "FALSE", "no", "Off", "0", "Abra-Cadabra"
 В случае ошибки \(по умолчанию\) возвращается false. Функция используется при обработке переменных окружения и флагов.
 
 <a name="StringToInt"></a>
-## func [StringToInt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/env.go#L39>)
+## func [StringToInt](<https://github.com/azorg/xlog/blob/main/env.go#L39>)
 
 ```go
 func StringToInt(s string) int
@@ -1260,7 +1260,7 @@ func StringToInt(s string) int
 StrintToInt преобразует строку к целому числу. В случае ошибки возвращается 0. Функция используется при обработке переменных окружения и флагов.
 
 <a name="TimeFormat"></a>
-## func [TimeFormat](<https://github.com/azorg/cnet/blob/main/pkg/xlog/time.go#L171>)
+## func [TimeFormat](<https://github.com/azorg/xlog/blob/main/time.go#L171>)
 
 ```go
 func TimeFormat(alias string) (format string, ok bool)
@@ -1316,7 +1316,7 @@ TimeFormat возвращает строку форматирования вре
 ```
 
 <a name="Trace"></a>
-## func [Trace](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L63>)
+## func [Trace](<https://github.com/azorg/xlog/blob/main/sugar.go#L63>)
 
 ```go
 func Trace(msg string, args ...any)
@@ -1325,7 +1325,7 @@ func Trace(msg string, args ...any)
 Trace записывает сообщение в журнал по умолчанию \(LevelTrace\)
 
 <a name="Tracef"></a>
-## func [Tracef](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L203>)
+## func [Tracef](<https://github.com/azorg/xlog/blob/main/sugar.go#L203>)
 
 ```go
 func Tracef(format string, args ...any)
@@ -1334,7 +1334,7 @@ func Tracef(format string, args ...any)
 Tracef записывает сообщение в традиционный журнал по умолчанию \(LevelTrace\)
 
 <a name="Value"></a>
-## func [Value](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L40>)
+## func [Value](<https://github.com/azorg/xlog/blob/main/fields.go#L40>)
 
 ```go
 func Value(value any) slog.Value
@@ -1343,7 +1343,7 @@ func Value(value any) slog.Value
 Value \- образует slog.Value из any
 
 <a name="Warn"></a>
-## func [Warn](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L103>)
+## func [Warn](<https://github.com/azorg/xlog/blob/main/sugar.go#L103>)
 
 ```go
 func Warn(msg string, args ...any)
@@ -1352,7 +1352,7 @@ func Warn(msg string, args ...any)
 Warn записывает сообщение в журнал по умолчанию \(LevelWarn\)
 
 <a name="Warnf"></a>
-## func [Warnf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L243>)
+## func [Warnf](<https://github.com/azorg/xlog/blob/main/sugar.go#L243>)
 
 ```go
 func Warnf(format string, args ...any)
@@ -1361,7 +1361,7 @@ func Warnf(format string, args ...any)
 Warnf записывает сообщение в традиционный журнал по умолчанию \(LevelWarn\)
 
 <a name="ChecksumRes"></a>
-## type [ChecksumRes](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L37-L47>)
+## type [ChecksumRes](<https://github.com/azorg/xlog/blob/main/checksum.go#L37-L47>)
 
 ChecksumRes \- это результат проверки контрольной суммы JSON записи. Пользователь может сверить поля LogSum и Sum. Заполняется по результатам выполнения функции ChecksumVerify\(\).
 
@@ -1380,7 +1380,7 @@ type ChecksumRes struct {
 ```
 
 <a name="ChecksumVerify"></a>
-### func [ChecksumVerify](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L377>)
+### func [ChecksumVerify](<https://github.com/azorg/xlog/blob/main/checksum.go#L377>)
 
 ```go
 func ChecksumVerify(full bool, rec map[string]any) (ChecksumRes, error)
@@ -1394,7 +1394,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifyFull"></a>
-### func [ChecksumVerifyFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L531>)
+### func [ChecksumVerifyFull](<https://github.com/azorg/xlog/blob/main/checksum.go#L531>)
 
 ```go
 func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error)
@@ -1409,7 +1409,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifySimple"></a>
-### func [ChecksumVerifySimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L397>)
+### func [ChecksumVerifySimple](<https://github.com/azorg/xlog/blob/main/checksum.go#L397>)
 
 ```go
 func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error)
@@ -1424,7 +1424,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumRes.SourceToString"></a>
-### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L641>)
+### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/xlog/blob/main/checksum.go#L641>)
 
 ```go
 func (res ChecksumRes) SourceToString() string
@@ -1433,7 +1433,7 @@ func (res ChecksumRes) SourceToString() string
 SourceToString \- преобразуем map/JSON представление ссылки на исходные тексты \(file/function/line\) в строку вида "file:function():line". Функция может быть полезна для визуализации поля Source структуры ChecksumRes.
 
 <a name="Conf"></a>
-## type [Conf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/conf.go#L6-L193>)
+## type [Conf](<https://github.com/azorg/xlog/blob/main/conf.go#L6-L193>)
 
 Conf \- структура конфигурации для настройки логгера
 
@@ -1629,7 +1629,7 @@ type Conf struct {
 ```
 
 <a name="OriginalConf"></a>
-### func [OriginalConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/shortcuts.go#L8>)
+### func [OriginalConf](<https://github.com/azorg/xlog/blob/main/shortcuts.go#L8>)
 
 ```go
 func OriginalConf() Conf
@@ -1638,7 +1638,7 @@ func OriginalConf() Conf
 OriginalConf \- конфигурация максимально приближенная к стандартному slog.TextHandler "из коробки" и совместимая с некоторыми проектами
 
 <a name="SetupOriginalConf"></a>
-### func [SetupOriginalConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/shortcuts.go#L24>)
+### func [SetupOriginalConf](<https://github.com/azorg/xlog/blob/main/shortcuts.go#L24>)
 
 ```go
 func SetupOriginalConf() Conf
@@ -1647,7 +1647,7 @@ func SetupOriginalConf() Conf
 SetupOriginalConf устанавливает конфигурацию логгера максимально близкую к стандартному slog.TextHandler "из коробки" и совместимую с некоторыми проектами
 
 <a name="Fields"></a>
-## type [Fields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L13>)
+## type [Fields](<https://github.com/azorg/xlog/blob/main/fields.go#L13>)
 
 Fields \- это простая обертка для наполнения атрибутами записи в журнале на основе карт \(key/value\)
 
@@ -1656,7 +1656,7 @@ type Fields map[string]any
 ```
 
 <a name="Fields.Args"></a>
-### func \(Fields\) [Args](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L29>)
+### func \(Fields\) [Args](<https://github.com/azorg/xlog/blob/main/fields.go#L29>)
 
 ```go
 func (fields Fields) Args() []any
@@ -1665,7 +1665,7 @@ func (fields Fields) Args() []any
 Args преобразует Fields в последовательность аргументов для вызова методов Log, Info, Debug, With и т.п. Значения nil исключаются из вывода.
 
 <a name="Fields.Attrs"></a>
-### func \(Fields\) [Attrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L66>)
+### func \(Fields\) [Attrs](<https://github.com/azorg/xlog/blob/main/fields.go#L66>)
 
 ```go
 func (fields Fields) Attrs() []slog.Attr
@@ -1674,7 +1674,7 @@ func (fields Fields) Attrs() []slog.Attr
 Attrs преобразует Fields в последовательность \[\]slog.Attr для вызова высокоэффективного slog метода LogAttrs. Значение nil и пустые строки исключаются.
 
 <a name="Fields.Fields"></a>
-### func \(Fields\) [Fields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L22>)
+### func \(Fields\) [Fields](<https://github.com/azorg/xlog/blob/main/fields.go#L22>)
 
 ```go
 func (f Fields) Fields() Fields
@@ -1683,7 +1683,7 @@ func (f Fields) Fields() Fields
 Fields реализует попутно интерфейс FieldsProvider. Данное решение позволяет передавать Fields в качестве FieldsProvider.
 
 <a name="Fields.Value"></a>
-### func \(Fields\) [Value](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L82>)
+### func \(Fields\) [Value](<https://github.com/azorg/xlog/blob/main/fields.go#L82>)
 
 ```go
 func (fields Fields) Value() slog.Value
@@ -1692,7 +1692,7 @@ func (fields Fields) Value() slog.Value
 Value преобразует Fields в групповое значение с помощью slog.GroupValue\(\)
 
 <a name="FieldsProvider"></a>
-## type [FieldsProvider](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L16-L18>)
+## type [FieldsProvider](<https://github.com/azorg/xlog/blob/main/fields.go#L16-L18>)
 
 FieldsProvider \- общий интерфейс для предоставления атрибутов в виде key/value
 
@@ -1703,7 +1703,7 @@ type FieldsProvider interface {
 ```
 
 <a name="HandleFunc"></a>
-## type [HandleFunc](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L13>)
+## type [HandleFunc](<https://github.com/azorg/xlog/blob/main/middleware.go#L13>)
 
 HandlerFunc \- это тип основной функции Handle\(\) интерфейса slog.Handler для упаковки и отправки записи журнала в заданный канал/файл
 
@@ -1712,7 +1712,7 @@ type HandleFunc func(context.Context, slog.Record) error
 ```
 
 <a name="IdHandler"></a>
-## type [IdHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L66-L76>)
+## type [IdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L66-L76>)
 
 IdHandler \- это обертка заданного slog.Handler'а для возможности обогащения журнала дополнительными атрибутами \(goroutine, logId, logSum\). Кроме того, IdHandler поддерживает Middleware для метода Handle интерфейса slog.Handler.
 
@@ -1723,7 +1723,7 @@ type IdHandler struct {
 ```
 
 <a name="NewIdHandler"></a>
-### func [NewIdHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L91-L94>)
+### func [NewIdHandler](<https://github.com/azorg/xlog/blob/main/idhandler.go#L91-L94>)
 
 ```go
 func NewIdHandler(handler slog.Handler, opts *IdOptions, sum uint16, mws ...Middleware) *IdHandler
@@ -1739,7 +1739,7 @@ mws - цепочка Middleware для оборачивания метода Han
 ```
 
 <a name="IdHandler.Enabled"></a>
-### func \(\*IdHandler\) [Enabled](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L116>)
+### func \(\*IdHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/idhandler.go#L116>)
 
 ```go
 func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
@@ -1748,7 +1748,7 @@ func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.Handle"></a>
-### func \(\*IdHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L216>)
+### func \(\*IdHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/idhandler.go#L216>)
 
 ```go
 func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
@@ -1757,7 +1757,7 @@ func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithAttrs"></a>
-### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L282>)
+### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/idhandler.go#L282>)
 
 ```go
 func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -1766,7 +1766,7 @@ func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithGroup"></a>
-### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L342>)
+### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/idhandler.go#L342>)
 
 ```go
 func (h *IdHandler) WithGroup(name string) slog.Handler
@@ -1775,7 +1775,7 @@ func (h *IdHandler) WithGroup(name string) slog.Handler
 Метод WithGroup\(\) реализует интерфейс slog.Handler
 
 <a name="IdOptions"></a>
-## type [IdOptions](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L33-L54>)
+## type [IdOptions](<https://github.com/azorg/xlog/blob/main/idhandler.go#L33-L54>)
 
 Структура конфигурации для IdHandler'а
 
@@ -1805,7 +1805,7 @@ type IdOptions struct {
 ```
 
 <a name="Logger"></a>
-## type [Logger](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L11-L35>)
+## type [Logger](<https://github.com/azorg/xlog/blob/main/logger.go#L11-L35>)
 
 Logger описывает полную структуру управления логгером.
 
@@ -1838,7 +1838,7 @@ type Logger struct {
 ```
 
 <a name="Current"></a>
-### func [Current](<https://github.com/azorg/cnet/blob/main/pkg/xlog/default.go#L58>)
+### func [Current](<https://github.com/azorg/xlog/blob/main/default.go#L58>)
 
 ```go
 func Current() *Logger
@@ -1847,7 +1847,7 @@ func Current() *Logger
 Current возвращает текущий \(глобальный\) логгер
 
 <a name="Default"></a>
-### func [Default](<https://github.com/azorg/cnet/blob/main/pkg/xlog/default.go#L27>)
+### func [Default](<https://github.com/azorg/xlog/blob/main/default.go#L27>)
 
 ```go
 func Default() *Logger
@@ -1856,7 +1856,7 @@ func Default() *Logger
 Default\(\) создает логгер по умолчанию на основе первородного slog логгера по умолчанию \(без каких\-либо опций, с выводом на stdout\), но с возможностью управления уровнем логирования.
 
 <a name="FromSlog"></a>
-### func [FromSlog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/new.go#L84>)
+### func [FromSlog](<https://github.com/azorg/xlog/blob/main/new.go#L84>)
 
 ```go
 func FromSlog(logger *slog.Logger) *Logger
@@ -1865,7 +1865,7 @@ func FromSlog(logger *slog.Logger) *Logger
 FromSlog создает X\-logger из \*slog.Logger. У результирующего "суррогатного" логгера нет возможности изменять уровень логирования, но можно использовать его "сахарные" методы типа Trace\(\) или Noticef\(\).
 
 <a name="New"></a>
-### func [New](<https://github.com/azorg/cnet/blob/main/pkg/xlog/new.go#L30>)
+### func [New](<https://github.com/azorg/xlog/blob/main/new.go#L30>)
 
 ```go
 func New(conf Conf, mws ...Middleware) *Logger
@@ -1879,7 +1879,7 @@ mws - обёртки (middleware) для метода Hanlde() интерфей�
 ```
 
 <a name="NewEx"></a>
-### func [NewEx](<https://github.com/azorg/cnet/blob/main/pkg/xlog/new.go#L60>)
+### func [NewEx](<https://github.com/azorg/xlog/blob/main/new.go#L60>)
 
 ```go
 func NewEx(conf Conf, writer Writer, mws ...Middleware) *Logger
@@ -1894,7 +1894,7 @@ mws - обёртки (middleware) для метода Hanlde() интерфей�
 ```
 
 <a name="NewWithWriter"></a>
-### func [NewWithWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/new.go#L46>)
+### func [NewWithWriter](<https://github.com/azorg/xlog/blob/main/new.go#L46>)
 
 ```go
 func NewWithWriter(conf Conf, writer io.Writer, mws ...Middleware) *Logger
@@ -1909,7 +1909,7 @@ mws - обёртки (middleware) для метода Hanlde() интерфей�
 ```
 
 <a name="With"></a>
-### func [With](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L158>)
+### func [With](<https://github.com/azorg/xlog/blob/main/logger.go#L158>)
 
 ```go
 func With(args ...any) *Logger
@@ -1918,7 +1918,7 @@ func With(args ...any) *Logger
 With создает дочерний логгер с добавлением заданых атрибутов на основе глобального логгера
 
 <a name="WithAttrs"></a>
-### func [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L142>)
+### func [WithAttrs](<https://github.com/azorg/xlog/blob/main/logger.go#L142>)
 
 ```go
 func WithAttrs(attrs []slog.Attr) *Logger
@@ -1927,7 +1927,7 @@ func WithAttrs(attrs []slog.Attr) *Logger
 WithAttrs создает дочерний логгер c добавлением заданных атрибутов на основе глобального логгера
 
 <a name="WithFields"></a>
-### func [WithFields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L127>)
+### func [WithFields](<https://github.com/azorg/xlog/blob/main/logger.go#L127>)
 
 ```go
 func WithFields(fields FieldsProvider) *Logger
@@ -1936,7 +1936,7 @@ func WithFields(fields FieldsProvider) *Logger
 WithFields создает дочерний логгер с добавлением заданных атрибутов на основе глобального логгера.
 
 <a name="WithGroup"></a>
-### func [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L174>)
+### func [WithGroup](<https://github.com/azorg/xlog/blob/main/logger.go#L174>)
 
 ```go
 func WithGroup(name string) *Logger
@@ -1945,7 +1945,7 @@ func WithGroup(name string) *Logger
 WithGroup создает дочерний логгер с добавлением группы на основе глобального логгера
 
 <a name="WithMiddleware"></a>
-### func [WithMiddleware](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L193>)
+### func [WithMiddleware](<https://github.com/azorg/xlog/blob/main/logger.go#L193>)
 
 ```go
 func WithMiddleware(mws ...Middleware) *Logger
@@ -1954,7 +1954,7 @@ func WithMiddleware(mws ...Middleware) *Logger
 WithMiddleware создает дочерний логгер c добавлением Middleware на основе глобального логгера
 
 <a name="Logger.Alert"></a>
-### func \(\*Logger\) [Alert](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L128>)
+### func \(\*Logger\) [Alert](<https://github.com/azorg/xlog/blob/main/sugar.go#L128>)
 
 ```go
 func (c *Logger) Alert(msg string, args ...any)
@@ -1963,7 +1963,7 @@ func (c *Logger) Alert(msg string, args ...any)
 Alert записывает сообщение в журнал \(LevelAlert\)
 
 <a name="Logger.Alertf"></a>
-### func \(\*Logger\) [Alertf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L268>)
+### func \(\*Logger\) [Alertf](<https://github.com/azorg/xlog/blob/main/sugar.go#L268>)
 
 ```go
 func (c *Logger) Alertf(format string, args ...any)
@@ -1972,7 +1972,7 @@ func (c *Logger) Alertf(format string, args ...any)
 Alertf записывает сообщение в традиционный журнал \(LevelAlert\)
 
 <a name="Logger.Crit"></a>
-### func \(\*Logger\) [Crit](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L118>)
+### func \(\*Logger\) [Crit](<https://github.com/azorg/xlog/blob/main/sugar.go#L118>)
 
 ```go
 func (c *Logger) Crit(msg string, args ...any)
@@ -1981,7 +1981,7 @@ func (c *Logger) Crit(msg string, args ...any)
 Crit записывает сообщение в журнал \(LevelCrit\)
 
 <a name="Logger.Critf"></a>
-### func \(\*Logger\) [Critf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L258>)
+### func \(\*Logger\) [Critf](<https://github.com/azorg/xlog/blob/main/sugar.go#L258>)
 
 ```go
 func (c *Logger) Critf(format string, args ...any)
@@ -1990,7 +1990,7 @@ func (c *Logger) Critf(format string, args ...any)
 Critf записывает сообщение в традиционный журнал \(LevelCrit\)
 
 <a name="Logger.Debug"></a>
-### func \(\*Logger\) [Debug](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L68>)
+### func \(\*Logger\) [Debug](<https://github.com/azorg/xlog/blob/main/sugar.go#L68>)
 
 ```go
 func (c *Logger) Debug(msg string, args ...any)
@@ -1999,7 +1999,7 @@ func (c *Logger) Debug(msg string, args ...any)
 Debug записывает сообщение в журнал \(LevelDebug\)
 
 <a name="Logger.Debugf"></a>
-### func \(\*Logger\) [Debugf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L208>)
+### func \(\*Logger\) [Debugf](<https://github.com/azorg/xlog/blob/main/sugar.go#L208>)
 
 ```go
 func (c *Logger) Debugf(format string, args ...any)
@@ -2008,7 +2008,7 @@ func (c *Logger) Debugf(format string, args ...any)
 Debugf записывает сообщение в традиционный журнал \(LevelDebug\)
 
 <a name="Logger.Emerg"></a>
-### func \(\*Logger\) [Emerg](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L138>)
+### func \(\*Logger\) [Emerg](<https://github.com/azorg/xlog/blob/main/sugar.go#L138>)
 
 ```go
 func (c *Logger) Emerg(msg string, args ...any)
@@ -2017,7 +2017,7 @@ func (c *Logger) Emerg(msg string, args ...any)
 Emerg записывает сообщение в журнал \(LevelEmerg\)
 
 <a name="Logger.Emergf"></a>
-### func \(\*Logger\) [Emergf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L278>)
+### func \(\*Logger\) [Emergf](<https://github.com/azorg/xlog/blob/main/sugar.go#L278>)
 
 ```go
 func (c *Logger) Emergf(format string, args ...any)
@@ -2026,7 +2026,7 @@ func (c *Logger) Emergf(format string, args ...any)
 Emergf записывает сообщение в традиционный журнал \(LevelEmerg\)
 
 <a name="Logger.Error"></a>
-### func \(\*Logger\) [Error](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L108>)
+### func \(\*Logger\) [Error](<https://github.com/azorg/xlog/blob/main/sugar.go#L108>)
 
 ```go
 func (c *Logger) Error(msg string, args ...any)
@@ -2035,7 +2035,7 @@ func (c *Logger) Error(msg string, args ...any)
 Error записывает сообщение в журнал \(LevelError\)
 
 <a name="Logger.Errorf"></a>
-### func \(\*Logger\) [Errorf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L248>)
+### func \(\*Logger\) [Errorf](<https://github.com/azorg/xlog/blob/main/sugar.go#L248>)
 
 ```go
 func (c *Logger) Errorf(format string, args ...any)
@@ -2044,7 +2044,7 @@ func (c *Logger) Errorf(format string, args ...any)
 Errorf записывает сообщение в традиционный журнал \(LevelError\)
 
 <a name="Logger.Fatal"></a>
-### func \(\*Logger\) [Fatal](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L149>)
+### func \(\*Logger\) [Fatal](<https://github.com/azorg/xlog/blob/main/sugar.go#L149>)
 
 ```go
 func (c *Logger) Fatal(msg string, args ...any)
@@ -2053,7 +2053,7 @@ func (c *Logger) Fatal(msg string, args ...any)
 Fatal записывает сообщение в журнал \(LevelFatal\) и завершает приложение путем вызова os.Exit\(1\)
 
 <a name="Logger.Fatalf"></a>
-### func \(\*Logger\) [Fatalf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L289>)
+### func \(\*Logger\) [Fatalf](<https://github.com/azorg/xlog/blob/main/sugar.go#L289>)
 
 ```go
 func (c *Logger) Fatalf(format string, args ...any)
@@ -2062,7 +2062,7 @@ func (c *Logger) Fatalf(format string, args ...any)
 Fatalf записывает сообщение в традиционный журнал \(LevelFatal\) и завершает приложение путем вызова os.Exit\(1\)
 
 <a name="Logger.Flood"></a>
-### func \(\*Logger\) [Flood](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L48>)
+### func \(\*Logger\) [Flood](<https://github.com/azorg/xlog/blob/main/sugar.go#L48>)
 
 ```go
 func (c *Logger) Flood(msg string, args ...any)
@@ -2071,7 +2071,7 @@ func (c *Logger) Flood(msg string, args ...any)
 Flood записывает сообщение в журнал \(LevelFlood\)
 
 <a name="Logger.Floodf"></a>
-### func \(\*Logger\) [Floodf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L188>)
+### func \(\*Logger\) [Floodf](<https://github.com/azorg/xlog/blob/main/sugar.go#L188>)
 
 ```go
 func (c *Logger) Floodf(format string, args ...any)
@@ -2080,7 +2080,7 @@ func (c *Logger) Floodf(format string, args ...any)
 Floodf записывает сообщение в традиционный журнал \(LevelFlood\)
 
 <a name="Logger.GetLevel"></a>
-### func \(\*Logger\) [GetLevel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L46>)
+### func \(\*Logger\) [GetLevel](<https://github.com/azorg/xlog/blob/main/logger.go#L46>)
 
 ```go
 func (c *Logger) GetLevel() slog.Level
@@ -2089,7 +2089,7 @@ func (c *Logger) GetLevel() slog.Level
 GetLevel возвращает текущий уровень логирования \- обёртка для вызова c.Leveler.Level\(\)
 
 <a name="Logger.GetLvl"></a>
-### func \(\*Logger\) [GetLvl](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L60>)
+### func \(\*Logger\) [GetLvl](<https://github.com/azorg/xlog/blob/main/logger.go#L60>)
 
 ```go
 func (c *Logger) GetLvl() string
@@ -2098,7 +2098,7 @@ func (c *Logger) GetLvl() string
 GetLvl возвращает текущий уровень логирования в виде строки вида "info", "debug" и т.п.
 
 <a name="Logger.Info"></a>
-### func \(\*Logger\) [Info](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L78>)
+### func \(\*Logger\) [Info](<https://github.com/azorg/xlog/blob/main/sugar.go#L78>)
 
 ```go
 func (c *Logger) Info(msg string, args ...any)
@@ -2107,7 +2107,7 @@ func (c *Logger) Info(msg string, args ...any)
 Info записывает сообщение в журнал \(LevelInfo\)
 
 <a name="Logger.Infof"></a>
-### func \(\*Logger\) [Infof](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L218>)
+### func \(\*Logger\) [Infof](<https://github.com/azorg/xlog/blob/main/sugar.go#L218>)
 
 ```go
 func (c *Logger) Infof(format string, args ...any)
@@ -2116,7 +2116,7 @@ func (c *Logger) Infof(format string, args ...any)
 Infof записывает сообщение в традиционный журнал \(LevelInfo\)
 
 <a name="Logger.IsRotatable"></a>
-### func \(\*Logger\) [IsRotatable](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L94>)
+### func \(\*Logger\) [IsRotatable](<https://github.com/azorg/xlog/blob/main/logger.go#L94>)
 
 ```go
 func (c *Logger) IsRotatable() bool
@@ -2125,7 +2125,7 @@ func (c *Logger) IsRotatable() bool
 IsRotatable возвращает признак возможности ротации файла журнала
 
 <a name="Logger.Log"></a>
-### func \(\*Logger\) [Log](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L33-L35>)
+### func \(\*Logger\) [Log](<https://github.com/azorg/xlog/blob/main/sugar.go#L33-L35>)
 
 ```go
 func (c *Logger) Log(ctx context.Context, level slog.Level, msg string, args ...any) error
@@ -2134,7 +2134,7 @@ func (c *Logger) Log(ctx context.Context, level slog.Level, msg string, args ...
 Log записывает сообщение в структурированный журнал с заданным уровнем журналирования и заданным контекстом
 
 <a name="Logger.LogAttrs"></a>
-### func \(\*Logger\) [LogAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L17-L19>)
+### func \(\*Logger\) [LogAttrs](<https://github.com/azorg/xlog/blob/main/sugar.go#L17-L19>)
 
 ```go
 func (c *Logger) LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.Attr) error
@@ -2143,7 +2143,7 @@ func (c *Logger) LogAttrs(ctx context.Context, level slog.Level, msg string, att
 LogAttr записывает сообщение с атрибутами в структурированный журнал с заданным уровнем журналирования и заданным контекстом
 
 <a name="Logger.Logf"></a>
-### func \(\*Logger\) [Logf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L177>)
+### func \(\*Logger\) [Logf](<https://github.com/azorg/xlog/blob/main/sugar.go#L177>)
 
 ```go
 func (c *Logger) Logf(level slog.Level, format string, args ...any)
@@ -2152,7 +2152,7 @@ func (c *Logger) Logf(level slog.Level, format string, args ...any)
 Log записывает сообщение в традиционный журнал с заданным уровнем журналирования
 
 <a name="Logger.Notice"></a>
-### func \(\*Logger\) [Notice](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L88>)
+### func \(\*Logger\) [Notice](<https://github.com/azorg/xlog/blob/main/sugar.go#L88>)
 
 ```go
 func (c *Logger) Notice(msg string, args ...any)
@@ -2161,7 +2161,7 @@ func (c *Logger) Notice(msg string, args ...any)
 Notice записывает сообщение в журнал \(LevelNotice\)
 
 <a name="Logger.Noticef"></a>
-### func \(\*Logger\) [Noticef](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L228>)
+### func \(\*Logger\) [Noticef](<https://github.com/azorg/xlog/blob/main/sugar.go#L228>)
 
 ```go
 func (c *Logger) Noticef(format string, args ...any)
@@ -2170,7 +2170,7 @@ func (c *Logger) Noticef(format string, args ...any)
 Noticef записывает сообщение в традиционный журнал \(LevelNotice\)
 
 <a name="Logger.Panic"></a>
-### func \(\*Logger\) [Panic](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L163>)
+### func \(\*Logger\) [Panic](<https://github.com/azorg/xlog/blob/main/sugar.go#L163>)
 
 ```go
 func (c *Logger) Panic(msg string)
@@ -2179,7 +2179,7 @@ func (c *Logger) Panic(msg string)
 Fatal записывает сообщение в журнал \(LevelPanic\) и завершает приложение путем вызова panic\(\)
 
 <a name="Logger.Rotate"></a>
-### func \(\*Logger\) [Rotate](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L78>)
+### func \(\*Logger\) [Rotate](<https://github.com/azorg/xlog/blob/main/logger.go#L78>)
 
 ```go
 func (c *Logger) Rotate() error
@@ -2188,7 +2188,7 @@ func (c *Logger) Rotate() error
 Rotate производит ротацию файла журнала \(если это возможно\) \- обёртка для вызова c.Writer.Rotable\(\)/c.Writer.Rotate\(\). К примеру, в реальных приложениях возможна организации ротация логов по сигналу SIGHUP.
 
 <a name="Logger.SetDefault"></a>
-### func \(\*Logger\) [SetDefault](<https://github.com/azorg/cnet/blob/main/pkg/xlog/default.go#L46>)
+### func \(\*Logger\) [SetDefault](<https://github.com/azorg/xlog/blob/main/default.go#L46>)
 
 ```go
 func (c *Logger) SetDefault()
@@ -2197,7 +2197,7 @@ func (c *Logger) SetDefault()
 SetDefault устанавливает заданный логгер текущим
 
 <a name="Logger.SetDefaultLogs"></a>
-### func \(\*Logger\) [SetDefaultLogs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/default.go#L52>)
+### func \(\*Logger\) [SetDefaultLogs](<https://github.com/azorg/xlog/blob/main/default.go#L52>)
 
 ```go
 func (c *Logger) SetDefaultLogs()
@@ -2206,7 +2206,7 @@ func (c *Logger) SetDefaultLogs()
 SetDefaultLogs устанавливает данный логгер текущим, в том числе log/slog логгером по умолчанию
 
 <a name="Logger.SetLevel"></a>
-### func \(\*Logger\) [SetLevel](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L53>)
+### func \(\*Logger\) [SetLevel](<https://github.com/azorg/xlog/blob/main/logger.go#L53>)
 
 ```go
 func (c *Logger) SetLevel(level slog.Level)
@@ -2215,7 +2215,7 @@ func (c *Logger) SetLevel(level slog.Level)
 SetLevel обновляет уровень логирования \- обёртка для вызова c.Leveler.Update\(\)
 
 <a name="Logger.SetLvl"></a>
-### func \(\*Logger\) [SetLvl](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L68>)
+### func \(\*Logger\) [SetLvl](<https://github.com/azorg/xlog/blob/main/logger.go#L68>)
 
 ```go
 func (c *Logger) SetLvl(level string)
@@ -2224,7 +2224,7 @@ func (c *Logger) SetLvl(level string)
 SetLvl обновляет уровень логирования на основе строки идентификатора типа "trace", "error" и т.п.
 
 <a name="Logger.Slog"></a>
-### func \(\*Logger\) [Slog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L38>)
+### func \(\*Logger\) [Slog](<https://github.com/azorg/xlog/blob/main/logger.go#L38>)
 
 ```go
 func (c *Logger) Slog() *slog.Logger
@@ -2233,7 +2233,7 @@ func (c *Logger) Slog() *slog.Logger
 Slog возвращает текущий указатель \*slog.Logger
 
 <a name="Logger.Trace"></a>
-### func \(\*Logger\) [Trace](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L58>)
+### func \(\*Logger\) [Trace](<https://github.com/azorg/xlog/blob/main/sugar.go#L58>)
 
 ```go
 func (c *Logger) Trace(msg string, args ...any)
@@ -2242,7 +2242,7 @@ func (c *Logger) Trace(msg string, args ...any)
 Trace записывает сообщение в журнал \(LevelTrace\)
 
 <a name="Logger.Tracef"></a>
-### func \(\*Logger\) [Tracef](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L198>)
+### func \(\*Logger\) [Tracef](<https://github.com/azorg/xlog/blob/main/sugar.go#L198>)
 
 ```go
 func (c *Logger) Tracef(format string, args ...any)
@@ -2251,7 +2251,7 @@ func (c *Logger) Tracef(format string, args ...any)
 Tracef записывает сообщение в традиционный журнал \(LevelTrace\)
 
 <a name="Logger.Warn"></a>
-### func \(\*Logger\) [Warn](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L98>)
+### func \(\*Logger\) [Warn](<https://github.com/azorg/xlog/blob/main/sugar.go#L98>)
 
 ```go
 func (c *Logger) Warn(msg string, args ...any)
@@ -2260,7 +2260,7 @@ func (c *Logger) Warn(msg string, args ...any)
 Warn записывает сообщение в журнал \(LevelWarn\)
 
 <a name="Logger.Warnf"></a>
-### func \(\*Logger\) [Warnf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sugar.go#L238>)
+### func \(\*Logger\) [Warnf](<https://github.com/azorg/xlog/blob/main/sugar.go#L238>)
 
 ```go
 func (c *Logger) Warnf(format string, args ...any)
@@ -2269,7 +2269,7 @@ func (c *Logger) Warnf(format string, args ...any)
 Warnf записывает сообщение в традиционный журнал \(LevelWarn\)
 
 <a name="Logger.With"></a>
-### func \(\*Logger\) [With](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L148>)
+### func \(\*Logger\) [With](<https://github.com/azorg/xlog/blob/main/logger.go#L148>)
 
 ```go
 func (c *Logger) With(args ...any) *Logger
@@ -2278,7 +2278,7 @@ func (c *Logger) With(args ...any) *Logger
 With создает дочерний логгер с добавлением заданных атрибутов. Метод аналогичен методу With для \*slog.Logger.
 
 <a name="Logger.WithAttrs"></a>
-### func \(\*Logger\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L132>)
+### func \(\*Logger\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/logger.go#L132>)
 
 ```go
 func (c *Logger) WithAttrs(attrs []slog.Attr) *Logger
@@ -2287,7 +2287,7 @@ func (c *Logger) WithAttrs(attrs []slog.Attr) *Logger
 WithAttrs создает дочерний логгер c добавлением заданных атрибутов
 
 <a name="Logger.WithFields"></a>
-### func \(\*Logger\) [WithFields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L117>)
+### func \(\*Logger\) [WithFields](<https://github.com/azorg/xlog/blob/main/logger.go#L117>)
 
 ```go
 func (c *Logger) WithFields(fields ...FieldsProvider) *Logger
@@ -2296,7 +2296,7 @@ func (c *Logger) WithFields(fields ...FieldsProvider) *Logger
 With создает дочерний логгер с добавлением заданных атрибутов
 
 <a name="Logger.WithGroup"></a>
-### func \(\*Logger\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L164>)
+### func \(\*Logger\) [WithGroup](<https://github.com/azorg/xlog/blob/main/logger.go#L164>)
 
 ```go
 func (c *Logger) WithGroup(name string) *Logger
@@ -2305,7 +2305,7 @@ func (c *Logger) WithGroup(name string) *Logger
 WithGroup создает дочерний логгер с добавлением группы. Метод аналогичен методу WithGroup для \*slog.Logger.
 
 <a name="Logger.WithMiddleware"></a>
-### func \(\*Logger\) [WithMiddleware](<https://github.com/azorg/cnet/blob/main/pkg/xlog/logger.go#L179>)
+### func \(\*Logger\) [WithMiddleware](<https://github.com/azorg/xlog/blob/main/logger.go#L179>)
 
 ```go
 func (c *Logger) WithMiddleware(mws ...Middleware) *Logger
@@ -2314,7 +2314,7 @@ func (c *Logger) WithMiddleware(mws ...Middleware) *Logger
 WithMiddleware создает дочерний логгер c добавлением Middleware
 
 <a name="Middleware"></a>
-## type [Middleware](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L17>)
+## type [Middleware](<https://github.com/azorg/xlog/blob/main/middleware.go#L17>)
 
 Middleware \- описывает тип функции для построения обёрток для slog.Handler'в \(т.н. middleware\)
 
@@ -2323,7 +2323,7 @@ type Middleware func(next HandleFunc) HandleFunc
 ```
 
 <a name="NewMiddleware"></a>
-### func [NewMiddleware](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L40>)
+### func [NewMiddleware](<https://github.com/azorg/xlog/blob/main/middleware.go#L40>)
 
 ```go
 func NewMiddleware(mwf MiddlewareFunc) Middleware
@@ -2336,7 +2336,7 @@ mwf - метод обёртки типа MiddlewareFunc
 ```
 
 <a name="NewMiddlewareForError"></a>
-### func [NewMiddlewareForError](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L139>)
+### func [NewMiddlewareForError](<https://github.com/azorg/xlog/blob/main/middleware.go#L139>)
 
 ```go
 func NewMiddlewareForError(logErr *Logger) Middleware
@@ -2345,7 +2345,7 @@ func NewMiddlewareForError(logErr *Logger) Middleware
 Пример Middleware, который все сообщения с ошибками \(с атрибутом "err"\) дополнительно направляет в заданный логгер. Данная функция приведена скорее для примера использования Middleware, чем для практического применения.
 
 <a name="NewMiddlewareMulti"></a>
-### func [NewMiddlewareMulti](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L92>)
+### func [NewMiddlewareMulti](<https://github.com/azorg/xlog/blob/main/middleware.go#L92>)
 
 ```go
 func NewMiddlewareMulti(log *Logger) Middleware
@@ -2358,7 +2358,7 @@ log - дополнительный логгер в который направл
 ```
 
 <a name="NewMiddlewareNoPasswd"></a>
-### func [NewMiddlewareNoPasswd](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L176>)
+### func [NewMiddlewareNoPasswd](<https://github.com/azorg/xlog/blob/main/middleware.go#L176>)
 
 ```go
 func NewMiddlewareNoPasswd() Middleware
@@ -2367,7 +2367,7 @@ func NewMiddlewareNoPasswd() Middleware
 Пример middleware, который заменяет значения атрибутов passwd, password на \*\*\*\*\*\*\*\*. Данная функция приведена скорее для примера использования Middleware, чем для практического применения.
 
 <a name="NewMiddlewareRateLimit"></a>
-### func [NewMiddlewareRateLimit](<https://github.com/azorg/cnet/blob/main/pkg/xlog/ratelimit.go#L307>)
+### func [NewMiddlewareRateLimit](<https://github.com/azorg/xlog/blob/main/ratelimit.go#L307>)
 
 ```go
 func NewMiddlewareRateLimit(conf RateLimitConf) Middleware
@@ -2382,7 +2382,7 @@ conf - конфигурация RateLimeter'а
 ```
 
 <a name="NewMiddlewareWithFields"></a>
-### func [NewMiddlewareWithFields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L108>)
+### func [NewMiddlewareWithFields](<https://github.com/azorg/xlog/blob/main/middleware.go#L108>)
 
 ```go
 func NewMiddlewareWithFields(fields FieldsProvider) Middleware
@@ -2391,7 +2391,7 @@ func NewMiddlewareWithFields(fields FieldsProvider) Middleware
 Пример Middleware, который добавляет \(в начало\) записи заданные дополнительные поля. Пример не корректно работает с группами \- все поля добавляются в последнюю открытую группу. Данная функция приведена скорее для примера использования Middleware, чем для практического применения.
 
 <a name="MiddlewareFunc"></a>
-## type [MiddlewareFunc](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L23-L25>)
+## type [MiddlewareFunc](<https://github.com/azorg/xlog/blob/main/middleware.go#L23-L25>)
 
 MiddlewareFunc \- описывает метод обёртку для построения Middleware
 
@@ -2404,7 +2404,7 @@ type MiddlewareFunc func(
 ```
 
 <a name="MiddlewareHandler"></a>
-## type [MiddlewareHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L28-L31>)
+## type [MiddlewareHandler](<https://github.com/azorg/xlog/blob/main/middleware.go#L28-L31>)
 
 Вспомогательная обёртка для создания Handler'ов с Middleware
 
@@ -2415,7 +2415,7 @@ type MiddlewareHandler struct {
 ```
 
 <a name="NewMiddlewareHandler"></a>
-### func [NewMiddlewareHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L49>)
+### func [NewMiddlewareHandler](<https://github.com/azorg/xlog/blob/main/middleware.go#L49>)
 
 ```go
 func NewMiddlewareHandler(handler slog.Handler, mws ...Middleware) *MiddlewareHandler
@@ -2424,7 +2424,7 @@ func NewMiddlewareHandler(handler slog.Handler, mws ...Middleware) *MiddlewareHa
 Создать обертку MiddlewareHandler'а с заданными middleware\(s\)
 
 <a name="MiddlewareHandler.Enabled"></a>
-### func \(\*MiddlewareHandler\) [Enabled](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L54>)
+### func \(\*MiddlewareHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/middleware.go#L54>)
 
 ```go
 func (h *MiddlewareHandler) Enabled(ctx context.Context, level slog.Level) bool
@@ -2433,7 +2433,7 @@ func (h *MiddlewareHandler) Enabled(ctx context.Context, level slog.Level) bool
 Enabled\(\) требуется для интерфейса slog.Handler
 
 <a name="MiddlewareHandler.Handle"></a>
-### func \(\*MiddlewareHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L59>)
+### func \(\*MiddlewareHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/middleware.go#L59>)
 
 ```go
 func (h *MiddlewareHandler) Handle(ctx context.Context, r slog.Record) error
@@ -2442,7 +2442,7 @@ func (h *MiddlewareHandler) Handle(ctx context.Context, r slog.Record) error
 Handle\(\) требуется для интерфейса slog.Handler
 
 <a name="MiddlewareHandler.WithAttrs"></a>
-### func \(\*MiddlewareHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L73>)
+### func \(\*MiddlewareHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/middleware.go#L73>)
 
 ```go
 func (h *MiddlewareHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -2451,7 +2451,7 @@ func (h *MiddlewareHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 WithAttrs\(\) требуется для интерфейса slog.Handler
 
 <a name="MiddlewareHandler.WithGroup"></a>
-### func \(\*MiddlewareHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/middleware.go#L81>)
+### func \(\*MiddlewareHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/middleware.go#L81>)
 
 ```go
 func (h *MiddlewareHandler) WithGroup(name string) slog.Handler
@@ -2460,7 +2460,7 @@ func (h *MiddlewareHandler) WithGroup(name string) slog.Handler
 WithGroup\(\) требуется для интерфейса slog.Handler
 
 <a name="MultiWriter"></a>
-## type [MultiWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/multiwriter.go#L11>)
+## type [MultiWriter](<https://github.com/azorg/xlog/blob/main/multiwriter.go#L11>)
 
 MultiWriter \- это обёртка для io.Writer для направления журналов по нескольким направлениям. Может использоваться, если необходимо отправлять журналы по нескольким направлениям одновременно \(например syslog \+ NATS\).
 
@@ -2469,7 +2469,7 @@ type MultiWriter []io.Writer
 ```
 
 <a name="NewMultiWriter"></a>
-### func [NewMultiWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/multiwriter.go#L19>)
+### func [NewMultiWriter](<https://github.com/azorg/xlog/blob/main/multiwriter.go#L19>)
 
 ```go
 func NewMultiWriter() MultiWriter
@@ -2478,7 +2478,7 @@ func NewMultiWriter() MultiWriter
 NewMultiWriter cоздает "пустой" MutliWriter. Далее в MultiWriter могут быть добавлены io.Writer'а с помощью метода Add.
 
 <a name="MultiWriter.Add"></a>
-### func \(MultiWriter\) [Add](<https://github.com/azorg/cnet/blob/main/pkg/xlog/multiwriter.go#L22>)
+### func \(MultiWriter\) [Add](<https://github.com/azorg/xlog/blob/main/multiwriter.go#L22>)
 
 ```go
 func (mw MultiWriter) Add(w io.Writer)
@@ -2487,7 +2487,7 @@ func (mw MultiWriter) Add(w io.Writer)
 Add добавляет заданный io.Writer в MultiWriter
 
 <a name="MultiWriter.Write"></a>
-### func \(MultiWriter\) [Write](<https://github.com/azorg/cnet/blob/main/pkg/xlog/multiwriter.go#L27>)
+### func \(MultiWriter\) [Write](<https://github.com/azorg/xlog/blob/main/multiwriter.go#L27>)
 
 ```go
 func (mw MultiWriter) Write(data []byte) (int, error)
@@ -2496,7 +2496,7 @@ func (mw MultiWriter) Write(data []byte) (int, error)
 Write реализует интерфейс io.Writer для MultiWriter'а. Производится последовательная запись данных data во все io.Writer'ы MultiWriter'а. Ошибки не возвращаются.
 
 <a name="Opt"></a>
-## type [Opt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L25-L58>)
+## type [Opt](<https://github.com/azorg/xlog/blob/main/flag.go#L25-L58>)
 
 Структура управления журналированием на основе опций командной строки. Типовое использование:
 
@@ -2553,7 +2553,7 @@ type Opt struct {
 ```
 
 <a name="NewOpt"></a>
-### func [NewOpt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L103>)
+### func [NewOpt](<https://github.com/azorg/xlog/blob/main/flag.go#L104>)
 
 ```go
 func NewOpt(prefixOpt ...string) *Opt
@@ -2571,40 +2571,41 @@ prefixOpt - опциональный префикс (по умолчанию "lo
 
 ```
 -log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
--log-pipe <pipe>                     - log pipe (stdout/stderr/null)
--log-file <file>                     - log file path
--log-file-mode <perm>                - log file mode (0640, 0600, 0644)
--log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
--log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
--log-id <on/off>                     - force on/off id (UUID) for each record (logId)
--log-sum <on/off>                    - force on/off check sum for each record
--log-sum-full <on/off>               - force on/off calculate full sum for earch record
--log-sum-chain <on/off>              - force on/off check sum chain
--log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
--log-time <on/off>                   - force on/off timestamp
--log-time-local <on/off>             - use local time (UTC by default)
--log-time-micro <on/off>             - force on/off microseconds in timestamp
--log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
--log-src <on/off>                    - force on/off log source file name and line number
--log-src-pkg <on/off>                - force on/off log source directory/file name and line number
--log-src-func <on/off>               - force on/off log function name
--log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
--log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
--log-level-off <true/false>          - force disable/enable level output
--log-rate-limit <on/off>             - force enable/disable rate limiter
--log-rate-limit-max-num <int>        - maximal number of rate limit messages
--log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
--log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
--log-rotate <on/off>                 - force on/off log rotate
--log-rotate-max-size <mb>            - rotate max size (begabytes)
--log-rotate-max-age <days>           - rotate max age (days)
--log-rotate-max-backups <num>        - rotate max backup files
--log-rotate-local-time <yes/no>      - use localtime (default UTC)
--log-rotate-compress <on/off>        - on/off compress (gzip)
+	-log-pipe <pipe>                     - log pipe (stdout/stderr/null)
+	-log-file <file>                     - log file path
+	-log-file-mode <perm>                - log file mode (0640, 0600, 0644)
+	-log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+	-log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
+	-log-id <on/off>                     - force on/off id (UUID) for each record (logId)
+	-log-sum <on/off>                    - force on/off check sum for each record
+	-log-sum-full <on/off>               - force on/off calculate full sum for earch record
+	-log-sum-chain <on/off>              - force on/off check sum chain
+	-log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
+	-log-time <on/off>                   - force on/off timestamp
+	-log-time-local <on/off>             - use local time (UTC by default)
+	-log-time-micro <on/off>             - force on/off microseconds in timestamp
+	-log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+	-log-src <on/off>                    - force on/off log source file name and line number
+	-log-src-pkg <on/off>                - force on/off log source directory/file name and line number
+	-log-src-func <on/off>               - force on/off log function name
+	-log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+ -log-source                          - force log source info (package/file/function)
+	-log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
+	-log-level-off <true/false>          - force disable/enable level output
+	-log-rate-limit <on/off>             - force enable/disable rate limiter
+	-log-rate-limit-max-num <int>        - maximal number of rate limit messages
+	-log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
+	-log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
+	-log-rotate <on/off>                 - force on/off log rotate
+	-log-rotate-max-size <mb>            - rotate max size (begabytes)
+	-log-rotate-max-age <days>           - rotate max age (days)
+	-log-rotate-max-backups <num>        - rotate max backup files
+	-log-rotate-local-time <yes/no>      - use localtime (default UTC)
+	-log-rotate-compress <on/off>        - on/off compress (gzip)
 ```
 
 <a name="NewOptSet"></a>
-### func [NewOptSet](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L113>)
+### func [NewOptSet](<https://github.com/azorg/xlog/blob/main/flag.go#L114>)
 
 ```go
 func NewOptSet(fs *flag.FlagSet, prefixOpt ...string) *Opt
@@ -2615,7 +2616,7 @@ NewOptSet создаёт набор опций командной строки �
 Данная расширенная версия функции NewOpt может использоваться в мультифункциональных приложениях, где апплеты могут иметь индивидуальные опции командной строки для настройки собсвенного логгера.
 
 <a name="Opt.UpdateConf"></a>
-### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L159>)
+### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/xlog/blob/main/flag.go#L160>)
 
 ```go
 func (opt *Opt) UpdateConf(conf *Conf)
@@ -2624,7 +2625,7 @@ func (opt *Opt) UpdateConf(conf *Conf)
 UpdateConf обогащает структуру конфигурации логгера опциями командной строки. Если соответствующие опции командной строки не заданы, то поля структуры конфигурации conf не модифицируются.
 
 <a name="RateLimitConf"></a>
-## type [RateLimitConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/conf.go#L220-L248>)
+## type [RateLimitConf](<https://github.com/azorg/xlog/blob/main/conf.go#L220-L248>)
 
 Настройка ограничителя вывода в журнал большого числа сходных сообщений за единицу времени, т.н. Rate Limiter.
 
@@ -2669,7 +2670,7 @@ type RateLimitConf struct {
 ```
 
 <a name="RotateConf"></a>
-## type [RotateConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/conf.go#L253-L288>)
+## type [RotateConf](<https://github.com/azorg/xlog/blob/main/conf.go#L253-L288>)
 
 Параметры ротации файлов журналов \(унаследовано от lumberjack\). См. https://github.com/natefinch/lumberjack Структура встроена в структуру конфигурации Conf.
 
@@ -2713,7 +2714,7 @@ type RotateConf struct {
 ```
 
 <a name="Stringer"></a>
-## type [Stringer](<https://github.com/azorg/cnet/blob/main/pkg/xlog/sprint.go#L14-L16>)
+## type [Stringer](<https://github.com/azorg/xlog/blob/main/sprint.go#L14-L16>)
 
 Типы данных соответствующему данному интерфейсу выводятся с помощью метода String\(\) без рефлексии с помощью функции Sprint\(\) при использовании TintHandler
 
@@ -2724,7 +2725,7 @@ type Stringer interface {
 ```
 
 <a name="TintHandler"></a>
-## type [TintHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L88-L107>)
+## type [TintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L88-L107>)
 
 Структура данных TintHandler, соответствующего интерфейсу slog.Handler. TintHandler \- это минималистский slog.Handler с подсветкой на основе исходников с "github.com/lmittmann/tint" \(https://github.com/lmittmann/tint/blob/main/handler.go\).
 
@@ -2756,7 +2757,7 @@ type TintHandler struct {
 ```
 
 <a name="NewTintHandler"></a>
-### func [NewTintHandler](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L113>)
+### func [NewTintHandler](<https://github.com/azorg/xlog/blob/main/tint.go#L113>)
 
 ```go
 func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler
@@ -2765,7 +2766,7 @@ func NewTintHandler(w io.Writer, opts *TintOptions) *TintHandler
 Создать новый Tinted хендлер, соответствующий slog.Handler'у
 
 <a name="TintHandler.Enabled"></a>
-### func \(\*TintHandler\) [Enabled](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L164>)
+### func \(\*TintHandler\) [Enabled](<https://github.com/azorg/xlog/blob/main/tint.go#L164>)
 
 ```go
 func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
@@ -2774,7 +2775,7 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.Handle"></a>
-### func \(\*TintHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L270>)
+### func \(\*TintHandler\) [Handle](<https://github.com/azorg/xlog/blob/main/tint.go#L270>)
 
 ```go
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
@@ -2783,7 +2784,7 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithAttrs"></a>
-### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L289>)
+### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/xlog/blob/main/tint.go#L289>)
 
 ```go
 func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -2792,7 +2793,7 @@ func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithGroup"></a>
-### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L307>)
+### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/xlog/blob/main/tint.go#L307>)
 
 ```go
 func (h *TintHandler) WithGroup(name string) slog.Handler
@@ -2801,7 +2802,7 @@ func (h *TintHandler) WithGroup(name string) slog.Handler
 Метод WithGroup\(\) реализует интерфейс slog.Handler
 
 <a name="TintOptions"></a>
-## type [TintOptions](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L28-L62>)
+## type [TintOptions](<https://github.com/azorg/xlog/blob/main/tint.go#L28-L62>)
 
 Структура конфигурации для создания TintHandler'а
 
@@ -2844,7 +2845,7 @@ type TintOptions struct {
 ```
 
 <a name="Writer"></a>
-## type [Writer](<https://github.com/azorg/cnet/blob/main/pkg/xlog/writer.go#L18-L23>)
+## type [Writer](<https://github.com/azorg/xlog/blob/main/writer.go#L18-L23>)
 
 Обобщенный интерфейс писателя логов \(с ротацией или без, с дублированием журнала на stdout/stderr или без, с выдачей в кастомный io.Writer или без\).
 
@@ -2858,7 +2859,7 @@ type Writer interface {
 ```
 
 <a name="NewWriter"></a>
-### func [NewWriter](<https://github.com/azorg/cnet/blob/main/pkg/xlog/writer.go#L148-L150>)
+### func [NewWriter](<https://github.com/azorg/xlog/blob/main/writer.go#L148-L150>)
 
 ```go
 func NewWriter(pipeName, fileName, mode string, rotate *RotateConf, writer io.Writer) Writer
