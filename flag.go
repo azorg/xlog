@@ -41,6 +41,7 @@ type Opt struct {
 	Src                    string // -log-src
 	SrcPkg                 string // -log-src-pkg
 	SrcFunc                string // -log-src-func
+	Source                 bool   // -log-source
 	SrcExt                 string // -log-src-ext
 	Color                  string // -log-color
 	LevelOff               string // -log-level-off
@@ -60,6 +61,9 @@ type Opt struct {
 // После создания опций Opt можно использовать стандартный вызов flag.Parse()
 // для заполнения полей структуры. Булевы переменные обрабатываются так же
 // как и переменные окружения.
+//
+// Данная функция вызывает функцию NewOptSet с передачей глобального набора
+// флагов flag.CommandLine в качестве первого аргумента.
 //
 //	prefixOpt - опциональный префикс (по умолчанию "log-")
 //
@@ -97,43 +101,54 @@ type Opt struct {
 //	-log-rotate-local-time <yes/no>      - use localtime (default UTC)
 //	-log-rotate-compress <on/off>        - on/off compress (gzip)
 func NewOpt(prefixOpt ...string) *Opt {
+	return NewOptSet(flag.CommandLine, prefixOpt...)
+}
+
+// NewOptSet создаёт набор опций командной строки с параметрами логгера
+// для заданного flag.FlagSet.
+//
+// Данная расширенная версия функции NewOpt может использоваться в
+// мультифункциональных приложениях, где апплеты могут иметь
+// индивидуальные опции командной строки для настройки собсвенного логгера.
+func NewOptSet(fs *flag.FlagSet, prefixOpt ...string) *Opt {
 	prefix := DefaultFlagPrefix
 	if len(prefixOpt) != 0 {
 		prefix = prefixOpt[0]
 	}
 	opt := &Opt{}
 
-	flag.StringVar(&opt.Level, prefix+"level", "", "override log level (flood/trace/debug/info/notice/warm/error/crit)")
-	flag.StringVar(&opt.Pipe, prefix+"pipe", "", "log pipe (stdout/stderr/null)")
-	flag.StringVar(&opt.File, prefix+"file", "", "log file path")
-	flag.StringVar(&opt.FileMode, prefix+"file-mode", "", "log file mode (0640, 0600, 0644)")
-	flag.StringVar(&opt.Format, prefix+"format", "", "log format (json|prod/text|logfmt/tint|tinted|human/std|default)")
-	flag.StringVar(&opt.GoId, prefix+"goid", "", "force on/off goroutine id for each record (goroutine)")
-	flag.StringVar(&opt.Id, prefix+"id", "", "force on/off id (UUID) for each record (logId)")
-	flag.StringVar(&opt.Sum, prefix+"sum", "", "force on/off check sum for each record")
-	flag.StringVar(&opt.SumFull, prefix+"sum-full", "", "force on/off calculate full check sum for each record")
-	flag.StringVar(&opt.SumChain, prefix+"sum-chain", "", "force on/off check sum chain")
-	flag.StringVar(&opt.SumAlone, prefix+"sum-alone", "", "force on/off add check sum as alone atribute (logSum)")
-	flag.StringVar(&opt.Time, prefix+"time", "", "force on/off timestamp")
-	flag.StringVar(&opt.TimeLocal, prefix+"time-local", "", "use local time (UTC by default)")
-	flag.StringVar(&opt.TimeMicro, prefix+"time-micro", "", "force on/off microseconds in timestamp")
-	flag.StringVar(&opt.TimeFormat, prefix+"time-format", "", "override tinted log time format (e.g. 15:04:05.999 or TimeOnly)")
-	flag.StringVar(&opt.Src, prefix+"src", "", "force on/off log source file name and line number")
-	flag.StringVar(&opt.SrcPkg, prefix+"src-pkg", "", "force on/off log source directory/file name and line number")
-	flag.StringVar(&opt.SrcFunc, prefix+"src-func", "", "force enable/disable functions name")
-	flag.StringVar(&opt.SrcExt, prefix+"src-ext", "", "force enable/disable show '.go' extension of source file name")
-	flag.StringVar(&opt.Color, prefix+"color", "", "force enable/disable tinted colors")
-	flag.StringVar(&opt.LevelOff, prefix+"level-off", "", "force disable/enable level output")
-	flag.StringVar(&opt.RateLimit, prefix+"rate-limit", "", "force enable/disable rate limiter")
-	flag.StringVar(&opt.RateLimitMaxNum, prefix+"rate-limit-max-num", "", "maximal number of rate limit messages")
-	flag.StringVar(&opt.RateLimitIntervalMs, prefix+"rate-limit-interval-ms", "", "rate limiter interval [ms]")
-	flag.StringVar(&opt.RateLimitFlushPeriodMs, prefix+"rate-limit-flush-period-ms", "", "rate limiter flush period [ms]")
-	flag.StringVar(&opt.Rotate, prefix+"rotate", "", "force enable/disable log rotate")
-	flag.StringVar(&opt.RotateMaxSize, prefix+"rotate-max-size", "", "rotate max size (begabytes)")
-	flag.StringVar(&opt.RotateMaxAge, prefix+"rotate-max-age", "", "rotate max age (days)")
-	flag.StringVar(&opt.RotateMaxBackups, prefix+"rotate-max-backups", "", "rotate max backup files")
-	flag.StringVar(&opt.RotateLocalTime, prefix+"rotate-local-time", "", "use localtime (default UTC)")
-	flag.StringVar(&opt.RotateCompress, prefix+"rotate-compress", "", "compress (gzip)")
+	fs.StringVar(&opt.Level, prefix+"level", "", "override log level (flood/trace/debug/info/notice/warm/error/crit)")
+	fs.StringVar(&opt.Pipe, prefix+"pipe", "", "log pipe (stdout/stderr/null)")
+	fs.StringVar(&opt.File, prefix+"file", "", "log file path")
+	fs.StringVar(&opt.FileMode, prefix+"file-mode", "", "log file mode (0640, 0600, 0644)")
+	fs.StringVar(&opt.Format, prefix+"format", "", "log format (json|prod/text|logfmt/tint|tinted|human/std|default)")
+	fs.StringVar(&opt.GoId, prefix+"goid", "", "force on/off goroutine id for each record (goroutine)")
+	fs.StringVar(&opt.Id, prefix+"id", "", "force on/off id (UUID) for each record (logId)")
+	fs.StringVar(&opt.Sum, prefix+"sum", "", "force on/off check sum for each record")
+	fs.StringVar(&opt.SumFull, prefix+"sum-full", "", "force on/off calculate full check sum for each record")
+	fs.StringVar(&opt.SumChain, prefix+"sum-chain", "", "force on/off check sum chain")
+	fs.StringVar(&opt.SumAlone, prefix+"sum-alone", "", "force on/off add check sum as alone atribute (logSum)")
+	fs.StringVar(&opt.Time, prefix+"time", "", "force on/off timestamp")
+	fs.StringVar(&opt.TimeLocal, prefix+"time-local", "", "use local time (UTC by default)")
+	fs.StringVar(&opt.TimeMicro, prefix+"time-micro", "", "force on/off microseconds in timestamp")
+	fs.StringVar(&opt.TimeFormat, prefix+"time-format", "", "override tinted log time format (e.g. 15:04:05.999 or TimeOnly)")
+	fs.StringVar(&opt.Src, prefix+"src", "", "force on/off log source file name and line number")
+	fs.StringVar(&opt.SrcPkg, prefix+"src-pkg", "", "force on/off log source directory/file name and line number")
+	fs.StringVar(&opt.SrcFunc, prefix+"src-func", "", "force enable/disable functions name")
+	fs.StringVar(&opt.SrcExt, prefix+"src-ext", "", "force enable/disable show '.go' extension of source file name")
+	fs.BoolVar(&opt.Source, prefix+"source", false, "force log source info (package/file/function)")
+	fs.StringVar(&opt.Color, prefix+"color", "", "force enable/disable tinted colors")
+	fs.StringVar(&opt.LevelOff, prefix+"level-off", "", "force disable/enable level output")
+	fs.StringVar(&opt.RateLimit, prefix+"rate-limit", "", "force enable/disable rate limiter")
+	fs.StringVar(&opt.RateLimitMaxNum, prefix+"rate-limit-max-num", "", "maximal number of rate limit messages")
+	fs.StringVar(&opt.RateLimitIntervalMs, prefix+"rate-limit-interval-ms", "", "rate limiter interval [ms]")
+	fs.StringVar(&opt.RateLimitFlushPeriodMs, prefix+"rate-limit-flush-period-ms", "", "rate limiter flush period [ms]")
+	fs.StringVar(&opt.Rotate, prefix+"rotate", "", "force enable/disable log rotate")
+	fs.StringVar(&opt.RotateMaxSize, prefix+"rotate-max-size", "", "rotate max size (begabytes)")
+	fs.StringVar(&opt.RotateMaxAge, prefix+"rotate-max-age", "", "rotate max age (days)")
+	fs.StringVar(&opt.RotateMaxBackups, prefix+"rotate-max-backups", "", "rotate max backup files")
+	fs.StringVar(&opt.RotateLocalTime, prefix+"rotate-local-time", "", "use localtime (default UTC)")
+	fs.StringVar(&opt.RotateCompress, prefix+"rotate-compress", "", "compress (gzip)")
 
 	return opt
 }
@@ -188,6 +203,12 @@ func (opt *Opt) UpdateConf(conf *Conf) {
 	}
 	if opt.SrcExt != "" {
 		conf.SrcExt = StringToBool(opt.SrcExt)
+	}
+	if opt.Source {
+		conf.Src = true
+		conf.SrcPkg = true
+		conf.SrcFunc = true
+		conf.SrcExt = false
 	}
 	if opt.Time != "" {
 		conf.TimeOff = !StringToBool(opt.Time)

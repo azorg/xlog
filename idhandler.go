@@ -6,13 +6,13 @@ import (
 	"context"
 	"fmt"
 	"log/slog" // go>=1.21
-	//"os"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/gofrs/uuid"
+	//"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	// FIXME: "golang.org/x/exp/slog" // экспериментальный пакет для go=1.20 только
 )
 
@@ -32,25 +32,25 @@ const (
 // Структура конфигурации для IdHandler'а
 type IdOptions struct {
 	// Добавить в журнал идентификатор горутины ("goroutine")
-	GoId bool `json:"goId"`
+	GoId bool `json:"go-id"`
 
 	// Добавлять UUID идентификатор к каждой записи в журнале ("logId")
-	LogId bool `json:"logId"`
+	LogId bool `json:"log-id"`
 
 	// Добавить подсчёт контрольной суммы (КС)
-	AddSum bool `json:"addSum"`
+	AddSum bool `json:"add-sum"`
 
 	// Вычислять контрольную сумму по всем атрибутам рекурсивно
-	SumFull bool `json:"sumFull"`
+	SumFull bool `json:"sum-full"`
 
 	// Включить в расчет контрольной суммы метку времени
-	SumTime bool `json:"sumTime"`
+	SumTime bool `json:"sum-time"`
 
 	// Подсчет контрольной суммы с учётом предыдущей записи
-	SumChain bool `json:"sumChain"`
+	SumChain bool `json:"sum-chain"`
 
 	// Не упаковать КС в последний байт UUID, а добавить ключ "LogSum"
-	SumAlone bool `json:"sumAlone"`
+	SumAlone bool `json:"sum-alone"`
 }
 
 // Структура безопасного хранения контрольной суммы
@@ -114,8 +114,6 @@ func NewIdHandler(
 
 // Метод Enabled() реализует интерфейс slog.Handler
 func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	return h.handler.Enabled(ctx, level)
 }
 

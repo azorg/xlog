@@ -3,7 +3,7 @@
 # xlog
 
 ```go
-import "github.com/azorg/xlog/v2"
+import "cnet/pkg/xlog"
 ```
 
 ### X Logger
@@ -306,6 +306,8 @@ logXY.Debug("vector", "z", 3)
   - [func ChecksumVerifySimple\(rec map\[string\]any\) \(ChecksumRes, error\)](<#ChecksumVerifySimple>)
   - [func \(res ChecksumRes\) SourceToString\(\) string](<#ChecksumRes.SourceToString>)
 - [type Conf](<#Conf>)
+  - [func OriginalConf\(\) Conf](<#OriginalConf>)
+  - [func SetupOriginalConf\(\) Conf](<#SetupOriginalConf>)
 - [type Fields](<#Fields>)
   - [func \(fields Fields\) Args\(\) \[\]any](<#Fields.Args>)
   - [func \(fields Fields\) Attrs\(\) \[\]slog.Attr](<#Fields.Attrs>)
@@ -392,6 +394,7 @@ logXY.Debug("vector", "z", 3)
   - [func \(mw MultiWriter\) Write\(data \[\]byte\) \(int, error\)](<#MultiWriter.Write>)
 - [type Opt](<#Opt>)
   - [func NewOpt\(prefixOpt ...string\) \*Opt](<#NewOpt>)
+  - [func NewOptSet\(fs \*flag.FlagSet, prefixOpt ...string\) \*Opt](<#NewOptSet>)
   - [func \(opt \*Opt\) UpdateConf\(conf \*Conf\)](<#Opt.UpdateConf>)
 - [type RateLimitConf](<#RateLimitConf>)
 - [type RotateConf](<#RotateConf>)
@@ -669,7 +672,7 @@ func Alertf(format string, args ...any)
 Alertf записывает сообщение в традиционный журнал по умолчанию \(LevelAlert\)
 
 <a name="Checksum"></a>
-## func [Checksum](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L63-L64>)
+## func [Checksum](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L64-L65>)
 
 ```go
 func Checksum(sum uint16, full, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -688,7 +691,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumAttr"></a>
-## func [ChecksumAttr](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L249>)
+## func [ChecksumAttr](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L252>)
 
 ```go
 func ChecksumAttr(key string, value any) uint16
@@ -697,7 +700,7 @@ func ChecksumAttr(key string, value any) uint16
 ChecksumAttr вычисляет контрольную сумму записи для одного произвольного атрибута key/value. Контрольная сумма вычисляется рекурсивно для всех вложенных структур с использованием рефлексии. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде.
 
 <a name="ChecksumAttrSlog"></a>
-## func [ChecksumAttrSlog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L190>)
+## func [ChecksumAttrSlog](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L193>)
 
 ```go
 func ChecksumAttrSlog(key string, value slog.Value) uint16
@@ -706,7 +709,7 @@ func ChecksumAttrSlog(key string, value slog.Value) uint16
 ChecksumAttrSlog \- вычисляет контрольную сумму записи для одного атрибута slog key/value. Анализируется тип slog значения и если тип, не стандартный \(см. slogg.Kind\) применяется рефлексия \(таким образом рассчитываем немного поднять производительность\). Контрольная сумма вычисляется рекурсивно для всех вложенных структур. Контрольные суммы смежных атрибутов складываются по модулю 2 \(XOR\). Контрольные суммы key и value складываются по правилу сложения в дополнительном коде. Функция принимает key и slog.Value. Функция корректно обрабатывает slog группы.
 
 <a name="ChecksumFull"></a>
-## func [ChecksumFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L151-L152>)
+## func [ChecksumFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L153-L154>)
 
 ```go
 func ChecksumFull(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -734,7 +737,7 @@ logId - UUID записи
 ```
 
 <a name="ChecksumSimple"></a>
-## func [ChecksumSimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L88-L89>)
+## func [ChecksumSimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L89-L90>)
 
 ```go
 func ChecksumSimple(sum uint16, timeOn bool, r slog.Record, logId uuid.UUID) uint16
@@ -1358,7 +1361,7 @@ func Warnf(format string, args ...any)
 Warnf записывает сообщение в традиционный журнал по умолчанию \(LevelWarn\)
 
 <a name="ChecksumRes"></a>
-## type [ChecksumRes](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L36-L46>)
+## type [ChecksumRes](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L37-L47>)
 
 ChecksumRes \- это результат проверки контрольной суммы JSON записи. Пользователь может сверить поля LogSum и Sum. Заполняется по результатам выполнения функции ChecksumVerify\(\).
 
@@ -1377,7 +1380,7 @@ type ChecksumRes struct {
 ```
 
 <a name="ChecksumVerify"></a>
-### func [ChecksumVerify](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L374>)
+### func [ChecksumVerify](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L377>)
 
 ```go
 func ChecksumVerify(full bool, rec map[string]any) (ChecksumRes, error)
@@ -1391,7 +1394,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifyFull"></a>
-### func [ChecksumVerifyFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L526>)
+### func [ChecksumVerifyFull](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L531>)
 
 ```go
 func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error)
@@ -1406,7 +1409,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumVerifySimple"></a>
-### func [ChecksumVerifySimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L394>)
+### func [ChecksumVerifySimple](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L397>)
 
 ```go
 func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error)
@@ -1421,7 +1424,7 @@ rec - запись извлекаемая из журнала с помощью 
 ```
 
 <a name="ChecksumRes.SourceToString"></a>
-### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L634>)
+### func \(ChecksumRes\) [SourceToString](<https://github.com/azorg/cnet/blob/main/pkg/xlog/checksum.go#L641>)
 
 ```go
 func (res ChecksumRes) SourceToString() string
@@ -1625,6 +1628,24 @@ type Conf struct {
 }
 ```
 
+<a name="OriginalConf"></a>
+### func [OriginalConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/shortcuts.go#L8>)
+
+```go
+func OriginalConf() Conf
+```
+
+OriginalConf \- конфигурация максимально приближенная к стандартному slog.TextHandler "из коробки" и совместимая с некоторыми проектами
+
+<a name="SetupOriginalConf"></a>
+### func [SetupOriginalConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/shortcuts.go#L24>)
+
+```go
+func SetupOriginalConf() Conf
+```
+
+SetupOriginalConf устанавливает конфигурацию логгера максимально близкую к стандартному slog.TextHandler "из коробки" и совместимую с некоторыми проектами
+
 <a name="Fields"></a>
 ## type [Fields](<https://github.com/azorg/cnet/blob/main/pkg/xlog/fields.go#L13>)
 
@@ -1727,7 +1748,7 @@ func (h *IdHandler) Enabled(ctx context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.Handle"></a>
-### func \(\*IdHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L218>)
+### func \(\*IdHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L216>)
 
 ```go
 func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
@@ -1736,7 +1757,7 @@ func (h *IdHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithAttrs"></a>
-### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L284>)
+### func \(\*IdHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L282>)
 
 ```go
 func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -1745,7 +1766,7 @@ func (h *IdHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="IdHandler.WithGroup"></a>
-### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L344>)
+### func \(\*IdHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/idhandler.go#L342>)
 
 ```go
 func (h *IdHandler) WithGroup(name string) slog.Handler
@@ -1761,25 +1782,25 @@ func (h *IdHandler) WithGroup(name string) slog.Handler
 ```go
 type IdOptions struct {
     // Добавить в журнал идентификатор горутины ("goroutine")
-    GoId bool `json:"goId"`
+    GoId bool `json:"go-id"`
 
     // Добавлять UUID идентификатор к каждой записи в журнале ("logId")
-    LogId bool `json:"logId"`
+    LogId bool `json:"log-id"`
 
     // Добавить подсчёт контрольной суммы (КС)
-    AddSum bool `json:"addSum"`
+    AddSum bool `json:"add-sum"`
 
     // Вычислять контрольную сумму по всем атрибутам рекурсивно
-    SumFull bool `json:"sumFull"`
+    SumFull bool `json:"sum-full"`
 
     // Включить в расчет контрольной суммы метку времени
-    SumTime bool `json:"sumTime"`
+    SumTime bool `json:"sum-time"`
 
     // Подсчет контрольной суммы с учётом предыдущей записи
-    SumChain bool `json:"sumChain"`
+    SumChain bool `json:"sum-chain"`
 
     // Не упаковать КС в последний байт UUID, а добавить ключ "LogSum"
-    SumAlone bool `json:"sumAlone"`
+    SumAlone bool `json:"sum-alone"`
 }
 ```
 
@@ -2475,7 +2496,7 @@ func (mw MultiWriter) Write(data []byte) (int, error)
 Write реализует интерфейс io.Writer для MultiWriter'а. Производится последовательная запись данных data во все io.Writer'ы MultiWriter'а. Ошибки не возвращаются.
 
 <a name="Opt"></a>
-## type [Opt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L25-L57>)
+## type [Opt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L25-L58>)
 
 Структура управления журналированием на основе опций командной строки. Типовое использование:
 
@@ -2514,6 +2535,7 @@ type Opt struct {
     Src                    string // -log-src
     SrcPkg                 string // -log-src-pkg
     SrcFunc                string // -log-src-func
+    Source                 bool   // -log-source
     SrcExt                 string // -log-src-ext
     Color                  string // -log-color
     LevelOff               string // -log-level-off
@@ -2531,13 +2553,15 @@ type Opt struct {
 ```
 
 <a name="NewOpt"></a>
-### func [NewOpt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L99>)
+### func [NewOpt](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L103>)
 
 ```go
 func NewOpt(prefixOpt ...string) *Opt
 ```
 
 NewOpt создаёт набор опций командной строки с параметрами логгера. После создания опций Opt можно использовать стандартный вызов flag.Parse\(\) для заполнения полей структуры. Булевы переменные обрабатываются так же как и переменные окружения.
+
+Данная функция вызывает функцию NewOptSet с передачей глобального набора флагов flag.CommandLine в качестве первого аргумента.
 
 ```
 prefixOpt - опциональный префикс (по умолчанию "log-")
@@ -2579,8 +2603,19 @@ prefixOpt - опциональный префикс (по умолчанию "lo
 -log-rotate-compress <on/off>        - on/off compress (gzip)
 ```
 
+<a name="NewOptSet"></a>
+### func [NewOptSet](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L113>)
+
+```go
+func NewOptSet(fs *flag.FlagSet, prefixOpt ...string) *Opt
+```
+
+NewOptSet создаёт набор опций командной строки с параметрами логгера для заданного flag.FlagSet.
+
+Данная расширенная версия функции NewOpt может использоваться в мультифункциональных приложениях, где апплеты могут иметь индивидуальные опции командной строки для настройки собсвенного логгера.
+
 <a name="Opt.UpdateConf"></a>
-### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L144>)
+### func \(\*Opt\) [UpdateConf](<https://github.com/azorg/cnet/blob/main/pkg/xlog/flag.go#L159>)
 
 ```go
 func (opt *Opt) UpdateConf(conf *Conf)
@@ -2739,7 +2774,7 @@ func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool
 Метод Enabled\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.Handle"></a>
-### func \(\*TintHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L272>)
+### func \(\*TintHandler\) [Handle](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L270>)
 
 ```go
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
@@ -2748,7 +2783,7 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error
 Метод Handle\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithAttrs"></a>
-### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L292>)
+### func \(\*TintHandler\) [WithAttrs](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L289>)
 
 ```go
 func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
@@ -2757,7 +2792,7 @@ func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 Метод WithAttrs\(\) реализует интерфейс slog.Handler
 
 <a name="TintHandler.WithGroup"></a>
-### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L313>)
+### func \(\*TintHandler\) [WithGroup](<https://github.com/azorg/cnet/blob/main/pkg/xlog/tint.go#L307>)
 
 ```go
 func (h *TintHandler) WithGroup(name string) slog.Handler

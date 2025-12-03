@@ -11,7 +11,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofrs/uuid"
+	//"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/sigurn/crc16"
 	// FIXME: "golang.org/x/exp/slog" // экспериментальный пакет для go=1.20 только
 )
@@ -103,7 +104,8 @@ func ChecksumSimple(
 	// Учесть в CRC текст сообщения
 	buf.WriteString(r.Message)
 
-	if !logId.IsNil() {
+	//if !logId.IsNil() { // github.com/gofrs/uuid
+	if logId != uuid.Nil { // github.com/google/uuid
 		// Учесть в CRC первые (старшие) 14 байт UUID идентификатора
 		*buf = append(*buf, logId[0:14]...)
 	}
@@ -168,7 +170,8 @@ func ChecksumFull(
 		return true
 	})
 
-	if !logId.IsNil() {
+	//if !logId.IsNil() { // github.com/gofrs/uuid
+	if logId != uuid.Nil { // github.com/google/uuid
 		// Учесть в КС первые (старшие) 15 байт UUID идентификатора
 		sum ^= ChecksumAttr(IdKey, logId[:14])
 	}
@@ -466,7 +469,8 @@ func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error) {
 		if k == IdKey { // "logId"
 			val, ok := v.(string)
 			if ok && len(val) > 0 {
-				id, err := uuid.FromString(val)
+				//id, err := uuid.FromString(val) // github.com/gofrs/uuid
+				id, err := uuid.Parse(val) // github.com/google/uuid
 				if err == nil {
 					res.LogId = id
 					*buf = append(*buf, id[0:14]...)
@@ -494,7 +498,8 @@ func ChecksumVerifySimple(rec map[string]any) (ChecksumRes, error) {
 	// Вычислить CRC16
 	res.Sum = crc16.Checksum(*buf, crcTable)
 
-	if res.LogId.IsNil() && logSum == "" {
+	//if res.LogId.IsNil() && logSum == "" { // github.com/gofrs/uuid
+	if res.LogId == uuid.Nil && logSum == "" { // github.com/google/uuid
 		return res, fmt.Errorf("logId and logSum are nil both")
 	}
 
@@ -588,7 +593,8 @@ func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error) {
 		if k == IdKey { // "logId"
 			val, ok := v.(string)
 			if ok && len(val) > 0 {
-				id, err := uuid.FromString(val)
+				//id, err := uuid.FromString(val) // github.com/gofrs/uuid
+				id, err := uuid.Parse(val) // github.com/google/uuid
 				if err == nil {
 					res.LogId = id
 					res.Sum ^= ChecksumAttr(IdKey, id[:14])
@@ -609,7 +615,8 @@ func ChecksumVerifyFull(rec map[string]any) (ChecksumRes, error) {
 		res.Sum ^= ChecksumAttr(k, v)
 	} // for k, v
 
-	if res.LogId.IsNil() && logSum == "" {
+	//if res.LogId.IsNil() && logSum == "" { // github.com/gofrs/uuid
+	if res.LogId == uuid.Nil && logSum == "" { // github.com/google/uuid
 		return res, fmt.Errorf("logId and logSum are nil both")
 	}
 

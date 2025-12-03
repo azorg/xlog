@@ -1,4 +1,5 @@
-PRJ = "github.com/azorg/xlog/v2"
+#PRJ = "github.com/azorg/xlog/v2"
+PRJ = "cnet/pkg/xlog"
 
 # Version, git hash
 VERSION_FILE := VERSION.txt
@@ -27,7 +28,7 @@ simplify:
 	gofmt -l -w -s *.go
 
 vet:
-	go vet
+	go vet ./...
 
 test:
 	go test
@@ -57,7 +58,8 @@ go.sum: go.mod Makefile tidy
 	@echo ">>> create go.sum"
 	@#go get golang.org/x/exp/slog@v0.0.0-20240904232852-e7e105dedf7e # experimental slog (go <=1.20)
 	@go get gopkg.in/natefinch/lumberjack.v2 # Lumberjack as log rotate
-	@go get github.com/gofrs/uuid # UUID (v7)
+	@#go get github.com/gofrs/uuid # UUID (v7)
+	@go get github.com/google/uuid # UUID (v7)
 	@go get github.com/sigurn/crc16 # CRC16
 	@#go get github.com/sigurn/crc8 # CRC8
 	@touch go.sum

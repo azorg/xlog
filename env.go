@@ -157,6 +157,15 @@ func Env(conf *Conf, prefixOpt ...string) {
 	if v := os.Getenv(prefix + "SRC_EXT"); v != "" {
 		conf.SrcExt = StringToBool(v)
 	}
+	// Для совместимости с проектами и инсталяциями, где используется LOG_SOURCE
+	if v := os.Getenv(prefix + "SOURCE"); v != "" {
+		conf.Src = StringToBool(v)
+		if conf.Src {
+			conf.SrcPkg = true
+			conf.SrcFunc = true
+			conf.SrcExt = false
+		}
+	}
 	if v := os.Getenv(prefix + "COLOR"); v != "" {
 		conf.ColorOff = !StringToBool(v)
 	}

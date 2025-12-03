@@ -1,4 +1,4 @@
-package xlog // import "github.com/azorg/xlog/v2"
+package xlog // import "cnet/pkg/xlog"
 
 # X Logger
 
@@ -1159,6 +1159,15 @@ type Conf struct {
 }
     Conf - структура конфигурации для настройки логгера
 
+func OriginalConf() Conf
+    OriginalConf - конфигурация максимально приближенная к стандартному
+    slog.TextHandler "из коробки" и совместимая с некоторыми проектами
+
+func SetupOriginalConf() Conf
+    SetupOriginalConf устанавливает конфигурацию логгера максимально близкую
+    к стандартному slog.TextHandler "из коробки" и совместимую с некоторыми
+    проектами
+
 type Fields map[string]any
     Fields - это простая обертка для наполнения атрибутами записи в журнале на
     основе карт (key/value)
@@ -1224,25 +1233,25 @@ func (h *IdHandler) WithGroup(name string) slog.Handler
 
 type IdOptions struct {
 	// Добавить в журнал идентификатор горутины ("goroutine")
-	GoId bool `json:"goId"`
+	GoId bool `json:"go-id"`
 
 	// Добавлять UUID идентификатор к каждой записи в журнале ("logId")
-	LogId bool `json:"logId"`
+	LogId bool `json:"log-id"`
 
 	// Добавить подсчёт контрольной суммы (КС)
-	AddSum bool `json:"addSum"`
+	AddSum bool `json:"add-sum"`
 
 	// Вычислять контрольную сумму по всем атрибутам рекурсивно
-	SumFull bool `json:"sumFull"`
+	SumFull bool `json:"sum-full"`
 
 	// Включить в расчет контрольной суммы метку времени
-	SumTime bool `json:"sumTime"`
+	SumTime bool `json:"sum-time"`
 
 	// Подсчет контрольной суммы с учётом предыдущей записи
-	SumChain bool `json:"sumChain"`
+	SumChain bool `json:"sum-chain"`
 
 	// Не упаковать КС в последний байт UUID, а добавить ключ "LogSum"
-	SumAlone bool `json:"sumAlone"`
+	SumAlone bool `json:"sum-alone"`
 }
     Структура конфигурации для IdHandler'а
 
@@ -1582,6 +1591,7 @@ type Opt struct {
 	Src                    string // -log-src
 	SrcPkg                 string // -log-src-pkg
 	SrcFunc                string // -log-src-func
+	Source                 bool   // -log-source
 	SrcExt                 string // -log-src-ext
 	Color                  string // -log-color
 	LevelOff               string // -log-level-off
@@ -1618,6 +1628,9 @@ func NewOpt(prefixOpt ...string) *Opt
     заполнения полей структуры. Булевы переменные обрабатываются так же как и
     переменные окружения.
 
+    Данная функция вызывает функцию NewOptSet с передачей глобального набора
+    флагов flag.CommandLine в качестве первого аргумента.
+
         prefixOpt - опциональный префикс (по умолчанию "log-")
 
     Приложения могут включить в свой usage-вывод следующий текст:
@@ -1653,6 +1666,14 @@ func NewOpt(prefixOpt ...string) *Opt
         -log-rotate-max-backups <num>        - rotate max backup files
         -log-rotate-local-time <yes/no>      - use localtime (default UTC)
         -log-rotate-compress <on/off>        - on/off compress (gzip)
+
+func NewOptSet(fs *flag.FlagSet, prefixOpt ...string) *Opt
+    NewOptSet создаёт набор опций командной строки с параметрами логгера для
+    заданного flag.FlagSet.
+
+    Данная расширенная версия функции NewOpt может использоваться в
+    мультифункциональных приложениях, где апплеты могут иметь индивидуальные
+    опции командной строки для настройки собсвенного логгера.
 
 func (opt *Opt) UpdateConf(conf *Conf)
     UpdateConf обогащает структуру конфигурации логгера опциями командной

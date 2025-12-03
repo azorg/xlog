@@ -3,21 +3,21 @@
 package main
 
 import (
-  "flag"
-  "os"
-	
-	"github.com/azorg/xlog/v2"
-	"github.com/azorg/xlog/v2/signal"
+	"flag"
+	"os"
+
+	"cnet/pkg/xlog"
+	"cnet/pkg/xlog/signal"
 )
 
 // Опции командной строки
 type Opt struct {
-	File  string   // входной файл журнала
-  Chain bool     // признак обработки цепочки
+	File  string // входной файл журнала
+	Chain bool   // признак обработки цепочки
 }
 
 func main() {
-  // Разобрать опции командной строки
+	// Разобрать опции командной строки
 	for _, o := range os.Args[1:] {
 		if o == "-help" || o == "--help" || o == "help" {
 			printUsage()
@@ -27,25 +27,25 @@ func main() {
 			break // abort by first command
 		}
 	}
-	
-  // Настройки логгера по умолчанию
+
+	// Настройки логгера по умолчанию
 	logConf := xlog.Conf{
-    Format:     "human",
-    ColorOff:   false,
-    Level:      "flood",
-    Src:        true,
-    //TimeFormat: "timeOnlyMilli",
-  }
-	
-  // Получить настройки логгера из переменных окружения
+		Format:   "human",
+		ColorOff: false,
+		Level:    "flood",
+		Src:      true,
+		//TimeFormat: "timeOnlyMilli",
+	}
+
+	// Получить настройки логгера из переменных окружения
 	xlog.Env(&logConf)
 
-  opt := &Opt{}
+	opt := &Opt{}
 	flag.StringVar(&opt.File, "file", "", "Input log file (use stdin by default)")
 	flag.BoolVar(&opt.Chain, "chain", false, "Check chain")
-  
-  logOpt := xlog.NewOpt()
-  flag.Parse()
+
+	logOpt := xlog.NewOpt()
+	flag.Parse()
 
 	// Добавить настройки логгера, заданные в командной строке
 	logOpt.UpdateConf(&logConf)
@@ -60,14 +60,14 @@ func main() {
 			xlog.Fatal(APP_NAME + " aborted")
 		}()
 	}
-		
-  go func() {
+
+	go func() {
 		<-signal.CtrlC
 		xlog.Fatal(APP_NAME + " aborted")
 	}()
 
 	if LOGROTATE_SIGHUP {
-    // Подключить обработчик SIGHUP
+		// Подключить обработчик SIGHUP
 		go func() {
 			for {
 				_, ok := <-signal.SIGHUP
@@ -84,23 +84,23 @@ func main() {
 			} // for
 		}()
 	}
-	
-  // Разобрать командную строку
+
+	// Разобрать командную строку
 	args := flag.Args() // аргументы командной строки без обработанных флагов
 	argc := len(args)
 
 	if argc == 0 {
-    scan(logConf, opt.File, opt.Chain)
+		scan(logConf, opt.File, opt.Chain)
 		return
 	}
-	
-  cmd := args[0] // argc != 0
+
+	cmd := args[0] // argc != 0
 	switch cmd {
 	case "scan":
-    scan(logConf, opt.File, opt.Chain)
-  case "test":
-    test(logConf)
-  default:
+		scan(logConf, opt.File, opt.Chain)
+	case "test":
+		test(logConf)
+	default:
 		xlog.Fatal("Unknown command (run with --help option)", "cmd", cmd)
 	} // switch
 }

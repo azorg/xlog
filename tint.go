@@ -162,8 +162,6 @@ func (h *TintHandler) clone() *TintHandler {
 
 // Метод Enabled() реализует интерфейс slog.Handler
 func (h *TintHandler) Enabled(_ context.Context, level slog.Level) bool {
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	return level >= h.level.Level()
 }
 
@@ -270,9 +268,6 @@ func (h *TintHandler) formatToString(r slog.Record) string {
 
 // Метод Handle() реализует интерфейс slog.Handler
 func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
 	buf := h.format(r)
 	defer buf.Free()
 
@@ -284,15 +279,14 @@ func (h *TintHandler) Handle(ctx context.Context, r slog.Record) error {
 	(*buf)[len(*buf)-1] = newLineChar
 
 	// Произвести запись буфера в выходной канал/файл
+	h.mu.Lock()
 	_, err := h.w.Write(*buf)
+	h.mu.Unlock()
 	return err
 }
 
 // Метод WithAttrs() реализует интерфейс slog.Handler
 func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
 	if len(attrs) == 0 {
 		return h
 	}
@@ -311,9 +305,6 @@ func (h *TintHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 
 // Метод WithGroup() реализует интерфейс slog.Handler
 func (h *TintHandler) WithGroup(name string) slog.Handler {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
 	if name == "" {
 		return h
 	}
