@@ -1635,38 +1635,38 @@ func NewOpt(prefixOpt ...string) *Opt
 
     Приложения могут включить в свой usage-вывод следующий текст:
 
-        	-log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
-        	-log-pipe <pipe>                     - log pipe (stdout/stderr/null)
-        	-log-file <file>                     - log file path
-        	-log-file-mode <perm>                - log file mode (0640, 0600, 0644)
-        	-log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
-        	-log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
-        	-log-id <on/off>                     - force on/off id (UUID) for each record (logId)
-        	-log-sum <on/off>                    - force on/off check sum for each record
-        	-log-sum-full <on/off>               - force on/off calculate full sum for earch record
-        	-log-sum-chain <on/off>              - force on/off check sum chain
-        	-log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
-        	-log-time <on/off>                   - force on/off timestamp
-        	-log-time-local <on/off>             - use local time (UTC by default)
-        	-log-time-micro <on/off>             - force on/off microseconds in timestamp
-        	-log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
-        	-log-src <on/off>                    - force on/off log source file name and line number
-        	-log-src-pkg <on/off>                - force on/off log source directory/file name and line number
-        	-log-src-func <on/off>               - force on/off log function name
-        	-log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
-         -log-source                          - force log source info (package/file/function)
-        	-log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
-        	-log-level-off <true/false>          - force disable/enable level output
-        	-log-rate-limit <on/off>             - force enable/disable rate limiter
-        	-log-rate-limit-max-num <int>        - maximal number of rate limit messages
-        	-log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
-        	-log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
-        	-log-rotate <on/off>                 - force on/off log rotate
-        	-log-rotate-max-size <mb>            - rotate max size (begabytes)
-        	-log-rotate-max-age <days>           - rotate max age (days)
-        	-log-rotate-max-backups <num>        - rotate max backup files
-        	-log-rotate-local-time <yes/no>      - use localtime (default UTC)
-        	-log-rotate-compress <on/off>        - on/off compress (gzip)
+        -log-level <level>                   - log level (flood/trace/debug/info/notice/warm/error/crit)
+        -log-pipe <pipe>                     - log pipe (stdout/stderr/null)
+        -log-file <file>                     - log file path
+        -log-file-mode <perm>                - log file mode (0640, 0600, 0644)
+        -log-format <format>                 - log format (json|prod/text|logfmt/tint|tinted|human/default|std)
+        -log-goid <on/off>                   - force on/off goroutine id for each record (goroutine)
+        -log-id <on/off>                     - force on/off id (UUID) for each record (logId)
+        -log-sum <on/off>                    - force on/off check sum for each record
+        -log-sum-full <on/off>               - force on/off calculate full sum for earch record
+        -log-sum-chain <on/off>              - force on/off check sum chain
+        -log-sum-alone <on/off>              - force on/off add check sum as alone atribute (logSum)
+        -log-time <on/off>                   - force on/off timestamp
+        -log-time-local <on/off>             - use local time (UTC by default)
+        -log-time-micro <on/off>             - force on/off microseconds in timestamp
+        -log-time-format <fmt>               - override tinted log time format (e.g. 15:04:05.999 or timeOnly)
+        -log-src <on/off>                    - force on/off log source file name and line number
+        -log-src-pkg <on/off>                - force on/off log source directory/file name and line number
+        -log-src-func <on/off>               - force on/off log function name
+        -log-src-ext <on/off>                - force enable/disable show ".go" extension of source file name
+        -log-source                          - force log source info (package/file/function)
+        -log-color <on/off>                  - force enable/disable tinted colors (ANSI/Escape)
+        -log-level-off <true/false>          - force disable/enable level output
+        -log-rate-limit <on/off>             - force enable/disable rate limiter
+        -log-rate-limit-max-num <int>        - maximal number of rate limit messages
+        -log-rate-limit-interval-ms <ms>     - rate limiter interval [ms]
+        -log-rate-limit-flush-period-ms <ms> - rate limiter flush period [ms]
+        -log-rotate <on/off>                 - force on/off log rotate
+        -log-rotate-max-size <mb>            - rotate max size (begabytes)
+        -log-rotate-max-age <days>           - rotate max age (days)
+        -log-rotate-max-backups <num>        - rotate max backup files
+        -log-rotate-local-time <yes/no>      - use localtime (default UTC)
+        -log-rotate-compress <on/off>        - on/off compress (gzip)
 
 func NewOptSet(fs *flag.FlagSet, prefixOpt ...string) *Opt
     NewOptSet создаёт набор опций командной строки с параметрами логгера для
